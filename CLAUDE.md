@@ -11,6 +11,12 @@
 - `npm run test:integration` — run integration tests (auto-starts/stops test DB)
 - `npm run test:e2e` — run Playwright tests (auto-starts/stops postgres + mailpit)
 
+## Pre-commit hook
+- A Claude-powered code review runs before every commit
+- Install once after cloning: `npm run setup:hooks`
+- Reviews staged JS/JSX files; if issues are found, Claude attempts to fix and re-reviews (up to 3 iterations)
+- Bypass when necessary: `git commit --no-verify`
+
 ## Conventions
 - Always co-locate unit tests with source files
 - New API routes need integration tests

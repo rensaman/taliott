@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# .hooks/pre-commit
+#
+# Runs a Claude code review on staged JS/JSX changes before every commit.
+# If issues are found, Claude attempts to fix them and re-reviews (up to MAX_ITER times).
+# Use `git commit --no-verify` to bypass when needed.
+
+set -euo pipefail
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx)$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+if ! command -v claude &>/dev/null; then
+  echo "[review] 'claude' CLI not found — skipping code review."
+  exit 0
+fi
+
+MAX_ITER=3
+ITER=0
+
+REVIEW_PROMPT='You are a senior code reviewer doing a pre-commit review. Analyse the git diff below.
+
+Flag only real issues:
+- Bugs or logic errors
+- Security vulnerabilities (injection, XSS, unvalidated input at boundaries)
+- Unhandled promise rejections or missing error handling at system boundaries
+- Obvious gaps in test coverage for newly added logic
+
+Do NOT flag:
+- Code style preferences or formatting
+- Minor naming choices
+- Missing comments or docstrings
+- Improvements that are out of scope for this change
+
+If the code is acceptable, respond with exactly this word on the last line: APPROVED
+If there are real issues, list each one clearly, then write on the last line: CHANGES_REQUESTED'
+
+get_diff() {
+  git diff --cached -- '*.js' '*.jsx'
+}
+
+DIFF=$(get_diff)
+
+echo ""
+echo "[review] Reviewing $(echo "$STAGED_FILES" | wc -l | tr -d ' ') staged file(s) with Claude…"
+
+while [ $ITER -lt $MAX_ITER ]; do
+  ITER=$((ITER + 1))
+  echo "[review] Iteration $ITER / $MAX_ITER"
+
+  REVIEW=$(claude -p \
+    --allowedTools "Read,Grep,Glob" \
+    "$REVIEW_PROMPT
+
+--- staged diff ---
+$DIFF")
+
+  echo ""
+  echo "$REVIEW"
+  echo ""
+
+  VERDICT=$(echo "$REVIEW" | tail -1 | tr -d '[:space:]')
+
+  if [ "$VERDICT" = "APPROVED" ]; then
+    echo "[review] ✓ Code review passed."
+    exit 0
+  fi
+
+  if [ "$VERDICT" != "CHANGES_REQUESTED" ]; then
+    echo "[review] ⚠ Unexpected response from Claude — allowing commit."
+    exit 0
+  fi
+
+  if [ $ITER -ge $MAX_ITER ]; then
+    break
+  fi
+
+  echo "[review] Applying fixes (iteration $ITER)…"
+
+  FILES_LIST=$(echo "$STAGED_FILES" | tr '\n' ' ')
+
+  claude -p \
+    --dangerously-skip-permissions \
+    "A pre-commit code review found the following issues. Apply minimal, targeted fixes to resolve them.
+Do not refactor unrelated code. Do not add comments unless they clarify a fix. Do not modify tests unless the test itself contains the bug.
+
+Issues to fix:
+$REVIEW
+
+Files to fix: $FILES_LIST
+
+After fixing, do not add any explanation — just make the changes."
+
+  # Re-stage the files Claude may have modified
+  echo "$STAGED_FILES" | xargs git add 2>/dev/null || true
+
+  DIFF=$(get_diff)
+  echo ""
+  echo "[review] Re-reviewing after fixes…"
+done
+
+echo "[review] ✗ Code review failed after $MAX_ITER iteration(s). Commit blocked."
+echo "         Resolve the issues above and re-commit."
+echo "         Use 'git commit --no-verify' to bypass this check if necessary."
+exit 1

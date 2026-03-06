@@ -9,7 +9,8 @@
     "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
     "test": "npm run test --workspace=frontend && npm run test --workspace=backend",
     "test:integration": "npm run test:integration --workspace=backend",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "setup:hooks": "cp .hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo 'Pre-commit hook installed.'"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
