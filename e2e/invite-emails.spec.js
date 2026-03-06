@@ -1,6 +1,6 @@
 /**
- * E2E tests for US 1.3 — Tokenized Email Distribution
- * Verifies that invite emails land in Mailpit after event creation.
+ * E2E tests for US 1.3 + US 1.4 — Tokenized Email Distribution & Organizer Confirmation
+ * Verifies that invite and confirmation emails land in Mailpit after event creation.
  */
 import { test, expect } from '@playwright/test';
 import { clearMailpit, waitForEmail } from './mailpit.js';
@@ -10,7 +10,7 @@ test.describe.serial('invite emails via Mailpit', () => {
     await clearMailpit();
   });
 
-  test('organizer receives an invite email after event creation', async ({ page }) => {
+  test('organizer receives a confirmation email with admin link', async ({ page }) => {
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Invite E2E Event',
@@ -23,9 +23,26 @@ test.describe.serial('invite emails via Mailpit', () => {
       },
     });
     expect(res.ok()).toBeTruthy();
+    const { admin_token } = await res.json();
 
-    const email = await waitForEmail('organizer-e2e@example.com');
-    expect(email.Subject).toContain('Invite E2E Event');
+    // Poll until we find the confirmation email (subject contains "is ready")
+    const deadline = Date.now() + 5_000;
+    let confirmationEmail;
+    while (Date.now() < deadline) {
+      const listRes = await fetch('http://localhost:8025/api/v1/messages');
+      const data = await listRes.json();
+      confirmationEmail = data.messages?.find(m =>
+        m.To?.some(t => t.Address === 'organizer-e2e@example.com') &&
+        m.Subject?.includes('is ready')
+      );
+      if (confirmationEmail) break;
+      await page.waitForTimeout(300);
+    }
+    expect(confirmationEmail).toBeDefined();
+
+    const msgRes = await fetch(`http://localhost:8025/api/v1/message/${confirmationEmail.ID}`);
+    const msg = await msgRes.json();
+    expect(msg.Text).toContain(`/admin/${admin_token}`);
   });
 
   test('each invitee receives an email containing their participation link', async ({ page }) => {

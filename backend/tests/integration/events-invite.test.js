@@ -1,5 +1,5 @@
 /**
- * Integration tests for invite email sending on POST /api/events (US 1.3)
+ * Integration tests for invite email sending on POST /api/events (US 1.3 + US 1.4)
  * Mocks the mailer to assert sendEmail call counts without real SMTP.
  */
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
@@ -33,21 +33,20 @@ const BASE_BODY = {
   deadline: '2025-06-30T12:00:00.000Z',
 };
 
-describe('POST /api/events — invite emails (US 1.3)', () => {
-  it('sends one email per participant (organizer + invitees)', async () => {
-    // Wait briefly for fire-and-forget sendEventInvites to run
+describe('POST /api/events — invite emails (US 1.3 + US 1.4)', () => {
+  it('sends one email per participant plus one organizer confirmation', async () => {
     const res = await request(app).post('/api/events').send(BASE_BODY);
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    // Give the async fire-and-forget a tick to run
     await new Promise(r => setTimeout(r, 50));
 
-    const totalParticipants = res.body.participants.length; // organizer + 2 invitees = 3
-    expect(sendEmail).toHaveBeenCalledTimes(totalParticipants);
+    // participants (organizer + 2 invitees) + 1 organizer confirmation = 4
+    const totalParticipants = res.body.participants.length;
+    expect(sendEmail).toHaveBeenCalledTimes(totalParticipants + 1);
   });
 
-  it('sends to each participant email address', async () => {
+  it('sends participant invites to each email address', async () => {
     const res = await request(app).post('/api/events').send(BASE_BODY);
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
@@ -60,14 +59,36 @@ describe('POST /api/events — invite emails (US 1.3)', () => {
     expect(recipients).toContain('bob@example.com');
   });
 
-  it('email subject includes event name', async () => {
+  it('organizer receives a confirmation email with a distinct subject', async () => {
     const res = await request(app).post('/api/events').send(BASE_BODY);
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
     await new Promise(r => setTimeout(r, 50));
 
-    const subjects = sendEmail.mock.calls.map(([msg]) => msg.subject);
-    expect(subjects.every(s => s.includes('Invite Test Event'))).toBe(true);
+    const orgEmails = sendEmail.mock.calls
+      .map(([msg]) => msg)
+      .filter(msg => msg.to === 'organizer@example.com');
+
+    // organizer gets 2 emails: one participant invite + one confirmation
+    expect(orgEmails).toHaveLength(2);
+    const subjects = orgEmails.map(m => m.subject);
+    // at least one subject should differ from the participant invite pattern
+    expect(subjects.some(s => s !== subjects[0])).toBe(true);
+  });
+
+  it('organizer confirmation email body contains admin link', async () => {
+    const res = await request(app).post('/api/events').send(BASE_BODY);
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    await new Promise(r => setTimeout(r, 50));
+
+    const confirmationEmail = sendEmail.mock.calls
+      .map(([msg]) => msg)
+      .find(msg => msg.to === 'organizer@example.com' && msg.text.includes('/admin/'));
+
+    expect(confirmationEmail).toBeDefined();
+    expect(confirmationEmail.text).toContain(`/admin/${res.body.admin_token}`);
   });
 });

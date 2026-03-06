@@ -16,11 +16,12 @@ export default function App() {
   }
 
   if (confirmation) {
+    const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
     return (
       <main>
         <h1>{confirmation.name}</h1>
         <p>Your event was created. Save your admin link to manage it:</p>
-        <code data-testid="admin-token">{confirmation.admin_token}</code>
+        <a href={adminUrl} data-testid="admin-token">{adminUrl}</a>
         <p>
           Invite emails have been sent to{' '}
           <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).

@@ -195,11 +195,11 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 As an Organizer I want to receive an email with my admin link after creating an event so that I can return to manage it later without bookmarking the confirmation screen.
 
 **Acceptance Criteria**
-- [ ] Organizer receives a distinct email (not a participant invite) after event creation
-- [ ] Email contains a direct link to the admin surface: `APP_BASE_URL/admin/:adminToken`
-- [ ] Subject clearly identifies the event by name
-- [ ] Organizer's participant invite (if they are also a participant) is sent separately and is unchanged
-- [ ] Confirmation screen also displays the full admin URL (not just the raw token)
+- [x] Organizer receives a distinct email (not a participant invite) after event creation
+- [x] Email contains a direct link to the admin surface: `APP_BASE_URL/admin/:adminToken`
+- [x] Subject clearly identifies the event by name
+- [x] Organizer's participant invite (if they are also a participant) is sent separately and is unchanged
+- [x] Confirmation screen also displays the full admin URL (not just the raw token)
 
 **Entities touched:** `Event` (admin_token, organizer_email)
 
@@ -208,10 +208,10 @@ As an Organizer I want to receive an email with my admin link after creating an 
 **UI components:** `ConfirmationScreen` (show full clickable admin URL)
 
 **Test cases**
-- Unit: buildOrganizerConfirmation(event) returns correct subject, to, and admin link in body
-- Integration: POST /api/events sends one additional email to organizer_email with admin link
-- Integration: organizer confirmation email is distinct from participant invite (different subject / body)
-- E2E: organizer creates event → inbox contains a confirmation email with /admin/:adminToken link
+- Unit: buildOrganizerConfirmation(event) returns correct subject, to, and admin link in body ✓
+- Integration: POST /api/events sends one additional email to organizer_email with admin link ✓
+- Integration: organizer confirmation email is distinct from participant invite (different subject / body) ✓
+- E2E: organizer creates event → inbox contains a confirmation email with /admin/:adminToken link ✓
 
 ---
 
