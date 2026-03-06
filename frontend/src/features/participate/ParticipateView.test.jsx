@@ -1,5 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Mock location components — they use Leaflet and fetch internally
+vi.mock('./LocationMap.jsx', () => ({ default: () => <div data-testid="location-map" /> }));
+vi.mock('./AddressSearchInput.jsx', () => ({ default: () => <div data-testid="address-search" /> }));
+
 import ParticipateView from './ParticipateView.jsx';
 
 const LOCKED_RESPONSE = {
@@ -10,7 +15,7 @@ const LOCKED_RESPONSE = {
     status: 'locked',
     locked: true,
   },
-  participant: { id: 'p-1', email: 'jamie@example.com' },
+  participant: { id: 'p-1', email: 'jamie@example.com', latitude: null, longitude: null, address_label: null },
   slots: [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }],
   availability: [],
 };
@@ -91,5 +96,23 @@ describe('ParticipateView', () => {
     await waitFor(() =>
       expect(screen.getAllByTestId('slot')).toHaveLength(1)
     );
+  });
+
+  it('shows location section when event is open', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('address-search')).toBeInTheDocument()
+    );
+    expect(screen.getByTestId('location-map')).toBeInTheDocument();
+  });
+
+  it('hides location section when event is locked', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByRole('heading')).toBeInTheDocument()
+    );
+    expect(screen.queryByTestId('address-search')).not.toBeInTheDocument();
   });
 });

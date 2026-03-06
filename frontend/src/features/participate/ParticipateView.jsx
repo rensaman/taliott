@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import DeadlineBadge from './DeadlineBadge.jsx';
+import AddressSearchInput from './AddressSearchInput.jsx';
+import LocationMap from './LocationMap.jsx';
 
 export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [location, setLocation] = useState(null);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -11,7 +14,13 @@ export default function ParticipateView({ participantId }) {
         if (!res.ok) throw new Error('Participation link not found.');
         return res.json();
       })
-      .then(setData)
+      .then(d => {
+        setData(d);
+        const { latitude, longitude, address_label } = d.participant;
+        if (latitude != null && longitude != null) {
+          setLocation({ lat: latitude, lng: longitude, label: address_label });
+        }
+      })
       .catch(err => setError(err.message));
   }, [participantId]);
 
@@ -21,6 +30,15 @@ export default function ParticipateView({ participantId }) {
   const { event, slots, availability } = data;
   const availMap = Object.fromEntries(availability.map(a => [a.slot_id, a.state]));
 
+  async function saveLocation(loc) {
+    setLocation(loc);
+    await fetch(`/api/participate/${participantId}/location`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
+    });
+  }
+
   return (
     <main>
       <h1>{event.name}</h1>
@@ -28,6 +46,13 @@ export default function ParticipateView({ participantId }) {
 
       {event.locked && (
         <p role="status">Results only — voting has closed.</p>
+      )}
+
+      {!event.locked && (
+        <section aria-label="Your location">
+          <AddressSearchInput onSelect={saveLocation} />
+          <LocationMap location={location} onLocationChange={saveLocation} />
+        </section>
       )}
 
       <section aria-label="Time slots">

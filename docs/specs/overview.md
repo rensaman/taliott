@@ -225,11 +225,11 @@ As an Organizer I want to receive an email with my admin link after creating an 
 As a Participant I want to search for my address so that my location is resolved to coordinates without manual entry.
 
 **Acceptance Criteria**
-- [ ] Fuzzy search triggers after 3 characters typed
-- [ ] Geocoding calls are debounced (≥300 ms)
-- [ ] Selecting a result places a draggable pin on the map
-- [ ] Dragging the pin updates the stored coordinates
-- [ ] Coordinates are saved to the participant record on selection or drag-end
+- [x] Fuzzy search triggers after 3 characters typed
+- [x] Geocoding calls are debounced (≥300 ms)
+- [x] Selecting a result places a draggable pin on the map
+- [x] Dragging the pin updates the stored coordinates
+- [x] Coordinates are saved to the participant record on selection or drag-end
 
 **Entities touched:** `Participant` (latitude, longitude, address_label)
 
@@ -238,11 +238,11 @@ As a Participant I want to search for my address so that my location is resolved
 **UI components:** `AddressSearchInput`, `LocationMap`, `DraggablePin`
 
 **Test cases**
-- Unit: debounce utility fires once after 300 ms of inactivity
-- Unit: geocode response is mapped to {lat, lng, label}
-- Integration: PATCH /api/participate/:id/location updates lat/lng
-- Integration: GET /api/geocode proxies and returns results
-- E2E: participant types address → selects result → pin appears on map → coordinates saved
+- Unit: debounce utility fires once after 300 ms of inactivity ✓
+- Unit: geocode response is mapped to {lat, lng, label} ✓
+- Integration: PATCH /api/participate/:id/location updates lat/lng ✓
+- Integration: GET /api/geocode proxies and returns results ✓
+- E2E: participant types address → selects result → pin appears on map → coordinates saved ✓
 
 ---
 

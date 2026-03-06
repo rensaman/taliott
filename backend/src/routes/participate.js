@@ -33,7 +33,13 @@ router.get('/:participantId', async (req, res) => {
       status: participant.event.status,
       locked,
     },
-    participant: { id: participant.id, email: participant.email },
+    participant: {
+      id: participant.id,
+      email: participant.email,
+      latitude: participant.latitude,
+      longitude: participant.longitude,
+      address_label: participant.addressLabel,
+    },
     slots: participant.event.slots.map(s => ({
       id: s.id,
       starts_at: s.startsAt,
@@ -87,6 +93,51 @@ router.patch('/:participantId/availability', async (req, res) => {
     }
   } catch (err) {
     console.error('Failed to upsert availability:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  return res.json({ ok: true });
+});
+
+router.patch('/:participantId/location', async (req, res) => {
+  const { latitude, longitude, address_label } = req.body;
+
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+    return res.status(400).json({ error: 'latitude and longitude must be numbers' });
+  }
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return res.status(400).json({ error: 'latitude or longitude out of valid range' });
+  }
+
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+      include: { event: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  if (isEventLocked(participant.event)) {
+    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
+  }
+
+  try {
+    await getPrisma().participant.update({
+      where: { id: participant.id },
+      data: {
+        latitude,
+        longitude,
+        addressLabel: address_label ?? null,
+        respondedAt: participant.respondedAt ?? new Date(),
+      },
+    });
+  } catch (err) {
+    console.error('Failed to update location:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 
