@@ -97,6 +97,27 @@ describe('POST /api/events', () => {
     expect(res.body.admin_token).toMatch(uuidV4Re);
   });
 
+  it('participant ids are UUID v4', async () => {
+    const res = await request(app).post('/api/events').send(BASE_BODY);
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const uuidV4Re = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    for (const p of res.body.participants) {
+      expect(p.id).toMatch(uuidV4Re);
+    }
+  });
+
+  it('each participant id differs from admin_token and from each other', async () => {
+    const res = await request(app).post('/api/events').send(BASE_BODY);
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const ids = res.body.participants.map(p => p.id);
+    const allTokens = [res.body.admin_token, ...ids];
+    expect(new Set(allTokens).size).toBe(allTokens.length);
+  });
+
   it('returns 400 when required fields are missing', async () => {
     const res = await request(app).post('/api/events').send({ organizer_email: 'x@x.com' });
     expect(res.status).toBe(400);

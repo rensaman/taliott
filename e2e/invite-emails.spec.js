@@ -1,0 +1,86 @@
+/**
+ * E2E tests for US 1.3 — Tokenized Email Distribution
+ * Verifies that invite emails land in Mailpit after event creation.
+ */
+import { test, expect } from '@playwright/test';
+import { clearMailpit, waitForEmail } from './mailpit.js';
+
+test.describe.serial('invite emails via Mailpit', () => {
+  test.beforeAll(async () => {
+    await clearMailpit();
+  });
+
+  test('organizer receives an invite email after event creation', async ({ page }) => {
+    const res = await page.request.post('/api/events', {
+      data: {
+        name: 'Invite E2E Event',
+        organizer_email: 'organizer-e2e@example.com',
+        participant_emails: ['invitee1-e2e@example.com'],
+        date_range_start: '2025-08-01',
+        date_range_end: '2025-08-01',
+        part_of_day: 'morning',
+        deadline: '2099-12-31T23:59:59.000Z',
+      },
+    });
+    expect(res.ok()).toBeTruthy();
+
+    const email = await waitForEmail('organizer-e2e@example.com');
+    expect(email.Subject).toContain('Invite E2E Event');
+  });
+
+  test('each invitee receives an email containing their participation link', async ({ page }) => {
+    const res = await page.request.post('/api/events', {
+      data: {
+        name: 'Multi Invite E2E',
+        organizer_email: 'host-e2e@example.com',
+        participant_emails: ['guest1-e2e@example.com', 'guest2-e2e@example.com'],
+        date_range_start: '2025-08-02',
+        date_range_end: '2025-08-02',
+        part_of_day: 'morning',
+        deadline: '2099-12-31T23:59:59.000Z',
+      },
+    });
+    expect(res.ok()).toBeTruthy();
+    const { participants } = await res.json();
+
+    const guest1 = participants.find(p => p.email === 'guest1-e2e@example.com');
+    const guest2 = participants.find(p => p.email === 'guest2-e2e@example.com');
+
+    const email1 = await waitForEmail('guest1-e2e@example.com');
+    const email2 = await waitForEmail('guest2-e2e@example.com');
+
+    // Verify each email links to the correct participant path
+    const body1 = email1.Snippet ?? '';
+    const body2 = email2.Snippet ?? '';
+
+    expect(email1.Subject).toContain('Multi Invite E2E');
+    expect(email2.Subject).toContain('Multi Invite E2E');
+
+    // Fetch full message body to check participate link
+    const msgRes1 = await fetch(`http://localhost:8025/api/v1/message/${email1.ID}`);
+    const msg1 = await msgRes1.json();
+    expect(msg1.Text).toContain(`/participate/${guest1.id}`);
+
+    const msgRes2 = await fetch(`http://localhost:8025/api/v1/message/${email2.ID}`);
+    const msg2 = await msgRes2.json();
+    expect(msg2.Text).toContain(`/participate/${guest2.id}`);
+  });
+
+  test('confirmation screen shows admin token after form submit', async ({ page }) => {
+    await page.goto('/');
+    await page.getByLabel(/event name/i).fill('E2E Confirmation Test');
+    await page.getByLabel(/organizer.*email/i).fill('conf-e2e@example.com');
+    await page.getByLabel(/start/i).fill('2025-09-01');
+    await page.getByLabel(/end/i).fill('2025-09-01');
+
+    // Set deadline if the field exists
+    const deadlineField = page.getByLabel(/deadline/i);
+    if (await deadlineField.isVisible()) {
+      await deadlineField.fill('2025-08-31');
+    }
+
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page.getByTestId('admin-token')).toBeVisible();
+  });
+});

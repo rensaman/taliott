@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
+import { sendEventInvites } from '../lib/invite-mailer.js';
 
 const router = Router();
 
@@ -57,6 +58,9 @@ router.post('/', async (req, res) => {
     console.error('Failed to create event:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
+
+  // Fire-and-forget — invite emails are best-effort; don't block the response
+  sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
 
   return res.status(201).json({
     event_id: event.id,

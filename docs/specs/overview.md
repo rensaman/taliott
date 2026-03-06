@@ -167,10 +167,10 @@ As an Organizer I want the event to lock automatically at the deadline so that l
 As an Organizer I want each invitee to receive a unique, passwordless access link so that entry is secure without requiring accounts.
 
 **Acceptance Criteria**
-- [ ] Each participant receives a distinct UUID-based participation link
-- [ ] Participation UUIDs are non-sequential (v4)
-- [ ] Organizer receives a separate admin link with a distinct admin_token
-- [ ] No two participants share the same token
+- [x] Each participant receives a distinct UUID-based participation link
+- [x] Participation UUIDs are non-sequential (v4)
+- [x] Organizer receives a separate admin link with a distinct admin_token
+- [x] No two participants share the same token
 
 **Entities touched:** `Event` (admin_token), `Participant` (id used as token)
 
@@ -179,11 +179,39 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 **UI components:** `InviteForm` (email list input), `ConfirmationScreen` (shows admin link to organizer)
 
 **Test cases**
-- Unit: token generation produces v4 UUIDs
-- Integration: POST /api/events with 3 participant emails creates 3 Participant rows with distinct UUIDs
-- Integration: each participant UUID differs from admin_token
-- Integration: email sending job is queued once per participant
-- E2E: organizer submits invite form → confirmation screen shows admin link
+- Unit: token generation produces v4 UUIDs ✓
+- Integration: POST /api/events with 3 participant emails creates 3 Participant rows with distinct UUIDs ✓
+- Integration: each participant UUID differs from admin_token ✓
+- Integration: email sending job is queued once per participant ✓
+- E2E: organizer submits invite form → confirmation screen shows admin link ✓
+
+> **Note:** Organizer email delivery of the admin link is a separate concern handled in US 1.4. The admin_token is currently returned in the API response and displayed on the confirmation screen only.
+
+---
+
+#### US 1.4 — Organizer Confirmation Email
+
+**Story**
+As an Organizer I want to receive an email with my admin link after creating an event so that I can return to manage it later without bookmarking the confirmation screen.
+
+**Acceptance Criteria**
+- [ ] Organizer receives a distinct email (not a participant invite) after event creation
+- [ ] Email contains a direct link to the admin surface: `APP_BASE_URL/admin/:adminToken`
+- [ ] Subject clearly identifies the event by name
+- [ ] Organizer's participant invite (if they are also a participant) is sent separately and is unchanged
+- [ ] Confirmation screen also displays the full admin URL (not just the raw token)
+
+**Entities touched:** `Event` (admin_token, organizer_email)
+
+**API:** No new endpoints; `POST /api/events` triggers a second email to `organizer_email` via `invite-mailer.js`
+
+**UI components:** `ConfirmationScreen` (show full clickable admin URL)
+
+**Test cases**
+- Unit: buildOrganizerConfirmation(event) returns correct subject, to, and admin link in body
+- Integration: POST /api/events sends one additional email to organizer_email with admin link
+- Integration: organizer confirmation email is distinct from participant invite (different subject / body)
+- E2E: organizer creates event → inbox contains a confirmation email with /admin/:adminToken link
 
 ---
 
@@ -270,6 +298,36 @@ As a Participant I want to see the group heatmap and fair center update live as 
 ---
 
 ### Epic 3 — Smart Aggregation & Finalization
+
+---
+
+#### US 3.0 — Admin Dashboard Shell
+
+**Story**
+As an Organizer I want a dedicated admin page accessible via my secret link so that I can track who has responded and prepare to finalize the event.
+
+**Acceptance Criteria**
+- [ ] `GET /admin/:adminToken` renders the organizer dashboard (returns 404 for unknown tokens)
+- [ ] Dashboard shows event name, deadline, and current status (open / locked / finalized)
+- [ ] Participant list displays each invitee's email and whether they have responded
+- [ ] Response count summary is shown (e.g. "3 of 5 responded")
+- [ ] Admin token in the URL is the sole auth mechanism — no session or login required
+- [ ] Navigating to `/admin/:adminToken` directly works (deep-link, no redirect to home)
+
+**Entities touched:** `Event` (admin_token, status, deadline), `Participant` (responded_at)
+
+**API:** `GET /api/events/:adminToken` — returns event details, participant list with responded_at, and slot count; returns 404 if token unknown
+
+**UI components:** `AdminView`, `ParticipantResponseList`, `EventStatusBadge`
+
+**Test cases**
+- Integration: GET /api/events/:adminToken returns event name, deadline, status, participants
+- Integration: GET /api/events/:adminToken with unknown token returns 404
+- Integration: responded_at is set when participant submits availability (PATCH)
+- Unit: AdminView renders event name and participant count
+- Unit: ParticipantResponseList marks responded vs pending correctly
+- E2E: organizer clicks admin link from confirmation screen → dashboard loads with correct event data
+- E2E: unknown admin token → 404 page shown
 
 ---
 
