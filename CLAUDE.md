@@ -19,4 +19,5 @@
 
 ## Test DB
 - Integration tests use DATABASE_URL from .env.test
-- Run `docker compose -f docker-compose.test.yml up -d` before integration tests
+- Before first run: `docker compose -f docker-compose.test.yml up -d` then `cd backend && DATABASE_URL="postgresql://postgres:postgres@localhost:5433/taliott_test" npx prisma migrate deploy`
+- After schema changes, re-run `prisma migrate deploy` against the test DB too

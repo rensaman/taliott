@@ -5,6 +5,6 @@ import App from './App.jsx';
 describe('App', () => {
   it('renders the app heading', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'Taliott' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'taliott' })).toBeInTheDocument();
   });
 });

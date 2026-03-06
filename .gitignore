@@ -1,11 +1,11 @@
 node_modules/
 dist/
 .env
+backend/.env
 .env.local
 *.env.local
 
 # Prisma
-backend/prisma/migrations/
 backend/node_modules/
 
 # Playwright

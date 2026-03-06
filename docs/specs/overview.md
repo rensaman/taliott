@@ -28,6 +28,7 @@ Automate the logistics of finding the best time and location for a group gatheri
 ```
 Event
   id              UUID PK
+  name            string                 # human-readable title shown in emails and UI
   slug            string unique          # human-readable short id
   organizer_email string
   admin_token     UUID unique            # secret link for organizer
@@ -106,22 +107,29 @@ Venue                                    # fetched from external API, cached
 As an Organizer I want to define a date range and part-of-day filter so that only relevant time slots are presented to participants.
 
 **Acceptance Criteria**
+- [ ] Organizer must provide an event name at creation (required field)
+- [ ] Event name is persisted and returned in the API response
+- [ ] Event name is displayed in the confirmation screen after creation
+- [ ] Event name will be shown to participants in emails and on the participation UI (wired in US 1.3 / US 2.x)
 - [ ] Selecting a date range of N days generates exactly N day columns in the availability grid
 - [ ] Part-of-day filter (morning / afternoon / evening / all) bounds the hour rows shown
 - [ ] Edge case: 1-day range renders a single column
 - [ ] Edge case: range crossing a month boundary renders correctly
 
-**Entities touched:** `Event` (date_range_start, date_range_end, part_of_day), `Slot`
+**Entities touched:** `Event` (name, date_range_start, date_range_end, part_of_day), `Slot`
 
-**API:** `POST /api/events` — body includes date_range_start, date_range_end, part_of_day; response includes generated slots
+**API:** `POST /api/events` — body includes name, date_range_start, date_range_end, part_of_day; response includes name and generated slots
 
 **UI components:** `DateRangePicker`, `PartOfDaySelector`, `EventSetupForm`
 
 **Test cases**
 - Unit: slot generation function produces correct count for N-day range
 - Unit: part-of-day filter maps to correct hour boundaries
+- Integration: POST /api/events includes name in request and response
+- Integration: POST /api/events without name returns 400
 - Integration: POST /api/events with 3-day range creates 3×N slots
 - Integration: POST /api/events with month-crossing range succeeds
+- E2E: organizer fills name → confirmation screen displays it
 - E2E: organizer selects date range → grid shows correct columns
 
 ---

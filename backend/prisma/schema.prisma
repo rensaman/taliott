@@ -6,3 +6,93 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum PartOfDay {
+  morning
+  afternoon
+  evening
+  all
+}
+
+enum EventStatus {
+  open
+  locked
+  finalized
+}
+
+enum AvailabilityState {
+  yes
+  maybe
+  no
+  neutral
+}
+
+model Event {
+  id               String      @id @default(uuid())
+  name             String
+  organizerEmail   String
+  adminToken       String      @unique @default(uuid())
+  dateRangeStart   DateTime
+  dateRangeEnd     DateTime
+  partOfDay        PartOfDay   @default(all)
+  venueType        String?
+  deadline         DateTime
+  status           EventStatus @default(open)
+  finalSlotId      String?
+  finalVenueId     String?
+  createdAt        DateTime    @default(now())
+
+  slots            Slot[]
+  participants     Participant[]
+  venues           Venue[]
+}
+
+model Participant {
+  id            String         @id @default(uuid())
+  eventId       String
+  email         String
+  name          String?
+  latitude      Float?
+  longitude     Float?
+  addressLabel  String?
+  respondedAt   DateTime?
+
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  availability  Availability[]
+}
+
+model Slot {
+  id        String         @id @default(uuid())
+  eventId   String
+  startsAt  DateTime
+  endsAt    DateTime
+
+  event        Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  availability Availability[]
+}
+
+model Availability {
+  id            String            @id @default(uuid())
+  participantId String
+  slotId        String
+  state         AvailabilityState @default(neutral)
+  updatedAt     DateTime          @updatedAt
+
+  participant   Participant       @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  slot          Slot              @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, slotId])
+}
+
+model Venue {
+  id         String  @id @default(uuid())
+  eventId    String
+  externalId String
+  name       String
+  latitude   Float
+  longitude  Float
+  rating     Float?
+  distanceM  Int?
+
+  event      Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
