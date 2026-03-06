@@ -11,10 +11,12 @@ export default function AddressSearchInput({ onSelect }) {
       setResults([]);
       return;
     }
-    fetch(`/api/geocode?q=${encodeURIComponent(debouncedQuery)}`)
+    const controller = new AbortController();
+    fetch(`/api/geocode?q=${encodeURIComponent(debouncedQuery)}`, { signal: controller.signal })
       .then(r => r.json())
       .then(setResults)
-      .catch(() => setResults([]));
+      .catch(err => { if (err.name !== 'AbortError') setResults([]); });
+    return () => controller.abort();
   }, [debouncedQuery]);
 
   function handleSelect(result) {

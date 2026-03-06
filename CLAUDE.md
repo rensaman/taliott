@@ -17,6 +17,14 @@
 - Reviews staged JS/JSX files; if issues are found, Claude attempts to fix and re-reviews (up to 3 iterations)
 - Bypass when necessary: `git commit --no-verify`
 
+## Code Review (Claude Code sessions)
+When inside a Claude Code session, the pre-commit hook cannot spawn a nested claude process,
+so it delegates the review to the current Claude context. Before running `git commit`, you MUST:
+1. Run `git diff --cached` to see all staged changes
+2. Review them using the same criteria as the hook (bugs, security issues, missing error handling, test gaps)
+3. Fix any real issues before proceeding with the commit
+4. Only commit once the staged diff is clean
+
 ## Conventions
 - Always co-locate unit tests with source files
 - New API routes need integration tests

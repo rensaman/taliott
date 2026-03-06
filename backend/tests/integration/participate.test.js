@@ -130,4 +130,29 @@ describe('PATCH /api/participate/:participantId/availability', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('returns 400 when slot_id is missing', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ state: 'yes' }] });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when slot_id belongs to a different event', async () => {
+    const event1 = await createEvent({ deadline: FUTURE_DEADLINE });
+    const event2 = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = event1.participants[0].id;
+    const foreignSlotId = event2.slots[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: foreignSlotId, state: 'yes' }] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/does not belong/i);
+  });
 });

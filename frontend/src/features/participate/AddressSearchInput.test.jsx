@@ -33,7 +33,10 @@ describe('AddressSearchInput', () => {
     render(<AddressSearchInput onSelect={vi.fn()} />);
     await userEvent.type(screen.getByLabelText(/search address/i), 'Lon');
     vi.advanceTimersByTime(300);
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/geocode?q=Lon')));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/geocode?q=Lon'),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    ));
   });
 
   it('shows results as options after debounce', async () => {

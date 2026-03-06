@@ -57,7 +57,7 @@ router.patch('/:participantId/availability', async (req, res) => {
   try {
     participant = await getPrisma().participant.findUnique({
       where: { id: req.params.participantId },
-      include: { event: true },
+      include: { event: { include: { slots: { select: { id: true } } } } },
     });
   } catch (err) {
     console.error('Failed to fetch participant:', err);
@@ -76,10 +76,20 @@ router.patch('/:participantId/availability', async (req, res) => {
   }
 
   for (const { slot_id, state } of availability) {
+    if (typeof slot_id !== 'string' || !slot_id) {
+      return res.status(400).json({ error: 'slot_id must be a non-empty string' });
+    }
     if (!VALID_STATES.includes(state)) {
       return res.status(400).json({
         error: `Invalid state "${state}". Must be one of: ${VALID_STATES.join(', ')}`,
       });
+    }
+  }
+
+  const eventSlotIds = new Set(participant.event.slots.map(s => s.id));
+  for (const { slot_id } of availability) {
+    if (!eventSlotIds.has(slot_id)) {
+      return res.status(400).json({ error: `slot_id "${slot_id}" does not belong to this event` });
     }
   }
 

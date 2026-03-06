@@ -4,6 +4,10 @@
 # Runs a Claude code review on staged JS/JSX changes before every commit.
 # If issues are found, Claude attempts to fix them and re-reviews (up to MAX_ITER times).
 # Use `git commit --no-verify` to bypass when needed.
+#
+# Inside a Claude Code session (CLAUDECODE is set), nested `claude` calls are blocked.
+# The hook exits 0 in that case — Claude Code itself is responsible for reviewing
+# staged changes before committing (see CLAUDE.md: "Code Review" section).
 
 set -euo pipefail
 
@@ -13,13 +17,17 @@ if [ -z "$STAGED_FILES" ]; then
   exit 0
 fi
 
+# When running inside an active Claude Code session, delegate the review to
+# the current Claude context (which applies the same criteria per CLAUDE.md).
+if [ -n "${CLAUDECODE:-}" ]; then
+  echo "[review] Inside Claude Code session — review delegated to current Claude context."
+  exit 0
+fi
+
 if ! command -v claude &>/dev/null; then
   echo "[review] 'claude' CLI not found — skipping code review."
   exit 0
 fi
-
-MAX_ITER=3
-ITER=0
 
 REVIEW_PROMPT='You are a senior code reviewer doing a pre-commit review. Analyse the git diff below.
 
@@ -46,6 +54,9 @@ DIFF=$(get_diff)
 
 echo ""
 echo "[review] Reviewing $(echo "$STAGED_FILES" | wc -l | tr -d ' ') staged file(s) with Claude…"
+
+MAX_ITER=3
+ITER=0
 
 while [ $ITER -lt $MAX_ITER ]; do
   ITER=$((ITER + 1))

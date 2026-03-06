@@ -68,4 +68,23 @@ describe('processExpiredEvents', () => {
     expect(prisma.event.update).not.toHaveBeenCalled();
     expect(mailer.sendEmail).not.toHaveBeenCalled();
   });
+
+  it('continues processing remaining events when one fails', async () => {
+    const events = [makeEvent({ id: 'e-1' }), makeEvent({ id: 'e-2', name: 'Other', organizerEmail: 'b@b.com' })];
+    const prisma = {
+      event: {
+        findMany: vi.fn().mockResolvedValue(events),
+        update: vi.fn()
+          .mockRejectedValueOnce(new Error('DB failure'))
+          .mockResolvedValue({}),
+      },
+    };
+    const mailer = { sendEmail: vi.fn().mockResolvedValue(undefined) };
+
+    const count = await processExpiredEvents(prisma, mailer);
+
+    expect(count).toBe(1);
+    expect(mailer.sendEmail).toHaveBeenCalledTimes(1);
+    expect(mailer.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'b@b.com' }));
+  });
 });

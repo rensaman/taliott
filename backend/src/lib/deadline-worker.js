@@ -11,20 +11,27 @@ export async function processExpiredEvents(prisma, mailer) {
     where: { status: 'open', deadline: { lt: new Date() } },
   });
 
+  let locked = 0;
   for (const event of expired) {
-    await prisma.event.update({
-      where: { id: event.id },
-      data: { status: 'locked' },
-    });
+    try {
+      await prisma.event.update({
+        where: { id: event.id },
+        data: { status: 'locked' },
+      });
 
-    await mailer.sendEmail({
-      to: event.organizerEmail,
-      subject: `${event.name} — voting has closed`,
-      text: `The voting deadline for "${event.name}" has passed. You can now finalize the event via your admin link.`,
-    });
+      await mailer.sendEmail({
+        to: event.organizerEmail,
+        subject: `${event.name} — voting has closed`,
+        text: `The voting deadline for "${event.name}" has passed. You can now finalize the event via your admin link.`,
+      });
+
+      locked++;
+    } catch (err) {
+      console.error('[deadline-worker] Failed to process event', event.id, err);
+    }
   }
 
-  return expired.length;
+  return locked;
 }
 
 /**

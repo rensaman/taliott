@@ -7,6 +7,7 @@ export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [location, setLocation] = useState(null);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -32,11 +33,20 @@ export default function ParticipateView({ participantId }) {
 
   async function saveLocation(loc) {
     setLocation(loc);
-    await fetch(`/api/participate/${participantId}/location`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
-    });
+    try {
+      const res = await fetch(`/api/participate/${participantId}/location`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
+      });
+      if (!res.ok) {
+        setSaveError('Failed to save location. Please try again.');
+      } else {
+        setSaveError(null);
+      }
+    } catch {
+      setSaveError('Failed to save location. Please try again.');
+    }
   }
 
   return (
@@ -52,6 +62,7 @@ export default function ParticipateView({ participantId }) {
         <section aria-label="Your location">
           <AddressSearchInput onSelect={saveLocation} />
           <LocationMap location={location} onLocationChange={saveLocation} />
+          {saveError && <p role="alert">{saveError}</p>}
         </section>
       )}
 
