@@ -1,0 +1,133 @@
+/**
+ * Integration tests for GET/PATCH /api/participate (US 1.2)
+ * Requires the test DB: docker compose -f docker-compose.test.yml up -d
+ */
+import { describe, it, expect, afterAll } from 'vitest';
+import request from 'supertest';
+import { PrismaClient } from '@prisma/client';
+import app from '../../src/index.js';
+
+const prisma = new PrismaClient();
+const createdEventIds = [];
+
+const PAST_DEADLINE = '2020-01-01T00:00:00.000Z';
+const FUTURE_DEADLINE = '2099-12-31T23:59:59.000Z';
+
+const BASE_EVENT = {
+  name: 'Deadline Test',
+  organizer_email: 'alex@example.com',
+  date_range_start: '2025-06-01',
+  date_range_end: '2025-06-01',
+  part_of_day: 'morning',
+  deadline: PAST_DEADLINE,
+};
+
+afterAll(async () => {
+  await prisma.event.deleteMany({ where: { id: { in: createdEventIds } } });
+  await prisma.$disconnect();
+});
+
+async function createEvent(overrides = {}) {
+  const res = await request(app).post('/api/events').send({ ...BASE_EVENT, ...overrides });
+  expect(res.status).toBe(201);
+  createdEventIds.push(res.body.event_id);
+  return res.body;
+}
+
+describe('GET /api/participate/:participantId', () => {
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app).get('/api/participate/00000000-0000-0000-0000-000000000000');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns event name, participant, slots and availability', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).get(`/api/participate/${pid}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.event.name).toBe('Deadline Test');
+    expect(res.body.participant.id).toBe(pid);
+    expect(res.body.slots).toBeInstanceOf(Array);
+    expect(res.body.availability).toBeInstanceOf(Array);
+  });
+
+  it('returns locked:true when deadline is in the past', async () => {
+    const { participants } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).get(`/api/participate/${pid}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.event.locked).toBe(true);
+  });
+
+  it('returns locked:false when deadline is in the future', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).get(`/api/participate/${pid}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.event.locked).toBe(false);
+  });
+});
+
+describe('PATCH /api/participate/:participantId/availability', () => {
+  it('returns 403 when event is locked (past deadline)', async () => {
+    const { participants, slots } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: slots[0].id, state: 'yes' }] });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('upserts availability and returns ok on an open event', async () => {
+    const { participants, slots } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: slots[0].id, state: 'yes' }] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('persists the availability state so GET reflects it', async () => {
+    const { participants, slots } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: slots[0].id, state: 'maybe' }] });
+
+    const res = await request(app).get(`/api/participate/${pid}`);
+    const match = res.body.availability.find(a => a.slot_id === slots[0].id);
+    expect(match?.state).toBe('maybe');
+  });
+
+  it('returns 400 for an invalid availability state', async () => {
+    const { participants, slots } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: slots[0].id, state: 'invalid' }] });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app)
+      .patch('/api/participate/00000000-0000-0000-0000-000000000000/availability')
+      .send({ availability: [] });
+
+    expect(res.status).toBe(404);
+  });
+});

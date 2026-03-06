@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import EventSetupForm from './features/setup/EventSetupForm.jsx';
+import ParticipateView from './features/participate/ParticipateView.jsx';
+
+function getParticipantId() {
+  const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
+  return match?.[1] ?? null;
+}
 
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
+  const participantId = getParticipantId();
+
+  if (participantId) {
+    return <ParticipateView participantId={participantId} />;
+  }
 
   if (confirmation) {
     return (

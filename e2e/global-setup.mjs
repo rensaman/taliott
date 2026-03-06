@@ -1,25 +1,35 @@
 import { execSync } from 'child_process';
 
-export default async function globalSetup() {
-  console.log('[e2e] Starting postgres...');
-  execSync('docker compose up -d postgres', {
-    cwd: new URL('..', import.meta.url).pathname,
-    stdio: 'inherit',
-  });
+const CWD = new URL('..', import.meta.url).pathname;
 
-  // Wait for postgres to be healthy (up to 30s)
-  const deadline = Date.now() + 30_000;
+async function waitFor(label, checkFn, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
-      execSync(
-        'docker compose exec -T postgres pg_isready -U postgres',
-        { cwd: new URL('..', import.meta.url).pathname, stdio: 'pipe' }
-      );
-      console.log('[e2e] Postgres is ready.');
+      await checkFn();
+      console.log(`[e2e] ${label} is ready.`);
       return;
     } catch {
       await new Promise(r => setTimeout(r, 500));
     }
   }
-  throw new Error('[e2e] Postgres did not become ready within 30s');
+  throw new Error(`[e2e] ${label} did not become ready within ${timeoutMs}ms`);
+}
+
+export default async function globalSetup() {
+  console.log('[e2e] Starting postgres and mailpit...');
+  execSync('docker compose up -d postgres mailpit', { cwd: CWD, stdio: 'inherit' });
+
+  await Promise.all([
+    waitFor('Postgres', () => {
+      execSync('docker compose exec -T postgres pg_isready -U postgres', {
+        cwd: CWD,
+        stdio: 'pipe',
+      });
+    }),
+    waitFor('Mailpit', async () => {
+      const res = await fetch('http://localhost:8025/api/v1/messages');
+      if (!res.ok) throw new Error('not ready');
+    }),
+  ]);
 }

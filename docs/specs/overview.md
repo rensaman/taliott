@@ -140,23 +140,24 @@ As an Organizer I want to define a date range and part-of-day filter so that onl
 As an Organizer I want the event to lock automatically at the deadline so that late changes don't affect the final result.
 
 **Acceptance Criteria**
-- [ ] Participation link transitions to "Results Only" state at deadline datetime
-- [ ] Availability grid becomes read-only after deadline
-- [ ] Organizer receives an automated email when the deadline expires
-- [ ] Admin link still allows finalizing after deadline
+- [x] Participation link transitions to "Results Only" state at deadline datetime
+- [x] Availability grid becomes read-only after deadline
+- [x] Organizer receives an automated email when the deadline expires (background worker; stub logs in dev — SMTP wired in prod)
+- [ ] Admin link still allows finalizing after deadline (finalise endpoint in US 3.3)
 
 **Entities touched:** `Event` (deadline, status → locked)
 
-**API:** Background worker checks `Event.deadline`; `GET /api/participate/:participantId` returns `locked: true` after deadline
+**API:** `GET /api/participate/:participantId` returns `locked: true` after deadline; `PATCH /api/participate/:participantId/availability` returns 403 when locked; background worker (`deadline-worker.js`) polls every 60 s
 
-**UI components:** `DeadlineBadge`, `ReadOnlyGrid` (locked state of availability grid)
+**UI components:** `DeadlineBadge`, `ParticipateView` (shows read-only slots + "Results only" banner when locked)
 
 **Test cases**
-- Unit: isEventLocked(event) returns true when deadline < now
-- Integration: GET /api/participate/:id with past deadline returns locked:true
-- Integration: PATCH availability on locked event returns 403
-- Integration: deadline expiry triggers email notification job
-- E2E: participant visits link after deadline → grid is read-only
+- Unit: isEventLocked(event) returns true when deadline < now ✓
+- Unit: processExpiredEvents locks events and emails organizer ✓
+- Integration: GET /api/participate/:id with past deadline returns locked:true ✓
+- Integration: PATCH availability on locked event returns 403 ✓
+- Integration: deadline expiry triggers email notification job ✓ (unit-level via processExpiredEvents)
+- E2E: participant visits link after deadline → sees "Results only" banner ✓
 
 ---
 

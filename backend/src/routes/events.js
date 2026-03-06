@@ -1,12 +1,8 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 
 const router = Router();
-
-// Lazy singleton — instantiated on first request so dotenv has already run
-let _prisma;
-const prisma = () => (_prisma ??= new PrismaClient());
 
 router.post('/', async (req, res) => {
   const {
@@ -39,7 +35,7 @@ router.post('/', async (req, res) => {
 
   let event;
   try {
-    event = await prisma().event.create({
+    event = await getPrisma().event.create({
       data: {
         name,
         organizerEmail: organizer_email,

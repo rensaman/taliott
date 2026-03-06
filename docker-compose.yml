@@ -15,6 +15,12 @@ services:
       timeout: 5s
       retries: 5
 
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   backend:
     build:
       context: .
@@ -23,11 +29,16 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/taliott_dev
       NODE_ENV: production
       PORT: 4000
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: taliott <noreply@taliott.app>
     ports:
       - "4000:4000"
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   frontend:
     build:
