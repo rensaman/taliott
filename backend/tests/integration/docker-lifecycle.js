@@ -1,0 +1,44 @@
+import { execSync } from 'child_process';
+
+// Repo root (docker-compose.test.yml lives here)
+const CWD = new URL('../../..', import.meta.url).pathname;
+// backend/ (prisma schema lives here)
+const BACKEND_DIR = new URL('../..', import.meta.url).pathname;
+const COMPOSE = 'docker compose -f docker-compose.test.yml';
+
+async function waitForPostgres(timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      execSync(`${COMPOSE} exec -T postgres-test pg_isready -U postgres`, {
+        cwd: CWD,
+        stdio: 'pipe',
+      });
+      return;
+    } catch {
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+  throw new Error('[integration] postgres-test did not become ready within 30 s');
+}
+
+export async function setup() {
+  console.log('[integration] Starting postgres-test container...');
+  execSync(`${COMPOSE} up -d`, { cwd: CWD, stdio: 'inherit' });
+  await waitForPostgres();
+  console.log('[integration] Running migrations...');
+  execSync('npx prisma migrate deploy', {
+    cwd: BACKEND_DIR,
+    env: {
+      ...process.env,
+      DATABASE_URL: 'postgresql://postgres:postgres@localhost:5433/taliott_test',
+    },
+    stdio: 'inherit',
+  });
+  console.log('[integration] postgres-test is ready.');
+}
+
+export async function teardown() {
+  console.log('[integration] Stopping postgres-test container...');
+  execSync(`${COMPOSE} stop`, { cwd: CWD, stdio: 'inherit' });
+}

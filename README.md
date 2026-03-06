@@ -38,6 +38,10 @@ cp backend/.env.example backend/.env   # then edit if needed
 Default `backend/.env`:
 ```
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/taliott_dev"
+SMTP_HOST="localhost"
+SMTP_PORT="1025"
+SMTP_FROM="taliott <noreply@taliott.app>"
+APP_BASE_URL="http://localhost:3000"
 ```
 
 ### 4. Run migrations
@@ -58,13 +62,13 @@ App is at http://localhost:3000. Backend API at http://localhost:4000.
 
 ## Docker (full stack)
 
-Runs everything — postgres, backend, frontend — in containers.
+Runs everything — postgres, mailpit, backend, frontend — in containers.
 
 ```bash
 docker compose up --build
 ```
 
-App is at http://localhost:3000. Migrations run automatically on backend startup.
+App is at http://localhost:3000. Mailpit email UI at http://localhost:8025. Migrations run automatically on backend startup.
 
 To stop:
 ```bash
@@ -85,25 +89,26 @@ Co-located with source files, no database required.
 
 ### Integration tests
 
-Require the test database with migrations applied:
+The test database is managed automatically — no manual setup needed:
 
 ```bash
-docker compose -f docker-compose.test.yml up -d
-cd backend && DATABASE_URL="postgresql://postgres:postgres@localhost:5433/taliott_test" npx prisma migrate deploy && cd ..
 npm run test:integration
 ```
 
-Uses `DATABASE_URL` from `.env.test` (port 5433).
+Starts a `postgres-test` container (port 5433), applies migrations, runs tests, then stops the container. Uses `DATABASE_URL` from `.env.test`.
 
 ### E2E tests (Playwright)
-
-Require both dev servers running (or they start automatically):
 
 ```bash
 npm run test:e2e
 ```
 
-`create-event-real.spec.js` hits the real backend and DB — ensure `backend/.env` is configured and the dev database is running.
+Starts postgres and mailpit automatically via `globalSetup`, then stops them after the run. Dev servers (frontend + backend) are also started automatically if not already running.
+
+> **Note:** If the Docker production stack (`docker compose up`) is running, stop the backend and frontend containers first so Playwright uses the dev servers instead:
+> ```bash
+> docker compose stop backend frontend
+> ```
 
 ---
 
