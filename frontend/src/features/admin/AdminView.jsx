@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
+import GroupMap from './GroupMap.jsx';
 
 export default function AdminView({ adminToken }) {
   const [data, setData] = useState(null);
@@ -27,6 +28,7 @@ export default function AdminView({ adminToken }) {
       <p>Status: <strong>{data.status}</strong></p>
       <p>Deadline: {new Date(data.deadline).toLocaleString()}</p>
       <p>{responded} of {total} responded</p>
+      <GroupMap centroid={data.centroid} participants={data.participants} />
       <ParticipantResponseList participants={data.participants} />
     </main>
   );

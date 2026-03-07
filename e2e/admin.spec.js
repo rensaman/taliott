@@ -1,5 +1,6 @@
 /**
  * E2E tests for US 3.0 — Admin Dashboard Shell
+ * E2E tests for US 3.1 — Geographic Centroid Calculation
  */
 import { test, expect } from '@playwright/test';
 
@@ -48,6 +49,33 @@ test('dashboard shows response count summary', async ({ page, request }) => {
 
   // 0 of N responded before anyone confirms
   await expect(page.getByText(/0 of \d+ responded/i)).toBeVisible();
+});
+
+test('admin view shows centroid marker when participants have locations', async ({ page, request }) => {
+  const body = await createEvent(request);
+  const pid = body.participants[0].id;
+
+  // Give the first participant a location
+  await request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278 },
+  });
+
+  await page.goto(`/admin/${body.admin_token}`);
+
+  // Map is rendered
+  await expect(page.locator('[data-testid="location-map"], .leaflet-container').first()).toBeVisible({ timeout: 5000 });
+
+  // Coverage counter is shown
+  await expect(page.getByTestId('coverage-counter')).toBeVisible();
+  await expect(page.getByText(/1 of \d+ participants included in fair center/i)).toBeVisible();
+});
+
+test('admin view shows no coverage counter when no participants have locations', async ({ page, request }) => {
+  const body = await createEvent(request);
+  await page.goto(`/admin/${body.admin_token}`);
+
+  // Coverage counter should not be present when centroid is null
+  await expect(page.getByTestId('coverage-counter')).not.toBeVisible();
 });
 
 test('confirmation screen admin link navigates to dashboard with correct event data', async ({ page }) => {

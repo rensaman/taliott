@@ -100,4 +100,50 @@ describe('GET /api/events/:adminToken', () => {
     const confirmed = res.body.participants.find(p => p.id === pid);
     expect(confirmed.responded_at).not.toBeNull();
   });
+
+  it('returns centroid as null when no participants have a location', async () => {
+    const { admin_token } = await createEvent();
+    const res = await request(app).get(`/api/events/${admin_token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.centroid).toBeNull();
+  });
+
+  it('returns centroid with lat, lng, and count when participants have locations', async () => {
+    const { admin_token, participants } = await createEvent();
+
+    // Give two participants locations
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/location`)
+      .send({ latitude: 10, longitude: 20 });
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/location`)
+      .send({ latitude: 30, longitude: 40 });
+
+    const res = await request(app).get(`/api/events/${admin_token}`);
+    expect(res.status).toBe(200);
+
+    const { centroid } = res.body;
+    expect(centroid).not.toBeNull();
+    expect(centroid.lat).toBeCloseTo(20);
+    expect(centroid.lng).toBeCloseTo(30);
+    expect(centroid.count).toBe(2);
+  });
+
+  it('excludes participants without location from centroid', async () => {
+    const { admin_token, participants } = await createEvent();
+
+    // Only the first participant sets a location
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/location`)
+      .send({ latitude: 10, longitude: 20 });
+
+    const res = await request(app).get(`/api/events/${admin_token}`);
+    expect(res.status).toBe(200);
+
+    const { centroid } = res.body;
+    expect(centroid.lat).toBeCloseTo(10);
+    expect(centroid.lng).toBeCloseTo(20);
+    expect(centroid.count).toBe(1);
+  });
 });

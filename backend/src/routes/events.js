@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerConfirmation } from '../lib/invite-mailer.js';
+import { computeCentroid } from '../lib/centroid.js';
 
 const router = Router();
 
@@ -112,15 +113,20 @@ router.get('/:adminToken', async (req, res) => {
     return res.status(404).json({ error: 'Event not found' });
   }
 
+  const centroid = computeCentroid(event.participants);
+
   return res.json({
     name: event.name,
     deadline: event.deadline,
     status: event.status,
     slot_count: event.slots.length,
+    centroid,
     participants: event.participants.map(p => ({
       id: p.id,
       email: p.email,
       responded_at: p.respondedAt ?? null,
+      latitude: p.latitude ?? null,
+      longitude: p.longitude ?? null,
     })),
   });
 });
