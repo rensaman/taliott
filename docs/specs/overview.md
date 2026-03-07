@@ -330,18 +330,28 @@ As a Participant I want to toggle slot preferences across Yes / Maybe / No / Neu
 - [x] Each state is visually distinct (color/icon)
 - [x] State changes are auto-saved asynchronously with a visible status indicator (saving… / saved)
 - [x] Batch saves are debounced to avoid per-keystroke requests
+- [x] A "Mark as done" button lets the participant explicitly confirm their response; clicking it sets `responded_at` and changes the label to "✓ Submitted — update response"
+- [x] Participants who have already responded see the "✓ Submitted" label on load
+- [x] The confirm button is hidden when the event is locked
 
-**Entities touched:** `Availability` (state)
+**Entities touched:** `Availability` (state), `Participant` (responded_at)
 
-**API:** `PATCH /api/participate/:id/availability` — body: array of {slot_id, state}
+**API:**
+- `PATCH /api/participate/:id/availability` — body: array of {slot_id, state}
+- `PATCH /api/participate/:id/confirm` — sets `responded_at`; returns 403 if locked
 
-**UI components:** `AvailabilityGrid`, `SlotCell`, `SaveStatusIndicator`
+**UI components:** `AvailabilityGrid`, `SlotCell`, `SaveStatusIndicator`, confirm button in `ParticipateView`
 
 **Test cases**
 - Unit: cell state machine cycles Neutral→Yes→Maybe→No→Neutral ✓
 - Unit: debounced save batches multiple rapid changes into one call ✓
+- Unit: "Mark as done" button shown on open event; hidden when locked ✓
+- Unit: button label switches to "✓ Submitted" after clicking ✓
+- Unit: already-responded participant sees "✓ Submitted" label on load ✓
 - Integration: PATCH /api/participate/:id/availability upserts correct states ✓
 - Integration: invalid state value returns 400 ✓
+- Integration: PATCH /api/participate/:id/confirm sets responded_at ✓
+- Integration: confirm returns 403 when event is locked ✓
 - E2E: participant clicks cells → states cycle → "saved" indicator appears ✓
 
 ---
@@ -397,7 +407,7 @@ As an Organizer I want a dedicated admin page accessible via my secret link so t
 **Test cases**
 - Integration: GET /api/events/:adminToken returns event name, deadline, status, participants
 - Integration: GET /api/events/:adminToken with unknown token returns 404
-- Integration: responded_at is set when participant submits availability (PATCH)
+- Integration: responded_at is set when participant clicks "Mark as done" (PATCH /confirm)
 - Unit: AdminView renders event name and participant count
 - Unit: ParticipantResponseList marks responded vs pending correctly
 - E2E: organizer clicks admin link from confirmation screen → dashboard loads with correct event data
