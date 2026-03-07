@@ -1,48 +1,40 @@
 # CLAUDE.md
 
-## Architecture
-- Frontend: React/Vite on port 3000
-- Backend: Express on port 4000  
-- DB: PostgreSQL via Prisma
+## Stack
+Frontend: React/Vite :3000 | Backend: Express :4000 | DB: PostgreSQL/Prisma
 
 ## Commands
 - `npm run dev` — start everything
-- `npm run test` — run all unit tests
-- `npm run test:integration` — run integration tests (auto-starts/stops test DB)
-- `npm run test:e2e` — run Playwright tests (auto-starts/stops postgres + mailpit)
+- `npm run test` — unit tests
+- `npm run test:integration` — integration tests (auto-manages test DB)
+- `npm run test:e2e` — Playwright (auto-manages postgres + mailpit)
 
 ## Pre-commit hook
-- A Claude-powered code review runs before every commit
-- Install once after cloning: `npm run setup:hooks`
-- Reviews staged JS/JSX files; if issues are found, Claude attempts to fix and re-reviews (up to 3 iterations)
-- Bypass when necessary: `git commit --no-verify`
+Runs Claude code review on staged JS/JSX; auto-fixes and re-reviews (up to 3×).
+Install: `npm run setup:hooks` | Bypass: `git commit --no-verify`
 
 ## Code Review (Claude Code sessions)
-When inside a Claude Code session, the pre-commit hook cannot spawn a nested claude process,
-so it delegates the review to the current Claude context. Before running `git commit`, you MUST:
-1. Run `git diff --cached` to see all staged changes
-2. Review them using the same criteria as the hook (bugs, security issues, missing error handling, test gaps)
-3. Fix any real issues before proceeding with the commit
-4. Only commit once the staged diff is clean
+Nested `claude` is blocked inside Claude Code. Before every `git commit` you MUST:
+1. `git diff --cached` — inspect all staged changes
+2. Review for: bugs, security issues, missing error handling, test gaps
+3. Fix real issues, then commit
 
 ## Test-First Development
-When implementing a user story:
-1. Read the ACs from `docs/specs/overview.md`
-2. Write unit and integration tests that encode those ACs — before writing any implementation
-3. Then implement until all tests pass
-4. Write E2E tests after implementation (they depend on UI decisions not fully specified upfront)
+1. Read ACs from `docs/specs/overview.md`
+2. Write unit + integration tests encoding the ACs — before any implementation
+3. Implement until tests pass
+4. Write E2E tests after (UI decisions not fully specified upfront)
 
-The goal is that tests are derived from the spec, not retrofitted to match the code.
+Tests derive from the spec, not retrofitted to code.
 
 ## Conventions
-- Always co-locate unit tests with source files
-- New API routes need integration tests
-- New user flows need E2E test coverage
-- Use Prisma migrations for schema changes (never edit schema.prisma directly)
-- Use Conventional Commits for all commit messages (feat:, fix:, test:, chore:, docs:, refactor:)
+- Co-locate unit tests with source files (`backend/tests/integration/` for integration, `e2e/` for E2E)
+- New routes → integration tests; new flows → E2E tests
+- Schema changes: Prisma migrations only (never edit `schema.prisma` directly)
+- Commits: Conventional Commits (`feat:` `fix:` `test:` `chore:` `docs:` `refactor:`)
 
 ## Test DB
-- Integration tests use DATABASE_URL from .env.test (port 5433)
-- Docker lifecycle is fully automatic — `docker-lifecycle.js` starts the container, runs `prisma migrate deploy`, and stops it after the run
-- After schema changes: just run `npm run test:integration` — migrations are applied automatically
-- E2E tests auto-start postgres + mailpit via `e2e/global-setup.mjs` and stop them in `e2e/global-teardown.mjs`
+- Integration: `.env.test` DATABASE_URL port 5433; Docker lifecycle fully automatic
+- After schema changes: just run `npm run test:integration` — migrations auto-apply
+- E2E: postgres + mailpit auto-managed via `e2e/global-setup.mjs` / `global-teardown.mjs`
+- If prod Docker stack is running, stop it before E2E: `docker compose stop backend frontend`
