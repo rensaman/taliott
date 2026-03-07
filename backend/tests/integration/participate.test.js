@@ -156,3 +156,50 @@ describe('PATCH /api/participate/:participantId/availability', () => {
     expect(res.body.error).toMatch(/does not belong/i);
   });
 });
+
+describe('PATCH /api/participate/:participantId/confirm', () => {
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app).patch(
+      '/api/participate/00000000-0000-0000-0000-000000000000/confirm'
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 403 when event is locked', async () => {
+    const { participants } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).patch(`/api/participate/${pid}/confirm`);
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('sets responded_at and returns ok', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).patch(`/api/participate/${pid}/confirm`);
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    const get = await request(app).get(`/api/participate/${pid}`);
+    expect(get.body.participant.responded_at).toBeTruthy();
+  });
+
+  it('can be called again to update responded_at', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app).patch(`/api/participate/${pid}/confirm`);
+    const first = await request(app).get(`/api/participate/${pid}`);
+    const firstTs = first.body.participant.responded_at;
+
+    await new Promise(r => setTimeout(r, 10));
+
+    await request(app).patch(`/api/participate/${pid}/confirm`);
+    const second = await request(app).get(`/api/participate/${pid}`);
+    const secondTs = second.body.participant.responded_at;
+
+    expect(new Date(secondTs).getTime()).toBeGreaterThanOrEqual(new Date(firstTs).getTime());
+  });
+});

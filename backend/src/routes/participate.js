@@ -39,6 +39,7 @@ router.get('/:participantId', async (req, res) => {
       latitude: participant.latitude,
       longitude: participant.longitude,
       address_label: participant.addressLabel,
+      responded_at: participant.respondedAt,
     },
     slots: participant.event.slots.map(s => ({
       id: s.id,
@@ -143,11 +144,41 @@ router.patch('/:participantId/location', async (req, res) => {
         latitude,
         longitude,
         addressLabel: address_label ?? null,
-        respondedAt: participant.respondedAt ?? new Date(),
       },
     });
   } catch (err) {
     console.error('Failed to update location:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  return res.json({ ok: true });
+});
+
+router.patch('/:participantId/confirm', async (req, res) => {
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+      include: { event: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  if (isEventLocked(participant.event)) {
+    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
+  }
+
+  try {
+    await getPrisma().participant.update({
+      where: { id: participant.id },
+      data: { respondedAt: new Date() },
+    });
+  } catch (err) {
+    console.error('Failed to confirm participant:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 

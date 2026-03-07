@@ -9,6 +9,8 @@ export default function ParticipateView({ participantId }) {
   const [error, setError] = useState(null);
   const [location, setLocation] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [confirmError, setConfirmError] = useState(null);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -18,10 +20,11 @@ export default function ParticipateView({ participantId }) {
       })
       .then(d => {
         setData(d);
-        const { latitude, longitude, address_label } = d.participant;
+        const { latitude, longitude, address_label, responded_at } = d.participant;
         if (latitude != null && longitude != null) {
           setLocation({ lat: latitude, lng: longitude, label: address_label });
         }
+        if (responded_at) setConfirmed(true);
       })
       .catch(err => setError(err.message));
   }, [participantId]);
@@ -49,6 +52,20 @@ export default function ParticipateView({ participantId }) {
     }
   }
 
+  async function confirm() {
+    setConfirmError(null);
+    try {
+      const res = await fetch(`/api/participate/${participantId}/confirm`, { method: 'PATCH' });
+      if (!res.ok) {
+        setConfirmError('Failed to submit. Please try again.');
+      } else {
+        setConfirmed(true);
+      }
+    } catch {
+      setConfirmError('Failed to submit. Please try again.');
+    }
+  }
+
   return (
     <main>
       <h1>{event.name}</h1>
@@ -72,6 +89,21 @@ export default function ParticipateView({ participantId }) {
         initialAvailability={availability}
         locked={event.locked}
       />
+
+      {!event.locked && (
+        <section aria-label="Confirm response">
+          {confirmed ? (
+            <button onClick={confirm} data-testid="confirm-btn">
+              ✓ Submitted — update response
+            </button>
+          ) : (
+            <button onClick={confirm} data-testid="confirm-btn">
+              Mark as done
+            </button>
+          )}
+          {confirmError && <p role="alert">{confirmError}</p>}
+        </section>
+      )}
     </main>
   );
 }

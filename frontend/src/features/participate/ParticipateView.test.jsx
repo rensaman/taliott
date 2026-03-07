@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock child components that use Leaflet or fetch internally
@@ -18,7 +18,7 @@ const LOCKED_RESPONSE = {
     status: 'locked',
     locked: true,
   },
-  participant: { id: 'p-1', email: 'jamie@example.com', latitude: null, longitude: null, address_label: null },
+  participant: { id: 'p-1', email: 'jamie@example.com', latitude: null, longitude: null, address_label: null, responded_at: null },
   slots: [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }],
   availability: [],
 };
@@ -117,5 +117,48 @@ describe('ParticipateView', () => {
       expect(screen.getByRole('heading')).toBeInTheDocument()
     );
     expect(screen.queryByTestId('address-search')).not.toBeInTheDocument();
+  });
+
+  it('shows "Mark as done" button on open event', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('confirm-btn')).toHaveTextContent(/mark as done/i)
+    );
+  });
+
+  it('hides confirm button when event is locked', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByRole('heading')).toBeInTheDocument()
+    );
+    expect(screen.queryByTestId('confirm-btn')).not.toBeInTheDocument();
+  });
+
+  it('shows "Submitted" button label when participant has already responded', async () => {
+    const alreadyResponded = {
+      ...OPEN_RESPONSE,
+      participant: { ...OPEN_RESPONSE.participant, responded_at: '2025-01-01T12:00:00Z' },
+    };
+    fetch.mockResolvedValue({ ok: true, json: async () => alreadyResponded });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('confirm-btn')).toHaveTextContent(/submitted/i)
+    );
+  });
+
+  it('switches button label to "Submitted" after clicking "Mark as done"', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('confirm-btn')).toHaveTextContent(/mark as done/i)
+    );
+    fireEvent.click(screen.getByTestId('confirm-btn'));
+    await waitFor(() =>
+      expect(screen.getByTestId('confirm-btn')).toHaveTextContent(/submitted/i)
+    );
   });
 });

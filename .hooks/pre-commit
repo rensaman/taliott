@@ -11,6 +11,22 @@
 
 set -euo pipefail
 
+run_tests() {
+  local label="$1"
+  local cmd="$2"
+  echo "[tests] Running ${label}…"
+  if ! eval "$cmd" 2>&1; then
+    echo "[tests] ✗ ${label} failed. Fix them before committing."
+    echo "         Use 'git commit --no-verify' to bypass if necessary."
+    exit 1
+  fi
+  echo "[tests] ✓ ${label} passed."
+}
+
+run_tests "unit tests"        "npm run test --silent"
+run_tests "integration tests" "npm run test:integration"
+run_tests "e2e tests"         "npm run test:e2e"
+
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx)$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
