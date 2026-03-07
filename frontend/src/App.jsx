@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
 import EventSetupForm from './features/setup/EventSetupForm.jsx';
 import ParticipateView from './features/participate/ParticipateView.jsx';
+import AdminView from './features/admin/AdminView.jsx';
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
   return match?.[1] ?? null;
 }
 
+function getAdminToken() {
+  const match = window.location.pathname.match(/^\/admin\/([^/]+)/);
+  return match?.[1] ?? null;
+}
+
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const participantId = getParticipantId();
+  const adminToken = getAdminToken();
 
   if (participantId) {
     return <ParticipateView participantId={participantId} />;
+  }
+
+  if (adminToken) {
+    return <AdminView adminToken={adminToken} />;
   }
 
   if (confirmation) {

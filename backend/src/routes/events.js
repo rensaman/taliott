@@ -72,4 +72,38 @@ router.post('/', async (req, res) => {
   });
 });
 
+router.get('/:adminToken', async (req, res) => {
+  const { adminToken } = req.params;
+
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken },
+      include: {
+        participants: { orderBy: { id: 'asc' } },
+        slots: true,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found' });
+  }
+
+  return res.json({
+    name: event.name,
+    deadline: event.deadline,
+    status: event.status,
+    slot_count: event.slots.length,
+    participants: event.participants.map(p => ({
+      id: p.id,
+      email: p.email,
+      responded_at: p.respondedAt ?? null,
+    })),
+  });
+});
+
 export default router;

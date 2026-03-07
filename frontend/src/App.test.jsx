@@ -4,6 +4,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('./features/participate/ParticipateView.jsx', () => ({
   default: ({ participantId }) => <div data-testid="participate-view" data-pid={participantId} />,
 }));
+vi.mock('./features/admin/AdminView.jsx', () => ({
+  default: ({ adminToken }) => <div data-testid="admin-view" data-token={adminToken} />,
+}));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
     <button onClick={() => onCreated({ name: 'My Event', admin_token: 'tok-1', participants: [{}, {}] })}>
@@ -29,6 +32,12 @@ describe('App', () => {
     vi.stubGlobal('location', { ...window.location, pathname: '/participate/abc-123' });
     render(<App />);
     expect(screen.getByTestId('participate-view')).toHaveAttribute('data-pid', 'abc-123');
+  });
+
+  it('renders AdminView when path matches /admin/:token', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/admin/tok-abc' });
+    render(<App />);
+    expect(screen.getByTestId('admin-view')).toHaveAttribute('data-token', 'tok-abc');
   });
 
   it('shows confirmation screen with admin link after event creation', () => {
