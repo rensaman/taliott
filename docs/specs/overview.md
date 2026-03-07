@@ -32,6 +32,8 @@ Event
   slug            string unique          # human-readable short id
   organizer_email string
   admin_token     UUID unique            # secret link for organizer
+  invite_mode     enum(email_invites|shared_link)   # set at creation; immutable thereafter
+  join_token      UUID unique?           # populated only when invite_mode = shared_link
   date_range_start date
   date_range_end   date
   part_of_day     enum(morning|afternoon|evening|all)
@@ -45,7 +47,7 @@ Event
 Participant
   id              UUID PK                # also used as participation token
   event_id        FK → Event
-  email           string
+  email           string?                # null until participant registers (shared_link mode only)
   name            string?
   latitude        float?
   longitude       float?
@@ -90,6 +92,8 @@ Venue                                    # fetched from external API, cached
 | PATCH | /api/participate/:participantId/availability | participant token | Batch-save availability states |
 | GET | /api/events/:adminToken/venues | admin token | Fetch venue recommendations |
 | GET | /api/geocode?q= | none | Proxy geocoding search |
+| GET | /api/join/:joinToken | none | Validate join token; return event name + deadline |
+| POST | /api/join/:joinToken | none | Self-register with email (+ optional name); returns participant_id |
 
 ---
 
@@ -212,6 +216,76 @@ As an Organizer I want to receive an email with my admin link after creating an 
 - Integration: POST /api/events sends one additional email to organizer_email with admin link ✓
 - Integration: organizer confirmation email is distinct from participant invite (different subject / body) ✓
 - E2E: organizer creates event → inbox contains a confirmation email with /admin/:adminToken link ✓
+
+---
+
+#### US 1.5 — Invite Mode Selection
+
+**Story**
+As an Organizer I want to choose at creation time between sending email invites directly or generating a shareable join link so that I can use whichever distribution channel suits my group.
+
+**Acceptance Criteria**
+- [ ] `EventSetupForm` presents an invite mode selector: "Send email invites" (default) or "Share a join link"
+- [ ] When `email_invites` is selected the existing email list input is shown (current behaviour)
+- [ ] When `shared_link` is selected the email list input is hidden; no `participant_emails` are submitted
+- [ ] `POST /api/events` accepts `invite_mode` field (`email_invites` | `shared_link`); defaults to `email_invites` when omitted
+- [ ] When `invite_mode = email_invites`: behaviour is unchanged from US 1.3 / US 1.4
+- [ ] When `invite_mode = shared_link`: no `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
+- [ ] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
+- [ ] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
+- [ ] `invite_mode` is immutable after creation
+
+**Entities touched:** `Event` (invite_mode, join_token)
+
+**API:** `POST /api/events` — new optional field `invite_mode`; response gains `join_url` when applicable
+
+**UI components:** `InviteModeSelector`, `EventSetupForm` (conditional email list), `ConfirmationScreen` (conditional join URL display)
+
+**Test cases**
+- Unit: POST /api/events with invite_mode=shared_link generates a join_token and no participants
+- Unit: POST /api/events with invite_mode=email_invites behaves as before (participants created, emails sent)
+- Unit: POST /api/events without invite_mode defaults to email_invites
+- Integration: POST /api/events with shared_link returns join_url in response
+- Integration: POST /api/events with shared_link creates zero Participant rows
+- Integration: POST /api/events with invalid invite_mode returns 400
+- E2E: organizer selects "Share a join link" → confirmation screen shows join URL → no invite emails sent
+
+---
+
+#### US 1.6 — Self-Registration via Shared Join Link
+
+**Story**
+As a Participant I want to register myself by entering my email on the join page so that I can participate without needing a personal email invite.
+
+**Acceptance Criteria**
+- [ ] `GET /join/:joinToken` renders a join page showing event name and deadline
+- [ ] Join page shows a form with a required email field and an optional name field
+- [ ] Submitting the form with a valid email creates a `Participant` row (or returns the existing one for that email + event, making registration idempotent)
+- [ ] After successful registration the participant is redirected to `/participate/:participantId`
+- [ ] The system sends a confirmation email to the participant containing their personal participation link (so they can return later)
+- [ ] `GET /join/:joinToken` with an unknown token returns 404
+- [ ] `GET /join/:joinToken` on a locked or finalized event returns a "voting closed" page (no registration allowed)
+- [ ] `POST /api/join/:joinToken` on a locked or finalized event returns 403
+- [ ] Email is validated (format check) before the Participant row is created; invalid email returns 400
+
+**Entities touched:** `Event` (join_token, invite_mode, status), `Participant` (email, name)
+
+**API:**
+- `GET /api/join/:joinToken` — returns `{name, deadline, status}` or 404
+- `POST /api/join/:joinToken` — body `{email, name?}`; creates or retrieves Participant; returns `{participant_id}`; sends confirmation email
+
+**UI components:** `JoinView` (email + name form), `JoinClosedView` (locked/finalized state)
+
+**Test cases**
+- Integration: GET /api/join/:joinToken returns event name and deadline for valid token
+- Integration: GET /api/join/:joinToken with unknown token returns 404
+- Integration: POST /api/join/:joinToken creates a Participant and returns participant_id
+- Integration: POST /api/join/:joinToken with same email twice returns the same participant_id (idempotent)
+- Integration: POST /api/join/:joinToken on locked event returns 403
+- Integration: POST /api/join/:joinToken with invalid email returns 400
+- Integration: POST /api/join/:joinToken sends confirmation email with participation link
+- E2E: participant opens join URL → enters email → is redirected to participate view
+- E2E: same participant re-registers with same email → lands on same participate view
 
 ---
 
