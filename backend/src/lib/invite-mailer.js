@@ -49,3 +49,25 @@ export function buildOrganizerConfirmation(event) {
 export async function sendOrganizerConfirmation(event) {
   await sendEmail(buildOrganizerConfirmation(event));
 }
+
+export function buildJoinConfirmation(participant, event) {
+  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  return {
+    to: participant.email,
+    subject: `You're registered: ${event.name}`,
+    text: [
+      `Hi${participant.name ? ` ${participant.name}` : ''},`,
+      ``,
+      `You've successfully registered for "${event.name}".`,
+      ``,
+      `Access your personal voting link here:`,
+      `${baseUrl}/participate/${participant.id}`,
+      ``,
+      `Voting deadline: ${new Date(event.deadline).toUTCString()}`,
+    ].join('\n'),
+  };
+}
+
+export async function sendJoinConfirmation(participant, event) {
+  await sendEmail(buildJoinConfirmation(participant, event));
+}

@@ -7,6 +7,9 @@ vi.mock('./features/participate/ParticipateView.jsx', () => ({
 vi.mock('./features/admin/AdminView.jsx', () => ({
   default: ({ adminToken }) => <div data-testid="admin-view" data-token={adminToken} />,
 }));
+vi.mock('./features/join/JoinView.jsx', () => ({
+  default: ({ joinToken }) => <div data-testid="join-view" data-token={joinToken} />,
+}));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
     <>
@@ -53,6 +56,12 @@ describe('App', () => {
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
     expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
     expect(screen.getByText(/2/)).toBeInTheDocument();
+  });
+
+  it('renders JoinView when path matches /join/:token', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/join/join-tok-xyz' });
+    render(<App />);
+    expect(screen.getByTestId('join-view')).toHaveAttribute('data-token', 'join-tok-xyz');
   });
 
   it('shows join_url with copy button when invite mode is shared_link', () => {

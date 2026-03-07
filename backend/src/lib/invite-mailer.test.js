@@ -7,6 +7,8 @@ import {
   sendEventInvites,
   buildOrganizerConfirmation,
   sendOrganizerConfirmation,
+  buildJoinConfirmation,
+  sendJoinConfirmation,
 } from './invite-mailer.js';
 import { sendEmail } from './mailer.js';
 
@@ -103,5 +105,39 @@ describe('sendOrganizerConfirmation', () => {
     await sendOrganizerConfirmation(event);
     expect(sendEmail).toHaveBeenCalledTimes(1);
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'organizer@example.com' }));
+  });
+});
+
+describe('buildJoinConfirmation', () => {
+  const participant = { id: 'p-join-1', email: 'joiner@example.com', name: null };
+
+  it('sends to participant email', () => {
+    const msg = buildJoinConfirmation(participant, event);
+    expect(msg.to).toBe('joiner@example.com');
+  });
+
+  it('includes event name in subject', () => {
+    const msg = buildJoinConfirmation(participant, event);
+    expect(msg.subject).toContain('Summer Meetup');
+  });
+
+  it('includes participate link in body', () => {
+    const msg = buildJoinConfirmation(participant, event);
+    expect(msg.text).toContain('/participate/p-join-1');
+  });
+
+  it('includes participant name in greeting when provided', () => {
+    const named = { ...participant, name: 'Joiner' };
+    const msg = buildJoinConfirmation(named, event);
+    expect(msg.text).toContain('Joiner');
+  });
+});
+
+describe('sendJoinConfirmation', () => {
+  it('calls sendEmail once with participant email', async () => {
+    const participant = { id: 'p-join-1', email: 'joiner@example.com', name: null };
+    await sendJoinConfirmation(participant, event);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'joiner@example.com' }));
   });
 });

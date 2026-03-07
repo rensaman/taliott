@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import EventSetupForm from './features/setup/EventSetupForm.jsx';
 import ParticipateView from './features/participate/ParticipateView.jsx';
 import AdminView from './features/admin/AdminView.jsx';
+import JoinView from './features/join/JoinView.jsx';
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
@@ -13,10 +14,16 @@ function getAdminToken() {
   return match?.[1] ?? null;
 }
 
+function getJoinToken() {
+  const match = window.location.pathname.match(/^\/join\/([^/]+)/);
+  return match?.[1] ?? null;
+}
+
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const participantId = getParticipantId();
   const adminToken = getAdminToken();
+  const joinToken = getJoinToken();
 
   if (participantId) {
     return <ParticipateView participantId={participantId} />;
@@ -24,6 +31,10 @@ export default function App() {
 
   if (adminToken) {
     return <AdminView adminToken={adminToken} />;
+  }
+
+  if (joinToken) {
+    return <JoinView joinToken={joinToken} />;
   }
 
   if (confirmation) {
