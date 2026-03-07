@@ -86,6 +86,27 @@ describe('POST /api/join/:joinToken', () => {
     expect(second.body.participant_id).toBe(first.body.participant_id);
   });
 
+  it('allows multiple different participants to register via the same join link', async () => {
+    const first = await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'person-one@example.com',
+    });
+    expect(first.status).toBe(201);
+    expect(first.body.participant_id).toBeDefined();
+
+    const second = await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'person-two@example.com',
+    });
+    expect(second.status).toBe(201);
+    expect(second.body.participant_id).toBeDefined();
+
+    expect(second.body.participant_id).not.toBe(first.body.participant_id);
+
+    const participants = await prisma.participant.findMany({
+      where: { eventId, email: { in: ['person-one@example.com', 'person-two@example.com'] } },
+    });
+    expect(participants).toHaveLength(2);
+  });
+
   it('persists optional name when provided', async () => {
     const res = await request(app).post(`/api/join/${joinToken}`).send({
       email: 'named@example.com',

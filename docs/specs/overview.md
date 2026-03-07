@@ -421,10 +421,10 @@ As an Organizer I want a dedicated admin page accessible via my secret link so t
 As an Organizer I want to see the mathematically fairest meeting point so that no participant is unreasonably disadvantaged.
 
 **Acceptance Criteria**
-- [ ] Fair Center = arithmetic mean of (latitude, longitude) of all participants who have provided a location
-- [ ] Map adjusts bounds to fit all participant pins and the center marker
-- [ ] Participants with no location set are excluded from the calculation
-- [ ] Displays count of participants included in calculation
+- [x] Fair Center = arithmetic mean of (latitude, longitude) of all participants who have provided a location
+- [x] Map adjusts bounds to fit all participant pins and the center marker
+- [x] Participants with no location set are excluded from the calculation
+- [x] Displays count of participants included in calculation
 
 **Entities touched:** `Participant` (lat/lng), computed centroid (not persisted until finalization)
 
@@ -433,10 +433,10 @@ As an Organizer I want to see the mathematically fairest meeting point so that n
 **UI components:** `GroupMap`, `CentroidMarker`, `CoverageCounter`
 
 **Test cases**
-- Unit: centroid({[0,0],[2,2]}) → {lat:1, lng:1}
-- Unit: participants missing lat/lng are excluded
-- Integration: GET /api/events/:adminToken returns centroid object
-- E2E: organizer admin view shows centroid marker on map
+- Unit: centroid({[0,0],[2,2]}) → {lat:1, lng:1} ✓
+- Unit: participants missing lat/lng are excluded ✓
+- Integration: GET /api/events/:adminToken returns centroid object ✓
+- E2E: organizer admin view shows centroid marker on map ✓
 
 ---
 

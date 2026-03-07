@@ -56,16 +56,11 @@ router.post('/:joinToken', async (req, res) => {
 
   let participant;
   try {
-    const existing = await getPrisma().participant.findFirst({
-      where: { eventId: event.id, email },
+    participant = await getPrisma().participant.upsert({
+      where: { eventId_email: { eventId: event.id, email } },
+      update: {},
+      create: { eventId: event.id, email, name: name ?? null },
     });
-    if (existing) {
-      participant = existing;
-    } else {
-      participant = await getPrisma().participant.create({
-        data: { eventId: event.id, email, name: name ?? null },
-      });
-    }
   } catch (err) {
     console.error('Failed to create/fetch participant:', err);
     return res.status(500).json({ error: 'Internal server error' });

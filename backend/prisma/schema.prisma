@@ -66,6 +66,8 @@ model Participant {
 
   event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
   availability  Availability[]
+
+  @@unique([eventId, email])
 }
 
 model Slot {

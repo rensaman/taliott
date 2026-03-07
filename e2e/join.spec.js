@@ -53,6 +53,24 @@ test.describe('join page', () => {
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
   });
 
+  test('different participants each get their own participate URL', async ({ page, request }) => {
+    const joinUrl = await createSharedLinkEvent(request);
+
+    await page.goto(joinUrl);
+    await page.getByLabel(/email/i).fill('participant-one@example.com');
+    await page.getByRole('button', { name: /join event/i }).click();
+    await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
+    const firstUrl = page.url();
+
+    await page.goto(joinUrl);
+    await page.getByLabel(/email/i).fill('participant-two@example.com');
+    await page.getByRole('button', { name: /join event/i }).click();
+    await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
+    const secondUrl = page.url();
+
+    expect(firstUrl).not.toBe(secondUrl);
+  });
+
   test('same email re-registration lands on same participate view', async ({ page, request }) => {
     const joinUrl = await createSharedLinkEvent(request);
 

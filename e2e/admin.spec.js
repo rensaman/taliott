@@ -30,7 +30,7 @@ test('organizer navigates to admin link and sees dashboard with event data', asy
   await page.goto(`/admin/${body.admin_token}`);
 
   await expect(page.getByRole('heading', { name: BASE_EVENT.name })).toBeVisible();
-  await expect(page.getByText(/open/i)).toBeVisible();
+  await expect(page.locator('p:has-text("Status:") strong')).toHaveText('open');
   await expect(page.getByText(/deadline/i)).toBeVisible();
 });
 

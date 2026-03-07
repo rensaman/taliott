@@ -63,8 +63,8 @@ test.describe.serial('invite emails via Mailpit', () => {
     const guest1 = participants.find(p => p.email === 'guest1-e2e@example.com');
     const guest2 = participants.find(p => p.email === 'guest2-e2e@example.com');
 
-    const email1 = await waitForEmail('guest1-e2e@example.com');
-    const email2 = await waitForEmail('guest2-e2e@example.com');
+    const email1 = await waitForEmail('guest1-e2e@example.com', { timeout: 10_000 });
+    const email2 = await waitForEmail('guest2-e2e@example.com', { timeout: 10_000 });
 
     // Verify each email links to the correct participant path
     const body1 = email1.Snippet ?? '';
