@@ -52,7 +52,7 @@ test('participation view shows the correct number of time slots', async ({ page 
 
   await page.goto(`/participate/${pid}`);
 
-  await expect(page.getByTestId('slot')).toHaveCount(slots.length);
+  await expect(page.getByTestId('slot-cell')).toHaveCount(slots.length);
 });
 
 // Email tests run serially to avoid Mailpit race conditions between parallel workers.
