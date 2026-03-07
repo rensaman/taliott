@@ -233,7 +233,7 @@ As an Organizer I want to choose at creation time between sending email invites 
 - [x] When `invite_mode = shared_link`: no `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
 - [x] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
 - [x] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
-- [ ] `invite_mode` is immutable after creation
+- [x] `invite_mode` is immutable after creation (no update endpoint exists; enforced by API design)
 
 **Entities touched:** `Event` (invite_mode, join_token)
 
@@ -258,15 +258,15 @@ As an Organizer I want to choose at creation time between sending email invites 
 As a Participant I want to register myself by entering my email on the join page so that I can participate without needing a personal email invite.
 
 **Acceptance Criteria**
-- [ ] `GET /join/:joinToken` renders a join page showing event name and deadline
-- [ ] Join page shows a form with a required email field and an optional name field
-- [ ] Submitting the form with a valid email creates a `Participant` row (or returns the existing one for that email + event, making registration idempotent)
-- [ ] After successful registration the participant is redirected to `/participate/:participantId`
-- [ ] The system sends a confirmation email to the participant containing their personal participation link (so they can return later)
-- [ ] `GET /join/:joinToken` with an unknown token returns 404
-- [ ] `GET /join/:joinToken` on a locked or finalized event returns a "voting closed" page (no registration allowed)
-- [ ] `POST /api/join/:joinToken` on a locked or finalized event returns 403
-- [ ] Email is validated (format check) before the Participant row is created; invalid email returns 400
+- [x] `GET /join/:joinToken` renders a join page showing event name and deadline
+- [x] Join page shows a form with a required email field and an optional name field
+- [x] Submitting the form with a valid email creates a `Participant` row (or returns the existing one for that email + event, making registration idempotent)
+- [x] After successful registration the participant is redirected to `/participate/:participantId`
+- [x] The system sends a confirmation email to the participant containing their personal participation link (so they can return later)
+- [x] `GET /join/:joinToken` with an unknown token returns 404
+- [x] `GET /join/:joinToken` on a locked or finalized event returns a "voting closed" page (no registration allowed)
+- [x] `POST /api/join/:joinToken` on a locked or finalized event returns 403
+- [x] Email is validated (format check) before the Participant row is created; invalid email returns 400
 
 **Entities touched:** `Event` (join_token, invite_mode, status), `Participant` (email, name)
 
@@ -391,12 +391,12 @@ As a Participant I want to see the group heatmap and fair center update live as 
 As an Organizer I want a dedicated admin page accessible via my secret link so that I can track who has responded and prepare to finalize the event.
 
 **Acceptance Criteria**
-- [ ] `GET /admin/:adminToken` renders the organizer dashboard (returns 404 for unknown tokens)
-- [ ] Dashboard shows event name, deadline, and current status (open / locked / finalized)
-- [ ] Participant list displays each invitee's email and whether they have responded
-- [ ] Response count summary is shown (e.g. "3 of 5 responded")
-- [ ] Admin token in the URL is the sole auth mechanism — no session or login required
-- [ ] Navigating to `/admin/:adminToken` directly works (deep-link, no redirect to home)
+- [x] `GET /admin/:adminToken` renders the organizer dashboard (returns 404 for unknown tokens)
+- [x] Dashboard shows event name, deadline, and current status (open / locked / finalized)
+- [x] Participant list displays each invitee's email and whether they have responded
+- [x] Response count summary is shown (e.g. "3 of 5 responded")
+- [x] Admin token in the URL is the sole auth mechanism — no session or login required
+- [x] Navigating to `/admin/:adminToken` directly works (deep-link, no redirect to home)
 
 **Entities touched:** `Event` (admin_token, status, deadline), `Participant` (responded_at)
 
