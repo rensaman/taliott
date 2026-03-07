@@ -16,6 +16,7 @@ Group scheduling tool. Organizers define a date range and time-of-day preference
 
 - Node.js 20+
 - Docker (for the database)
+- Playwright browsers (for E2E tests only) — installed once via `npx playwright install`
 
 ### 1. Install dependencies
 
@@ -50,7 +51,13 @@ APP_BASE_URL="http://localhost:3000"
 cd backend && npx prisma migrate deploy && cd ..
 ```
 
-### 5. Start dev servers
+### 5. Install the pre-commit hook
+
+```bash
+npm run setup:hooks
+```
+
+### 6. Start dev servers
 
 ```bash
 npm run dev
@@ -99,6 +106,12 @@ Starts a `postgres-test` container (port 5433), applies migrations, runs tests, 
 
 ### E2E tests (Playwright)
 
+First-time setup — install browser binaries:
+```bash
+npx playwright install
+```
+
+Then:
 ```bash
 npm run test:e2e
 ```
