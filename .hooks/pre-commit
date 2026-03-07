@@ -11,6 +11,15 @@
 
 set -euo pipefail
 
+# Ensure node/npm are on PATH (handles nvm, homebrew, volta, etc.)
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh" 2>/dev/null || true
+# Fallback: add common node bin locations
+for _d in "$HOME/.nvm/versions/node"/*/bin "$HOME/.volta/bin" /opt/homebrew/bin /usr/local/bin; do
+  [ -x "$_d/npm" ] && export PATH="$_d:$PATH" && break
+done
+unset _d
+
 run_tests() {
   local label="$1"
   local cmd="$2"
@@ -23,7 +32,7 @@ run_tests() {
   echo "[tests] ✓ ${label} passed."
 }
 
-run_tests "unit tests"        "npm run test --silent"
+run_tests "unit tests"        "npm run test:coverage --silent"
 run_tests "integration tests" "npm run test:integration"
 run_tests "e2e tests"         "npm run test:e2e"
 

@@ -86,17 +86,12 @@ test.describe.serial('invite emails via Mailpit', () => {
   test('confirmation screen shows admin token after form submit', async ({ page }) => {
     await page.goto('/');
     await page.getByLabel(/event name/i).fill('E2E Confirmation Test');
-    await page.getByLabel(/organizer.*email/i).fill('conf-e2e@example.com');
-    await page.getByLabel(/start/i).fill('2025-09-01');
-    await page.getByLabel(/end/i).fill('2025-09-01');
+    await page.getByLabel(/your email/i).fill('conf-e2e@example.com');
+    await page.getByLabel(/from/i).fill('2025-09-01');
+    await page.getByLabel(/to/i).fill('2025-09-01');
+    await page.getByLabel(/voting deadline/i).fill('2025-08-31T12:00');
 
-    // Set deadline if the field exists
-    const deadlineField = page.getByLabel(/deadline/i);
-    if (await deadlineField.isVisible()) {
-      await deadlineField.fill('2025-08-31');
-    }
-
-    await page.getByRole('button', { name: /create/i }).click();
+    await page.getByRole('button', { name: /create event/i }).click();
 
     await expect(page.getByTestId('admin-token')).toBeVisible();
   });

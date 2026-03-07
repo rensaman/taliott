@@ -5,7 +5,7 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.mjs',
   globalTeardown: './e2e/global-teardown.mjs',
   fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:3000',

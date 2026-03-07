@@ -4,7 +4,7 @@ import { forwardRef } from 'react';
 
 // Mock react-leaflet and leaflet — they rely on DOM APIs not available in jsdom
 vi.mock('react-leaflet', () => ({
-  MapContainer: ({ children, 'data-testid': testId }) => <div data-testid={testId ?? 'location-map'}>{children}</div>,
+  MapContainer: ({ children }) => <div>{children}</div>,
   TileLayer: () => null,
   Marker: forwardRef(({ children }, _ref) => <div data-testid="marker">{children}</div>),
   useMap: () => ({ flyTo: vi.fn() }),

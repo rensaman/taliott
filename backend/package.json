@@ -6,6 +6,7 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "test": "vitest run src",
+    "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate"

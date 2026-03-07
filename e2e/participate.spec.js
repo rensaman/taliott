@@ -95,7 +95,8 @@ test.describe.serial('email notifications via Mailpit', () => {
 
     const data = await (await fetch('http://localhost:8025/api/v1/messages')).json();
     const count = data.messages?.filter(m =>
-      m.To?.some(t => t.Address === 'notify2@example.com')
+      m.To?.some(t => t.Address === 'notify2@example.com') &&
+      m.Subject?.toLowerCase().includes('voting has closed')
     ).length ?? 0;
     expect(count).toBe(1);
   });

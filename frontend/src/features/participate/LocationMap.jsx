@@ -50,23 +50,24 @@ export default function LocationMap({ location, onLocationChange }) {
   const center = location ? [location.lat, location.lng] : DEFAULT_CENTER;
 
   return (
-    <MapContainer
-      center={center}
-      zoom={DEFAULT_ZOOM}
-      style={{ height: '300px', width: '100%' }}
-      data-testid="location-map"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapFlyTo center={location ? [location.lat, location.lng] : null} />
-      {location && (
-        <DraggableMarker
-          position={[location.lat, location.lng]}
-          onLocationChange={onLocationChange}
+    <div data-testid="location-map">
+      <MapContainer
+        center={center}
+        zoom={DEFAULT_ZOOM}
+        style={{ height: '300px', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-      )}
-    </MapContainer>
+        <MapFlyTo center={location ? [location.lat, location.lng] : null} />
+        {location && (
+          <DraggableMarker
+            position={[location.lat, location.lng]}
+            onLocationChange={onLocationChange}
+          />
+        )}
+      </MapContainer>
+    </div>
   );
 }
