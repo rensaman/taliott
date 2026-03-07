@@ -97,6 +97,7 @@ model Venue {
   id         String  @id @default(uuid())
   eventId    String
   externalId String
+  venueType  String
   name       String
   latitude   Float
   longitude  Float
@@ -104,4 +105,6 @@ model Venue {
   distanceM  Int?
 
   event      Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, externalId, venueType])
 }

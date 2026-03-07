@@ -4,6 +4,7 @@ import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerConfirmation } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
+import { fetchVenuesFromOverpass, sortVenues } from '../lib/venues.js';
 
 const router = Router();
 
@@ -120,6 +121,7 @@ router.get('/:adminToken', async (req, res) => {
     deadline: event.deadline,
     status: event.status,
     slot_count: event.slots.length,
+    venue_type: event.venueType ?? null,
     centroid,
     participants: event.participants.map(p => ({
       id: p.id,
@@ -130,5 +132,70 @@ router.get('/:adminToken', async (req, res) => {
     })),
   });
 });
+
+router.get('/:adminToken/venues', async (req, res) => {
+  const { adminToken } = req.params;
+  const venueTypeOverride = req.query.venue_type;
+
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken },
+      include: { participants: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event for venues:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  const venueType = venueTypeOverride || event.venueType;
+  if (!venueType) return res.status(400).json({ error: 'No venue type set for this event' });
+  if (!/^[a-z0-9_-]+$/i.test(venueType)) {
+    return res.status(400).json({ error: 'Invalid venue type format' });
+  }
+
+  const centroid = computeCentroid(event.participants);
+  if (!centroid) return res.status(400).json({ error: 'No participant locations available' });
+
+  try {
+    const cached = await getPrisma().venue.findMany({
+      where: { eventId: event.id, venueType },
+    });
+
+    if (cached.length > 0) {
+      return res.json({ venues: sortVenues(cached.map(toVenueDto)) });
+    }
+
+    const fetched = await fetchVenuesFromOverpass(venueType, centroid.lat, centroid.lng);
+    if (fetched.length > 0) {
+      await getPrisma().venue.createMany({
+        data: fetched.map(v => ({ ...v, eventId: event.id, venueType })),
+        skipDuplicates: true,
+      });
+    }
+
+    const stored = await getPrisma().venue.findMany({
+      where: { eventId: event.id, venueType },
+    });
+    return res.json({ venues: sortVenues(stored.map(toVenueDto)) });
+  } catch (err) {
+    console.error('Failed to fetch venues:', err);
+    return res.status(502).json({ error: 'Venue service unavailable' });
+  }
+});
+
+function toVenueDto(v) {
+  return {
+    id: v.id,
+    externalId: v.externalId,
+    name: v.name,
+    latitude: v.latitude,
+    longitude: v.longitude,
+    rating: v.rating,
+    distanceM: v.distanceM,
+  };
+}
 
 export default router;

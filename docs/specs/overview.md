@@ -446,10 +446,10 @@ As an Organizer I want to see the mathematically fairest meeting point so that n
 As an Organizer I want venue suggestions near the fair center so that I can pick a real place without leaving the app.
 
 **Acceptance Criteria**
-- [ ] Venue search uses venue_type from event config and fair center coordinates
-- [ ] Results are ranked by (distance from centroid ASC, rating DESC)
-- [ ] Each venue card shows name, distance, rating, and a map pin
-- [ ] Venue list refreshes if organizer changes the venue type filter
+- [x] Venue search uses venue_type from event config and fair center coordinates
+- [x] Results are ranked by (distance from centroid ASC, rating DESC)
+- [x] Each venue card shows name, distance, rating, and a map pin
+- [x] Venue list refreshes if organizer changes the venue type filter
 
 **Entities touched:** `Venue` (fetched + cached), `Event` (venue_type)
 
@@ -458,10 +458,10 @@ As an Organizer I want venue suggestions near the fair center so that I can pick
 **UI components:** `VenueList`, `VenueCard`, `VenueTypeFilter`
 
 **Test cases**
-- Unit: venue sorter orders by distance then rating
-- Integration: GET /api/events/:adminToken/venues calls external API with correct params
-- Integration: second call returns cached venues (no external API call)
-- E2E: organizer admin view shows venue cards; changing venue type filter refreshes list
+- Unit: venue sorter orders by distance then rating ✓
+- Integration: GET /api/events/:adminToken/venues calls external API with correct params ✓
+- Integration: second call returns cached venues (no external API call) ✓
+- E2E: organizer admin view shows venue cards; changing venue type filter refreshes list ✓
 
 ---
 

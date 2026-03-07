@@ -35,6 +35,8 @@ export async function setup() {
     },
     stdio: 'inherit',
   });
+  console.log('[integration] Generating Prisma client...');
+  execSync('npx prisma generate', { cwd: BACKEND_DIR, stdio: 'inherit' });
   console.log('[integration] postgres-test is ready.');
 }
 

@@ -1,6 +1,7 @@
 /**
  * E2E tests for US 3.0 — Admin Dashboard Shell
  * E2E tests for US 3.1 — Geographic Centroid Calculation
+ * E2E tests for US 3.2 — Contextual Venue Recommendations
  */
 import { test, expect } from '@playwright/test';
 
@@ -76,6 +77,57 @@ test('admin view shows no coverage counter when no participants have locations',
 
   // Coverage counter should not be present when centroid is null
   await expect(page.getByTestId('coverage-counter')).not.toBeVisible();
+});
+
+test('venue list section is visible on the admin dashboard', async ({ page, request }) => {
+  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const pid = body.participants[0].id;
+
+  // Give a participant a location so centroid is available
+  await request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278 },
+  });
+
+  await page.goto(`/admin/${body.admin_token}`);
+
+  await expect(page.getByTestId('venue-list-section')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /venue recommendations/i })).toBeVisible();
+  await expect(page.getByTestId('venue-type-filter')).toBeVisible();
+  // Filter input is pre-populated with the event's venue_type
+  await expect(page.getByLabelText(/venue type/i)).toHaveValue('restaurant');
+});
+
+test('changing venue type filter triggers a new venue search', async ({ page, request }) => {
+  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const pid = body.participants[0].id;
+  await request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278 },
+  });
+
+  await page.goto(`/admin/${body.admin_token}`);
+  await expect(page.getByTestId('venue-type-filter')).toBeVisible();
+
+  // Intercept the venues API call to mock the response
+  await page.route(`/api/events/${body.admin_token}/venues*`, route => {
+    const url = new URL(route.request().url());
+    const vt = url.searchParams.get('venue_type');
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        venues: [
+          { id: 'v1', name: `Test ${vt}`, distanceM: 300, rating: 4.0, latitude: 51.508, longitude: -0.12 },
+        ],
+      }),
+    });
+  });
+
+  // Change the filter to 'bar' and submit
+  await page.getByLabelText(/venue type/i).fill('bar');
+  await page.getByRole('button', { name: /search/i }).click();
+
+  await expect(page.getByText('Test bar')).toBeVisible();
+  await expect(page.getByTestId('venue-card')).toBeVisible();
 });
 
 test('confirmation screen admin link navigates to dashboard with correct event data', async ({ page }) => {

@@ -15,11 +15,18 @@ vi.mock('./GroupMap.jsx', () => ({
   ),
 }));
 
+vi.mock('./VenueList.jsx', () => ({
+  default: ({ defaultVenueType }) => (
+    <div data-testid="venue-list" data-venue-type={defaultVenueType} />
+  ),
+}));
+
 const OPEN_DATA = {
   name: 'Summer Meetup',
   deadline: '2099-06-01T12:00:00Z',
   status: 'open',
   slot_count: 12,
+  venue_type: 'restaurant',
   centroid: { lat: 1, lng: 1, count: 1 },
   participants: [
     { id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z', latitude: 1, longitude: 1 },
@@ -95,6 +102,22 @@ describe('AdminView', () => {
     render(<AdminView adminToken="some-token" />);
     await waitFor(() =>
       expect(screen.getByTestId('coverage-counter')).toBeInTheDocument()
+    );
+  });
+
+  it('renders the venue list section', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('venue-list')).toBeInTheDocument()
+    );
+  });
+
+  it('passes venue_type to venue list', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('venue-list')).toHaveAttribute('data-venue-type', 'restaurant')
     );
   });
 });

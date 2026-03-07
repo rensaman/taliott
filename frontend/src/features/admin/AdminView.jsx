@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
+import VenueList from './VenueList.jsx';
 
 export default function AdminView({ adminToken }) {
   const [data, setData] = useState(null);
@@ -30,6 +31,7 @@ export default function AdminView({ adminToken }) {
       <p>{responded} of {total} responded</p>
       <GroupMap centroid={data.centroid} participants={data.participants} />
       <ParticipantResponseList participants={data.participants} />
+      <VenueList adminToken={adminToken} defaultVenueType={data.venue_type || ''} />
     </main>
   );
 }
