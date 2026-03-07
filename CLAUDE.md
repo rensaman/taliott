@@ -25,6 +25,15 @@ so it delegates the review to the current Claude context. Before running `git co
 3. Fix any real issues before proceeding with the commit
 4. Only commit once the staged diff is clean
 
+## Test-First Development
+When implementing a user story:
+1. Read the ACs from `docs/specs/overview.md`
+2. Write unit and integration tests that encode those ACs — before writing any implementation
+3. Then implement until all tests pass
+4. Write E2E tests after implementation (they depend on UI decisions not fully specified upfront)
+
+The goal is that tests are derived from the spec, not retrofitted to match the code.
+
 ## Conventions
 - Always co-locate unit tests with source files
 - New API routes need integration tests
