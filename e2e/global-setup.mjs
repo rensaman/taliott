@@ -32,4 +32,11 @@ export default async function globalSetup() {
       if (!res.ok) throw new Error('not ready');
     }),
   ]);
+
+  console.log('[e2e] Running migrations...');
+  execSync('npx prisma migrate deploy', {
+    cwd: `${CWD}/backend`,
+    stdio: 'inherit',
+    env: { ...process.env, DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/taliott_dev' },
+  });
 }

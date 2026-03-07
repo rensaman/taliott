@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum InviteMode {
+  email_invites
+  shared_link
+}
+
 enum PartOfDay {
   morning
   afternoon
@@ -32,6 +37,8 @@ model Event {
   name             String
   organizerEmail   String
   adminToken       String      @unique @default(uuid())
+  inviteMode       InviteMode  @default(email_invites)
+  joinToken        String?     @unique
   dateRangeStart   DateTime
   dateRangeEnd     DateTime
   partOfDay        PartOfDay   @default(all)

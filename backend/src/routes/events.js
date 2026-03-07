@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerConfirmation } from '../lib/invite-mailer.js';
@@ -9,6 +10,7 @@ router.post('/', async (req, res) => {
   const {
     name,
     organizer_email,
+    invite_mode = 'email_invites',
     participant_emails = [],
     date_range_start,
     date_range_end,
@@ -30,9 +32,18 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `part_of_day must be one of: ${validPartOfDay.join(', ')}` });
   }
 
+  const validInviteModes = ['email_invites', 'shared_link'];
+  if (!validInviteModes.includes(invite_mode)) {
+    return res.status(400).json({ error: `invite_mode must be one of: ${validInviteModes.join(', ')}` });
+  }
+
   const slotData = generateSlots(date_range_start, date_range_end, part_of_day);
 
-  const allEmails = [organizer_email, ...participant_emails.filter(e => e !== organizer_email)];
+  const isSharedLink = invite_mode === 'shared_link';
+  const joinToken = isSharedLink ? randomUUID() : null;
+  const participantEmails = isSharedLink
+    ? []
+    : [organizer_email, ...participant_emails.filter(e => e !== organizer_email)];
 
   let event;
   try {
@@ -40,6 +51,8 @@ router.post('/', async (req, res) => {
       data: {
         name,
         organizerEmail: organizer_email,
+        inviteMode: invite_mode,
+        joinToken,
         dateRangeStart: new Date(date_range_start),
         dateRangeEnd: new Date(date_range_end),
         partOfDay: part_of_day,
@@ -47,7 +60,7 @@ router.post('/', async (req, res) => {
         deadline: new Date(deadline),
         status: 'open',
         slots: { create: slotData },
-        participants: { create: allEmails.map(email => ({ email })) },
+        participants: { create: participantEmails.map(email => ({ email })) },
       },
       include: {
         slots: { orderBy: { startsAt: 'asc' } },
@@ -60,16 +73,22 @@ router.post('/', async (req, res) => {
   }
 
   // Fire-and-forget — emails are best-effort; don't block the response
-  sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
+  if (!isSharedLink) {
+    sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
+  }
   sendOrganizerConfirmation(event).catch(err => console.error('[invite-mailer]', err));
 
-  return res.status(201).json({
+  const response = {
     event_id: event.id,
     name: event.name,
     admin_token: event.adminToken,
     slots: event.slots.map(s => ({ id: s.id, starts_at: s.startsAt, ends_at: s.endsAt })),
     participants: event.participants.map(p => ({ id: p.id, email: p.email })),
-  });
+  };
+  if (event.joinToken) {
+    response.join_url = `/join/${event.joinToken}`;
+  }
+  return res.status(201).json(response);
 });
 
 router.get('/:adminToken', async (req, res) => {

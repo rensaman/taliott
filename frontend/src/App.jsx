@@ -28,16 +28,27 @@ export default function App() {
 
   if (confirmation) {
     const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
+    const joinUrl = confirmation.join_url
+      ? `${window.location.origin}${confirmation.join_url}`
+      : null;
     return (
       <main>
         <h1>{confirmation.name}</h1>
         <p>{confirmation.slots?.length ?? 0} slots generated</p>
         <p>Your event was created. Save your admin link to manage it:</p>
         <a href={adminUrl} data-testid="admin-token">{confirmation.admin_token}</a>
-        <p>
-          Invite emails have been sent to{' '}
-          <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).
-        </p>
+        {joinUrl ? (
+          <p>
+            Share this link with participants:{' '}
+            <span data-testid="join-url">{joinUrl}</span>{' '}
+            <button onClick={() => navigator.clipboard.writeText(joinUrl)}>Copy link</button>
+          </p>
+        ) : (
+          <p>
+            Invite emails have been sent to{' '}
+            <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).
+          </p>
+        )}
       </main>
     );
   }

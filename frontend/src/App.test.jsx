@@ -9,9 +9,14 @@ vi.mock('./features/admin/AdminView.jsx', () => ({
 }));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
-    <button onClick={() => onCreated({ name: 'My Event', admin_token: 'tok-1', slots: [{}, {}, {}], participants: [{}, {}] })}>
-      create
-    </button>
+    <>
+      <button onClick={() => onCreated({ name: 'My Event', admin_token: 'tok-1', slots: [{}, {}, {}], participants: [{}, {}] })}>
+        create
+      </button>
+      <button onClick={() => onCreated({ name: 'Link Event', admin_token: 'tok-2', slots: [{}], participants: [], join_url: '/join/some-uuid' })}>
+        create-link
+      </button>
+    </>
   ),
 }));
 
@@ -48,5 +53,13 @@ describe('App', () => {
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
     expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
     expect(screen.getByText(/2/)).toBeInTheDocument();
+  });
+
+  it('shows join_url with copy button when invite mode is shared_link', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'create-link' }));
+    expect(screen.getByRole('heading', { name: 'Link Event' })).toBeInTheDocument();
+    expect(screen.getByTestId('join-url')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
   });
 });

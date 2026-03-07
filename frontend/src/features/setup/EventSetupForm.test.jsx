@@ -126,4 +126,46 @@ describe('EventSetupForm', () => {
     const body = JSON.parse(fetch.mock.calls[0][1].body);
     expect(body.participant_emails).toEqual(['jamie@example.com', 'sam@example.com']);
   });
+
+  it('renders InviteModeSelector with email_invites as default', () => {
+    render(<EventSetupForm />);
+    expect(screen.getByRole('radio', { name: /send email invites/i })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /share a join link/i })).not.toBeChecked();
+  });
+
+  it('shows participant emails textarea when invite mode is email_invites', () => {
+    render(<EventSetupForm />);
+    expect(screen.getByRole('textbox', { name: /participant emails/i })).toBeInTheDocument();
+  });
+
+  it('hides participant emails textarea when invite mode is shared_link', () => {
+    render(<EventSetupForm />);
+    fireEvent.click(screen.getByRole('radio', { name: /share a join link/i }));
+    expect(screen.queryByRole('textbox', { name: /participant emails/i })).not.toBeInTheDocument();
+  });
+
+  it('includes invite_mode in the submitted payload', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+
+    render(<EventSetupForm />);
+    fillBaseForm();
+    fireEvent.click(screen.getByRole('radio', { name: /share a join link/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.invite_mode).toBe('shared_link');
+  });
+
+  it('defaults invite_mode to email_invites in the submitted payload', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+
+    render(<EventSetupForm />);
+    fillBaseForm();
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.invite_mode).toBe('email_invites');
+  });
 });

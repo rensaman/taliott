@@ -225,14 +225,14 @@ As an Organizer I want to receive an email with my admin link after creating an 
 As an Organizer I want to choose at creation time between sending email invites directly or generating a shareable join link so that I can use whichever distribution channel suits my group.
 
 **Acceptance Criteria**
-- [ ] `EventSetupForm` presents an invite mode selector: "Send email invites" (default) or "Share a join link"
-- [ ] When `email_invites` is selected the existing email list input is shown (current behaviour)
-- [ ] When `shared_link` is selected the email list input is hidden; no `participant_emails` are submitted
-- [ ] `POST /api/events` accepts `invite_mode` field (`email_invites` | `shared_link`); defaults to `email_invites` when omitted
-- [ ] When `invite_mode = email_invites`: behaviour is unchanged from US 1.3 / US 1.4
-- [ ] When `invite_mode = shared_link`: no `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
-- [ ] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
-- [ ] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
+- [x] `EventSetupForm` presents an invite mode selector: "Send email invites" (default) or "Share a join link"
+- [x] When `email_invites` is selected the existing email list input is shown (current behaviour)
+- [x] When `shared_link` is selected the email list input is hidden; no `participant_emails` are submitted
+- [x] `POST /api/events` accepts `invite_mode` field (`email_invites` | `shared_link`); defaults to `email_invites` when omitted
+- [x] When `invite_mode = email_invites`: behaviour is unchanged from US 1.3 / US 1.4
+- [x] When `invite_mode = shared_link`: no `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
+- [x] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
+- [x] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
 - [ ] `invite_mode` is immutable after creation
 
 **Entities touched:** `Event` (invite_mode, join_token)

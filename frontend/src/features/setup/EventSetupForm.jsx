@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DateRangePicker from './DateRangePicker.jsx';
 import PartOfDaySelector from './PartOfDaySelector.jsx';
+import InviteModeSelector from './InviteModeSelector.jsx';
 
 export default function EventSetupForm({ onCreated }) {
   const [name, setName] = useState('');
@@ -9,6 +10,7 @@ export default function EventSetupForm({ onCreated }) {
   const [organizerEmail, setOrganizerEmail] = useState('');
   const [participantEmails, setParticipantEmails] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [inviteMode, setInviteMode] = useState('email_invites');
   const [venueType, setVenueType] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,10 +27,10 @@ export default function EventSetupForm({ onCreated }) {
         body: JSON.stringify({
           name,
           organizer_email: organizerEmail,
-          participant_emails: participantEmails
-            .split('\n')
-            .map(s => s.trim())
-            .filter(Boolean),
+          invite_mode: inviteMode,
+          participant_emails: inviteMode === 'email_invites'
+            ? participantEmails.split('\n').map(s => s.trim()).filter(Boolean)
+            : [],
           date_range_start: dateRange.start,
           date_range_end: dateRange.end,
           part_of_day: partOfDay,
@@ -79,6 +81,8 @@ export default function EventSetupForm({ onCreated }) {
 
       <PartOfDaySelector value={partOfDay} onChange={setPartOfDay} />
 
+      <InviteModeSelector value={inviteMode} onChange={setInviteMode} />
+
       <label>
         Voting deadline
         <input
@@ -99,14 +103,16 @@ export default function EventSetupForm({ onCreated }) {
         />
       </label>
 
-      <label>
-        Participant emails
-        <small> (one per line)</small>
-        <textarea
-          value={participantEmails}
-          onChange={e => setParticipantEmails(e.target.value)}
-        />
-      </label>
+      {inviteMode === 'email_invites' && (
+        <label>
+          Participant emails
+          <small> (one per line)</small>
+          <textarea
+            value={participantEmails}
+            onChange={e => setParticipantEmails(e.target.value)}
+          />
+        </label>
+      )}
 
       {error && <p role="alert">{error}</p>}
 
