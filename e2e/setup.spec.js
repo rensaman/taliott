@@ -46,7 +46,6 @@ test('form has event name input, date range inputs and part-of-day options', asy
 });
 
 test('selecting a 3-day range and submitting shows confirmation with event name and slot count', async ({ page }) => {
-  test.fixme(true, 'US 1.1: slot count on confirmation screen not yet implemented');
   await page.goto('/');
 
   await page.getByLabel(/event name/i).fill(EVENT_NAME);
@@ -65,7 +64,6 @@ test('selecting a 3-day range and submitting shows confirmation with event name 
 });
 
 test('selecting morning filter limits displayed slot count accordingly', async ({ page }) => {
-  test.fixme(true, 'US 1.1: slot count on confirmation screen not yet implemented');
   const morningSlotCount = 3 * (PART_OF_DAY_HOURS.morning.end - PART_OF_DAY_HOURS.morning.start);
 
   await page.route('/api/events', route =>
@@ -94,7 +92,6 @@ test('selecting morning filter limits displayed slot count accordingly', async (
 });
 
 test('1-day range produces a single day of slots', async ({ page }) => {
-  test.fixme(true, 'US 1.1: slot count on confirmation screen not yet implemented');
   const oneDaySlots = PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start;
 
   await page.route('/api/events', route =>

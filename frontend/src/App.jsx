@@ -31,8 +31,9 @@ export default function App() {
     return (
       <main>
         <h1>{confirmation.name}</h1>
+        <p>{confirmation.slots?.length ?? 0} slots generated</p>
         <p>Your event was created. Save your admin link to manage it:</p>
-        <a href={adminUrl} data-testid="admin-token">{adminUrl}</a>
+        <a href={adminUrl} data-testid="admin-token">{confirmation.admin_token}</a>
         <p>
           Invite emails have been sent to{' '}
           <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).

@@ -9,7 +9,7 @@ vi.mock('./features/admin/AdminView.jsx', () => ({
 }));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
-    <button onClick={() => onCreated({ name: 'My Event', admin_token: 'tok-1', participants: [{}, {}] })}>
+    <button onClick={() => onCreated({ name: 'My Event', admin_token: 'tok-1', slots: [{}, {}, {}], participants: [{}, {}] })}>
       create
     </button>
   ),
@@ -44,7 +44,9 @@ describe('App', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'create' }));
     expect(screen.getByRole('heading', { name: 'My Event' })).toBeInTheDocument();
+    expect(screen.getByText('3 slots generated')).toBeInTheDocument();
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
+    expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
     expect(screen.getByText(/2/)).toBeInTheDocument();
   });
 });

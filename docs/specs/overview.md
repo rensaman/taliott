@@ -111,14 +111,14 @@ Venue                                    # fetched from external API, cached
 As an Organizer I want to define a date range and part-of-day filter so that only relevant time slots are presented to participants.
 
 **Acceptance Criteria**
-- [ ] Organizer must provide an event name at creation (required field)
-- [ ] Event name is persisted and returned in the API response
-- [ ] Event name is displayed in the confirmation screen after creation
-- [ ] Event name will be shown to participants in emails and on the participation UI (wired in US 1.3 / US 2.x)
-- [ ] Selecting a date range of N days generates exactly N day columns in the availability grid
-- [ ] Part-of-day filter (morning / afternoon / evening / all) bounds the hour rows shown
-- [ ] Edge case: 1-day range renders a single column
-- [ ] Edge case: range crossing a month boundary renders correctly
+- [x] Organizer must provide an event name at creation (required field)
+- [x] Event name is persisted and returned in the API response
+- [x] Event name is displayed in the confirmation screen after creation
+- [x] Event name will be shown to participants in emails and on the participation UI (wired in US 1.3 / US 2.x)
+- [x] Selecting a date range of N days generates exactly N day columns in the availability grid
+- [x] Part-of-day filter (morning / afternoon / evening / all) bounds the hour rows shown
+- [x] Edge case: 1-day range renders a single column
+- [x] Edge case: range crossing a month boundary renders correctly
 
 **Entities touched:** `Event` (name, date_range_start, date_range_end, part_of_day), `Slot`
 
