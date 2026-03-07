@@ -1,9 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock location components — they use Leaflet and fetch internally
+// Mock child components that use Leaflet or fetch internally
 vi.mock('./LocationMap.jsx', () => ({ default: () => <div data-testid="location-map" /> }));
 vi.mock('./AddressSearchInput.jsx', () => ({ default: () => <div data-testid="address-search" /> }));
+vi.mock('./AvailabilityGrid.jsx', () => ({
+  default: ({ slots }) => <div data-testid="availability-grid" data-slots={slots.length} />,
+}));
 
 import ParticipateView from './ParticipateView.jsx';
 
@@ -90,11 +93,11 @@ describe('ParticipateView', () => {
     );
   });
 
-  it('renders a slot row for each slot', async () => {
+  it('renders the availability grid with the correct number of slots', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() =>
-      expect(screen.getAllByTestId('slot')).toHaveLength(1)
+      expect(screen.getByTestId('availability-grid')).toHaveAttribute('data-slots', '1')
     );
   });
 

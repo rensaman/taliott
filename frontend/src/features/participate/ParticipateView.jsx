@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import LocationMap from './LocationMap.jsx';
+import AvailabilityGrid from './AvailabilityGrid.jsx';
 
 export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
@@ -29,7 +30,6 @@ export default function ParticipateView({ participantId }) {
   if (!data) return <p>Loading…</p>;
 
   const { event, slots, availability } = data;
-  const availMap = Object.fromEntries(availability.map(a => [a.slot_id, a.state]));
 
   async function saveLocation(loc) {
     setLocation(loc);
@@ -66,14 +66,12 @@ export default function ParticipateView({ participantId }) {
         </section>
       )}
 
-      <section aria-label="Time slots">
-        {slots.map(slot => (
-          <div key={slot.id} data-testid="slot">
-            <span>{new Date(slot.starts_at).toLocaleString()}</span>
-            <span>{availMap[slot.id] ?? 'neutral'}</span>
-          </div>
-        ))}
-      </section>
+      <AvailabilityGrid
+        participantId={participantId}
+        slots={slots}
+        initialAvailability={availability}
+        locked={event.locked}
+      />
     </main>
   );
 }

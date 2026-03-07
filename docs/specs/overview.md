@@ -326,10 +326,10 @@ As a Participant I want to search for my address so that my location is resolved
 As a Participant I want to toggle slot preferences across Yes / Maybe / No / Neutral so that I can express nuanced availability.
 
 **Acceptance Criteria**
-- [ ] Cell cycle on click: Neutral → Yes → Maybe → No → Neutral
-- [ ] Each state is visually distinct (color/icon)
-- [ ] State changes are auto-saved asynchronously with a visible status indicator (saving… / saved)
-- [ ] Batch saves are debounced to avoid per-keystroke requests
+- [x] Cell cycle on click: Neutral → Yes → Maybe → No → Neutral
+- [x] Each state is visually distinct (color/icon)
+- [x] State changes are auto-saved asynchronously with a visible status indicator (saving… / saved)
+- [x] Batch saves are debounced to avoid per-keystroke requests
 
 **Entities touched:** `Availability` (state)
 
@@ -338,11 +338,11 @@ As a Participant I want to toggle slot preferences across Yes / Maybe / No / Neu
 **UI components:** `AvailabilityGrid`, `SlotCell`, `SaveStatusIndicator`
 
 **Test cases**
-- Unit: cell state machine cycles Neutral→Yes→Maybe→No→Neutral
-- Unit: debounced save batches multiple rapid changes into one call
-- Integration: PATCH /api/participate/:id/availability upserts correct states
-- Integration: invalid state value returns 400
-- E2E: participant clicks cells → states cycle → "saved" indicator appears
+- Unit: cell state machine cycles Neutral→Yes→Maybe→No→Neutral ✓
+- Unit: debounced save batches multiple rapid changes into one call ✓
+- Integration: PATCH /api/participate/:id/availability upserts correct states ✓
+- Integration: invalid state value returns 400 ✓
+- E2E: participant clicks cells → states cycle → "saved" indicator appears ✓
 
 ---
 
