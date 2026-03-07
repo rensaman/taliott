@@ -78,6 +78,22 @@ describe('sendEmail', () => {
       );
     });
 
+    it('defaults SMTP_PORT to 1025 when not set', async () => {
+      delete process.env.SMTP_PORT;
+      await sendEmail({ to: 'jamie@example.com', subject: 'Test', text: 'Hello' });
+      expect(mockCreateTransport).toHaveBeenCalledWith(
+        expect.objectContaining({ port: 1025 })
+      );
+    });
+
+    it('uses default from address when SMTP_FROM is not set', async () => {
+      delete process.env.SMTP_FROM;
+      await sendEmail({ to: 'jamie@example.com', subject: 'Test', text: 'Hello' });
+      expect(mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({ from: 'taliott <noreply@taliott.app>' })
+      );
+    });
+
     it('omits auth when SMTP_USER is not set', async () => {
       await sendEmail({ to: 'jamie@example.com', subject: 'Test', text: 'Hello' });
 

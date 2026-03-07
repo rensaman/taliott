@@ -54,6 +54,12 @@ describe('generateSlots', () => {
     expect(slots).toHaveLength(2 * hours);
   });
 
+  it('falls back to "all" hours for an unknown partOfDay value', () => {
+    const slots = generateSlots('2025-01-01', '2025-01-01', 'unknown');
+    const allHours = PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start;
+    expect(slots).toHaveLength(allHours);
+  });
+
   it('defaults to "all" when partOfDay is omitted', () => {
     const slotsDefault = generateSlots('2025-01-01', '2025-01-01');
     const slotsAll = generateSlots('2025-01-01', '2025-01-01', 'all');

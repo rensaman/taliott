@@ -17,6 +17,7 @@
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.1",
     "prisma": "^5.8.0",
     "supertest": "^6.3.4",
     "vitest": "^1.2.0"

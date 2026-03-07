@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { processExpiredEvents } from './deadline-worker.js';
+import { processExpiredEvents, startDeadlineWorker } from './deadline-worker.js';
 
 function makePrisma(events = []) {
   return {
@@ -16,6 +16,28 @@ const makeEvent = (overrides = {}) => ({
   organizerEmail: 'alex@example.com',
   status: 'open',
   ...overrides,
+});
+
+describe('startDeadlineWorker', () => {
+  it('calls processExpiredEvents immediately and returns an interval handle', () => {
+    vi.useFakeTimers();
+    const prisma = {
+      event: {
+        findMany: vi.fn().mockResolvedValue([]),
+        update: vi.fn(),
+      },
+    };
+    const mailer = { sendEmail: vi.fn() };
+    const getPrisma = vi.fn().mockReturnValue(prisma);
+
+    const handle = startDeadlineWorker(getPrisma, mailer, 5000);
+
+    expect(getPrisma).toHaveBeenCalledOnce();
+    expect(typeof handle).toBe('object'); // NodeJS.Timeout
+
+    clearInterval(handle);
+    vi.useRealTimers();
+  });
 });
 
 describe('processExpiredEvents', () => {

@@ -1,13 +1,15 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock child components that use Leaflet or fetch internally
-vi.mock('./LocationMap.jsx', () => ({ default: () => <div data-testid="location-map" /> }));
-vi.mock('./AddressSearchInput.jsx', () => ({ default: () => <div data-testid="address-search" /> }));
-vi.mock('./AvailabilityGrid.jsx', () => ({
-  default: ({ slots }) => <div data-testid="availability-grid" data-slots={slots.length} />,
-}));
+// Mock child components that use Leaflet or fetch internally.
+// Using vi.fn() so individual tests can override the implementation.
+vi.mock('./LocationMap.jsx', () => ({ default: vi.fn() }));
+vi.mock('./AddressSearchInput.jsx', () => ({ default: vi.fn() }));
+vi.mock('./AvailabilityGrid.jsx', () => ({ default: vi.fn() }));
 
+import LocationMap from './LocationMap.jsx';
+import AddressSearchInput from './AddressSearchInput.jsx';
+import AvailabilityGrid from './AvailabilityGrid.jsx';
 import ParticipateView from './ParticipateView.jsx';
 
 const LOCKED_RESPONSE = {
@@ -35,7 +37,14 @@ const OPEN_RESPONSE = {
 };
 
 describe('ParticipateView', () => {
-  beforeEach(() => vi.stubGlobal('fetch', vi.fn()));
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+    LocationMap.mockImplementation(() => <div data-testid="location-map" />);
+    AddressSearchInput.mockImplementation(() => <div data-testid="address-search" />);
+    AvailabilityGrid.mockImplementation(({ slots }) => (
+      <div data-testid="availability-grid" data-slots={slots.length} />
+    ));
+  });
   afterEach(() => vi.unstubAllGlobals());
 
   it('shows loading while fetching', () => {
@@ -108,6 +117,55 @@ describe('ParticipateView', () => {
       expect(screen.getByTestId('address-search')).toBeInTheDocument()
     );
     expect(screen.getByTestId('location-map')).toBeInTheDocument();
+  });
+
+  it('passes existing location to LocationMap when participant has coordinates', async () => {
+    const withLocation = {
+      ...OPEN_RESPONSE,
+      participant: { ...OPEN_RESPONSE.participant, latitude: 48.8, longitude: 2.3, address_label: 'Paris' },
+    };
+    let capturedLocation;
+    LocationMap.mockImplementation(({ location }) => {
+      capturedLocation = location;
+      return <div data-testid="location-map" />;
+    });
+
+    fetch.mockResolvedValue({ ok: true, json: async () => withLocation });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('location-map')).toBeInTheDocument());
+    expect(capturedLocation).toEqual({ lat: 48.8, lng: 2.3, label: 'Paris' });
+  });
+
+  it('shows location save error when PATCH location fails with non-ok response', async () => {
+    AddressSearchInput.mockImplementation(({ onSelect }) => (
+      <button onClick={() => onSelect({ lat: 1, lng: 2, label: 'X' })}>select</button>
+    ));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'select' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'select' }));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/failed to save location/i)
+    );
+  });
+
+  it('shows location save error when PATCH location throws', async () => {
+    AddressSearchInput.mockImplementation(({ onSelect }) => (
+      <button onClick={() => onSelect({ lat: 1, lng: 2, label: 'X' })}>select</button>
+    ));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockRejectedValueOnce(new Error('Network error'));
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'select' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'select' }));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/failed to save location/i)
+    );
   });
 
   it('hides location section when event is locked', async () => {

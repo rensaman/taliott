@@ -91,6 +91,16 @@ describe('AvailabilityGrid', () => {
     );
   });
 
+  it('shows error status when fetch throws a network error', async () => {
+    fetch.mockRejectedValue(new Error('Network error'));
+    renderGrid();
+    fireEvent.click(screen.getAllByTestId('slot-cell')[0]);
+    vi.advanceTimersByTime(600);
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Failed to save')
+    );
+  });
+
   it('disables all cells when locked', () => {
     renderGrid({ locked: true });
     for (const cell of screen.getAllByTestId('slot-cell')) {
