@@ -12,6 +12,7 @@ import participateRouter from './routes/participate.js';
 import geocodeRouter from './routes/geocode.js';
 import adminRouter from './routes/admin.js';
 import joinRouter from './routes/join.js';
+import resendLinkRouter from './routes/resend-link.js';
 import { startDeadlineWorker } from './lib/deadline-worker.js';
 import { sendEmail } from './lib/mailer.js';
 import { getPrisma } from './lib/prisma.js';
@@ -26,6 +27,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/participate', participateRouter);
 app.use('/api/geocode', geocodeRouter);
 app.use('/api/join', joinRouter);
+app.use('/api/resend-link', resendLinkRouter);
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api/admin', adminRouter);
 }

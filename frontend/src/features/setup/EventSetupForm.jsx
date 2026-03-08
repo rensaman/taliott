@@ -34,6 +34,7 @@ export default function EventSetupForm({ onCreated }) {
           date_range_start: dateRange.start,
           date_range_end: dateRange.end,
           part_of_day: partOfDay,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           venue_type: venueType || undefined,
           deadline,
         }),

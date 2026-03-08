@@ -102,6 +102,44 @@ test('API response includes organizer and invited participants', async ({ page }
   expect(emails).toContain('sam@example.com');
 });
 
+test('1-day range produces the correct slot count', async ({ page }) => {
+  let responseBody;
+  page.on('response', async res => {
+    if (res.url().includes('/api/events') && res.request().method() === 'POST') {
+      responseBody = await res.json().catch(() => null);
+    }
+  });
+
+  await page.goto('/');
+  await fillAndSubmitForm(page, { dateStart: '2025-06-15', dateEnd: '2025-06-15', partOfDay: 'all' });
+  await page.getByRole('button', { name: /create event/i }).click();
+
+  await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
+
+  const expectedSlots = PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start;
+  expect(responseBody?.slots?.length).toBe(expectedSlots);
+});
+
+test('request body includes a valid IANA timezone', async ({ page }) => {
+  let requestBody;
+  page.on('request', req => {
+    if (req.url().includes('/api/events') && req.method() === 'POST') {
+      requestBody = JSON.parse(req.postData() ?? '{}');
+    }
+  });
+
+  await page.goto('/');
+  await fillAndSubmitForm(page);
+  await page.getByRole('button', { name: /create event/i }).click();
+
+  await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
+
+  expect(typeof requestBody?.timezone).toBe('string');
+  expect(requestBody.timezone.length).toBeGreaterThan(0);
+  // Must be a valid IANA timezone (e.g. "Europe/Paris", "UTC", "America/New_York")
+  expect(() => Intl.DateTimeFormat(undefined, { timeZone: requestBody.timezone })).not.toThrow();
+});
+
 test('backend returns 400 and form shows error when end date precedes start date', async ({ page }) => {
   // HTML5 min-attribute prevents this via the UI normally;
   // bypass it with evaluate to test the backend validation path.

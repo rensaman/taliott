@@ -40,23 +40,6 @@ test.describe('invite mode selector', () => {
   });
 
   test('confirmation screen shows join URL with copy button when shared_link is selected', async ({ page }) => {
-    const JOIN_URL = '/join/00000000-0000-0000-0000-000000000001';
-
-    await page.route('/api/events', route =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          event_id: 'e2e-id',
-          name: BASE_FORM.name,
-          admin_token: 'e2e-admin-token',
-          slots: [{ id: 'slot-1' }],
-          participants: [],
-          join_url: JOIN_URL,
-        }),
-      })
-    );
-
     await fillForm(page, BASE_FORM);
     await page.getByRole('radio', { name: /share a join link/i }).click();
     await page.getByRole('button', { name: /create event/i }).click();
@@ -68,21 +51,8 @@ test.describe('invite mode selector', () => {
   });
 
   test('confirmation screen shows participant count when email_invites is selected', async ({ page }) => {
-    await page.route('/api/events', route =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          event_id: 'e2e-id',
-          name: BASE_FORM.name,
-          admin_token: 'e2e-admin-token',
-          slots: [{ id: 'slot-1' }],
-          participants: [{ id: 'p-1', email: 'a@example.com' }],
-        }),
-      })
-    );
-
     await fillForm(page, BASE_FORM);
+    await page.getByLabel(/participant emails/i).fill('a@example.com');
     await page.getByRole('button', { name: /create event/i }).click();
 
     await expect(page.getByText(/invite emails have been sent/i)).toBeVisible();

@@ -3,6 +3,7 @@ import EventSetupForm from './features/setup/EventSetupForm.jsx';
 import ParticipateView from './features/participate/ParticipateView.jsx';
 import AdminView from './features/admin/AdminView.jsx';
 import JoinView from './features/join/JoinView.jsx';
+import ResendLinkView from './features/resend/ResendLinkView.jsx';
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
@@ -19,11 +20,20 @@ function getJoinToken() {
   return match?.[1] ?? null;
 }
 
+function isResendPage() {
+  return window.location.pathname === '/resend';
+}
+
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const participantId = getParticipantId();
   const adminToken = getAdminToken();
   const joinToken = getJoinToken();
+  const resend = isResendPage();
+
+  if (resend) {
+    return <ResendLinkView />;
+  }
 
   if (participantId) {
     return <ParticipateView participantId={participantId} />;
