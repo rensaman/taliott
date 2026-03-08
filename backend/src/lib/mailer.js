@@ -17,11 +17,11 @@ function createTransport() {
  * In dev: point SMTP_HOST=localhost SMTP_PORT=1025 at Mailpit.
  * Falls back to console log when SMTP_HOST is not set.
  *
- * @param {{ to: string, subject: string, text: string }} opts
+ * @param {{ to: string, subject: string, text: string, attachments?: Array<{filename: string, content: string}> }} opts
  */
-export async function sendEmail({ to, subject, text }) {
+export async function sendEmail({ to, subject, text, attachments }) {
   if (!process.env.SMTP_HOST) {
-    console.log(`[mailer] to="${to}" | subject="${subject}"`);
+    console.log(`[mailer] to="${to}" | subject="${subject}"${attachments?.length ? ` | attachments=${attachments.map(a => a.filename).join(',')}` : ''}`);
     return;
   }
 
@@ -31,5 +31,6 @@ export async function sendEmail({ to, subject, text }) {
     to,
     subject,
     text,
+    attachments,
   });
 }

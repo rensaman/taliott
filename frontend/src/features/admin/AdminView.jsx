@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
 import VenueList from './VenueList.jsx';
+import FinalizePanel from './FinalizePanel.jsx';
 
 export default function AdminView({ adminToken }) {
   const [data, setData] = useState(null);
+  const [venues, setVenues] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const loadDashboard = useCallback(() => {
     fetch(`/api/events/${adminToken}`)
       .then(res => {
         if (!res.ok) throw new Error('Dashboard not found.');
@@ -16,6 +18,10 @@ export default function AdminView({ adminToken }) {
       .then(setData)
       .catch(err => setError(err.message));
   }, [adminToken]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
@@ -31,7 +37,22 @@ export default function AdminView({ adminToken }) {
       <p>{responded} of {total} responded</p>
       <GroupMap centroid={data.centroid} participants={data.participants} />
       <ParticipantResponseList participants={data.participants} />
-      <VenueList adminToken={adminToken} defaultVenueType={data.venue_type || ''} />
+      <VenueList
+        adminToken={adminToken}
+        defaultVenueType={data.venue_type || ''}
+        onVenuesLoaded={setVenues}
+      />
+      {data.status !== 'finalized' && (
+        <FinalizePanel
+          adminToken={adminToken}
+          slots={data.slots || []}
+          venues={venues}
+          onFinalized={loadDashboard}
+        />
+      )}
+      {data.status === 'finalized' && (
+        <p data-testid="finalized-notice"><strong>This event has been finalized.</strong></p>
+      )}
     </main>
   );
 }

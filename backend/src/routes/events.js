@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
-import { sendEventInvites, sendOrganizerConfirmation } from '../lib/invite-mailer.js';
+import { sendEventInvites, sendOrganizerConfirmation, sendFinalizationNotifications } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
 import { fetchVenuesFromOverpass, sortVenues } from '../lib/venues.js';
 
@@ -121,6 +121,7 @@ router.get('/:adminToken', async (req, res) => {
     deadline: event.deadline,
     status: event.status,
     slot_count: event.slots.length,
+    slots: event.slots.map(s => ({ id: s.id, starts_at: s.startsAt, ends_at: s.endsAt })),
     venue_type: event.venueType ?? null,
     centroid,
     participants: event.participants.map(p => ({
@@ -184,6 +185,61 @@ router.get('/:adminToken/venues', async (req, res) => {
     console.error('Failed to fetch venues:', err);
     return res.status(502).json({ error: 'Venue service unavailable' });
   }
+});
+
+router.post('/:adminToken/finalize', async (req, res) => {
+  const { adminToken } = req.params;
+  const { slot_id, venue_id } = req.body;
+
+  if (!slot_id) {
+    return res.status(400).json({ error: 'slot_id is required' });
+  }
+
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken },
+      include: { participants: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event for finalize:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+  if (event.status === 'finalized') return res.status(409).json({ error: 'Event is already finalized' });
+
+  // Validate slot belongs to this event
+  const slot = await getPrisma().slot.findFirst({ where: { id: slot_id, eventId: event.id } });
+  if (!slot) return res.status(400).json({ error: 'slot_id not found for this event' });
+
+  // Validate venue if provided
+  let venue = null;
+  if (venue_id) {
+    venue = await getPrisma().venue.findFirst({ where: { id: venue_id, eventId: event.id } });
+    if (!venue) return res.status(400).json({ error: 'venue_id not found for this event' });
+  }
+
+  try {
+    await getPrisma().event.update({
+      where: { id: event.id },
+      data: {
+        status: 'finalized',
+        finalSlotId: slot_id,
+        finalVenueId: venue_id ?? null,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to finalize event:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  // Fire-and-forget notifications with ICS attachment
+  sendFinalizationNotifications(event, slot, venue).catch(err =>
+    console.error('[finalize-mailer]', err)
+  );
+
+  return res.json({ ok: true, status: 'finalized' });
 });
 
 function toVenueDto(v) {

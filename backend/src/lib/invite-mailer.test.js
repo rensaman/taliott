@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
 vi.mock('./mailer.js', () => ({ sendEmail: vi.fn() }));
+vi.mock('./ics.js', () => ({ generateICS: vi.fn().mockReturnValue('BEGIN:VCALENDAR\r\nEND:VCALENDAR') }));
 
 import {
   buildParticipantInvite,
@@ -9,6 +10,9 @@ import {
   sendOrganizerConfirmation,
   buildJoinConfirmation,
   sendJoinConfirmation,
+  buildFinalizationEmail,
+  buildOrganizerFinalizationEmail,
+  sendFinalizationNotifications,
 } from './invite-mailer.js';
 import { sendEmail } from './mailer.js';
 
@@ -139,5 +143,98 @@ describe('sendJoinConfirmation', () => {
     await sendJoinConfirmation(participant, event);
     expect(sendEmail).toHaveBeenCalledTimes(1);
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'joiner@example.com' }));
+  });
+});
+
+const slot = {
+  startsAt: new Date('2025-06-15T09:00:00.000Z'),
+  endsAt: new Date('2025-06-15T10:00:00.000Z'),
+};
+const venue = { name: 'The Anchor Pub' };
+
+describe('buildFinalizationEmail', () => {
+  const participant = { id: 'p-uuid-1', email: 'alice@example.com', name: 'Alice' };
+
+  it('sends to participant email', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.to).toBe('alice@example.com');
+  });
+
+  it('subject contains event name', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.subject).toContain('Summer Meetup');
+    expect(msg.subject).toMatch(/finalized/i);
+  });
+
+  it('body includes venue name', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.text).toContain('The Anchor Pub');
+  });
+
+  it('body includes participation link', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.text).toContain('/participate/p-uuid-1');
+  });
+
+  it('has an ICS attachment', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.attachments).toBeDefined();
+    expect(msg.attachments[0].filename).toBe('event.ics');
+    expect(msg.attachments[0].content).toContain('BEGIN:VCALENDAR');
+  });
+
+  it('body says TBD when no venue provided', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, null);
+    expect(msg.text).toContain('TBD');
+  });
+});
+
+describe('buildOrganizerFinalizationEmail', () => {
+  it('sends to organizer email', () => {
+    const msg = buildOrganizerFinalizationEmail(event, slot, venue);
+    expect(msg.to).toBe('organizer@example.com');
+  });
+
+  it('subject contains event name and finalized', () => {
+    const msg = buildOrganizerFinalizationEmail(event, slot, venue);
+    expect(msg.subject).toContain('Summer Meetup');
+    expect(msg.subject).toMatch(/finalized/i);
+  });
+
+  it('body includes admin link', () => {
+    const msg = buildOrganizerFinalizationEmail(event, slot, venue);
+    expect(msg.text).toContain('/admin/admin-token-uuid');
+  });
+
+  it('has an ICS attachment', () => {
+    const msg = buildOrganizerFinalizationEmail(event, slot, venue);
+    expect(msg.attachments).toBeDefined();
+    expect(msg.attachments[0].filename).toBe('event.ics');
+  });
+});
+
+describe('sendFinalizationNotifications', () => {
+  it('calls sendEmail for each participant + organizer', async () => {
+    await sendFinalizationNotifications(event, slot, venue);
+    // 2 participants + 1 organizer = 3
+    expect(sendEmail).toHaveBeenCalledTimes(3);
+  });
+
+  it('sends to all participant emails and organizer', async () => {
+    await sendFinalizationNotifications(event, slot, venue);
+    const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(recipients).toContain('alice@example.com');
+    expect(recipients).toContain('bob@example.com');
+    expect(recipients).toContain('organizer@example.com');
+  });
+
+  it('skips participants with no email (shared_link mode)', async () => {
+    const eventWithNullEmail = {
+      ...event,
+      participants: [{ id: 'p1', email: null, name: null }, ...event.participants],
+    };
+    await sendFinalizationNotifications(eventWithNullEmail, slot, venue);
+    // 2 real participants + 1 organizer = 3 (null email skipped)
+    expect(sendEmail).toHaveBeenCalledTimes(3);
   });
 });

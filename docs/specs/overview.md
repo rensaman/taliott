@@ -147,7 +147,7 @@ As an Organizer I want the event to lock automatically at the deadline so that l
 - [x] Participation link transitions to "Results Only" state at deadline datetime
 - [x] Availability grid becomes read-only after deadline
 - [x] Organizer receives an automated email when the deadline expires (background worker; stub logs in dev — SMTP wired in prod)
-- [ ] Admin link still allows finalizing after deadline (finalise endpoint in US 3.3)
+- [x] Admin link still allows finalizing after deadline (finalise endpoint in US 3.3)
 
 **Entities touched:** `Event` (deadline, status → locked)
 
@@ -471,12 +471,12 @@ As an Organizer I want venue suggestions near the fair center so that I can pick
 As an Organizer I want to confirm the final time and venue so that the system notifies everyone and sends calendar files.
 
 **Acceptance Criteria**
-- [ ] Organizer selects a slot and a venue (or enters custom details) before finalizing
-- [ ] POST /finalize sets Event.status to "finalized" and stores final_slot_id + final_venue_id
-- [ ] All further edits to availability or location are blocked after finalization
-- [ ] System generates a valid .ics file (correct DTSTART, DTEND, LOCATION, SUMMARY)
-- [ ] Each participant receives a notification email with the .ics file attached
-- [ ] Organizer receives the same email
+- [x] Organizer selects a slot and a venue (or enters custom details) before finalizing
+- [x] POST /finalize sets Event.status to "finalized" and stores final_slot_id + final_venue_id
+- [x] All further edits to availability or location are blocked after finalization
+- [x] System generates a valid .ics file (correct DTSTART, DTEND, LOCATION, SUMMARY)
+- [x] Each participant receives a notification email with the .ics file attached
+- [x] Organizer receives the same email
 
 **Entities touched:** `Event` (status → finalized, final_slot_id, final_venue_id)
 

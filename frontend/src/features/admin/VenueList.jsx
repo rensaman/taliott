@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import VenueCard from './VenueCard.jsx';
 import VenueTypeFilter from './VenueTypeFilter.jsx';
 
-export default function VenueList({ adminToken, defaultVenueType }) {
+export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded }) {
   const [venues, setVenues] = useState(null);
   const [venueType, setVenueType] = useState(defaultVenueType || '');
   const [error, setError] = useState(null);
@@ -20,6 +20,7 @@ export default function VenueList({ adminToken, defaultVenueType }) {
       )
       .then(data => {
         setVenues(data.venues);
+        onVenuesLoaded?.(data.venues);
         setLoading(false);
       })
       .catch(err => {
