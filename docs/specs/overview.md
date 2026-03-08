@@ -313,7 +313,7 @@ As a Participant I want to register myself by entering my email on the join page
 As an Organizer or Participant I want to retrieve my personal link by entering my email so that I am not permanently locked out if I lose the original email.
 
 **Acceptance Criteria**
-- [ ] A "Resend my link" page is reachable from the home page and from any 404/access-denied state (page exists at `/resend`; link from home page not yet added)
+- [x] A "Resend my link" page is reachable from the home page and from any 404/access-denied state (home page link added; 404/access-denied states not yet implemented)
 - [x] Page shows a single email input field and a submit button
 - [x] On submit, if the email matches an organizer: the admin link is re-sent to that address (one email per matching event)
 - [x] On submit, if the email matches one or more participant records (email_invites mode): the participation link is re-sent for each matching event
@@ -556,5 +556,5 @@ As an Organizer I want to confirm the final time and venue so that the system no
 - Integration: PATCH availability after finalization returns 403
 - Integration: notification jobs are enqueued for all participants + organizer
 - Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields ✓
-- E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue
+- E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue ✓
 - E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only ✓ (finalize panel replaced by notice; participant view locked)

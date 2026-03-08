@@ -61,6 +61,26 @@ test('admin dashboard shows "finalized" status after finalization', async ({ pag
   await expect(page.getByText(/status/i)).toContainText('finalized');
 });
 
+test('organizer finalizes with custom venue — participant view shows final slot and venue', async ({ page, request }) => {
+  const body = await createEvent(request, { participant_emails: ['p@finalize-e2e.com'] });
+  const participant = body.participants.find(p => p.email === 'p@finalize-e2e.com');
+
+  await page.goto(`/admin/${body.admin_token}`);
+
+  await page.locator('#slot-select').selectOption({ index: 1 });
+  await page.getByRole('radio', { name: /enter custom venue/i }).click();
+  await page.getByTestId('custom-venue-name').fill('The Blue Note');
+  await page.getByTestId('custom-venue-address').fill('131 W 3rd St, New York');
+  await page.getByRole('button', { name: /finalize event/i }).click();
+
+  await expect(page.getByTestId('finalized-notice')).toBeVisible();
+
+  await page.goto(`/participate/${participant.id}`);
+  await expect(page.getByTestId('finalized-banner')).toBeVisible();
+  await expect(page.getByText('The Blue Note')).toBeVisible();
+  await expect(page.getByText(/131 W 3rd St/)).toBeVisible();
+});
+
 test('participant view is read-only after organizer finalizes', async ({ page, request }) => {
   const body = await createEvent(request, { participant_emails: ['p@finalize-e2e.com'] });
 
@@ -73,7 +93,8 @@ test('participant view is read-only after organizer finalizes', async ({ page, r
     data: { slot_id: slots[0].id },
   });
 
-  // Participant visits their link — should see locked/results-only state
+  // Participant visits their link — should see locked/results-only state and finalized banner
   await page.goto(`/participate/${participant.id}`);
   await expect(page.getByRole('status')).toHaveText(/results only/i);
+  await expect(page.getByTestId('finalized-banner')).toBeVisible();
 });

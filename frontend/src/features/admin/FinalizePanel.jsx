@@ -2,7 +2,10 @@ import { useState } from 'react';
 
 export default function FinalizePanel({ adminToken, slots, venues, onFinalized }) {
   const [slotId, setSlotId] = useState('');
+  const [venueMode, setVenueMode] = useState('recommended'); // 'recommended' | 'custom'
   const [venueId, setVenueId] = useState('');
+  const [venueName, setVenueName] = useState('');
+  const [venueAddress, setVenueAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -14,7 +17,12 @@ export default function FinalizePanel({ adminToken, slots, venues, onFinalized }
 
     try {
       const body = { slot_id: slotId };
-      if (venueId) body.venue_id = venueId;
+      if (venueMode === 'recommended' && venueId) {
+        body.venue_id = venueId;
+      } else if (venueMode === 'custom' && venueName) {
+        body.venue_name = venueName;
+        if (venueAddress) body.venue_address = venueAddress;
+      }
 
       const res = await fetch(`/api/events/${adminToken}/finalize`, {
         method: 'POST',
@@ -57,23 +65,72 @@ export default function FinalizePanel({ adminToken, slots, venues, onFinalized }
           </select>
         </div>
 
-        {venues && venues.length > 0 && (
-          <div>
-            <label htmlFor="venue-select">Select venue (optional)</label>
+        <div>
+          <fieldset>
+            <legend>Venue</legend>
+            <label>
+              <input
+                type="radio"
+                name="venue-mode"
+                value="recommended"
+                checked={venueMode === 'recommended'}
+                onChange={() => setVenueMode('recommended')}
+              />
+              {' '}Select recommended
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="venue-mode"
+                value="custom"
+                checked={venueMode === 'custom'}
+                onChange={() => setVenueMode('custom')}
+              />
+              {' '}Enter custom venue
+            </label>
+          </fieldset>
+
+          {venueMode === 'recommended' && venues && venues.length > 0 && (
             <select
               id="venue-select"
               value={venueId}
               onChange={e => setVenueId(e.target.value)}
+              aria-label="Select venue"
             >
-              <option value="">-- none / custom --</option>
+              <option value="">-- none / TBD --</option>
               {venues.map(v => (
                 <option key={v.id} value={v.id}>
                   {v.name}{v.distanceM ? ` (${Math.round(v.distanceM)}m)` : ''}
                 </option>
               ))}
             </select>
-          </div>
-        )}
+          )}
+
+          {venueMode === 'custom' && (
+            <div>
+              <label>
+                Venue name
+                <input
+                  type="text"
+                  value={venueName}
+                  onChange={e => setVenueName(e.target.value)}
+                  placeholder="e.g. The Blue Note"
+                  data-testid="custom-venue-name"
+                />
+              </label>
+              <label>
+                Venue address
+                <input
+                  type="text"
+                  value={venueAddress}
+                  onChange={e => setVenueAddress(e.target.value)}
+                  placeholder="e.g. 131 W 3rd St, New York"
+                  data-testid="custom-venue-address"
+                />
+              </label>
+            </div>
+          )}
+        </div>
 
         {error && <p role="alert">{error}</p>}
 

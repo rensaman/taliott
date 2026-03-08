@@ -45,7 +45,7 @@ export default function ParticipateView({ participantId }) {
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
 
-  const { event, slots, availability } = data;
+  const { event, slots, availability, finalSlot, finalVenue } = data;
 
   async function saveLocation(loc) {
     setLocation(loc);
@@ -86,6 +86,19 @@ export default function ParticipateView({ participantId }) {
 
       {event.locked && (
         <p role="status">Results only — voting has closed.</p>
+      )}
+
+      {finalSlot && (
+        <section aria-label="Event result" data-testid="finalized-banner">
+          <h2>Event finalized</h2>
+          <p>When: {new Date(finalSlot.starts_at).toLocaleString()}</p>
+          {finalVenue && (
+            <p>
+              Where: {finalVenue.name}
+              {finalVenue.address ? `, ${finalVenue.address}` : ''}
+            </p>
+          )}
+        </section>
       )}
 
       {!event.locked && (

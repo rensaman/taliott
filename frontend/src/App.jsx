@@ -78,6 +78,7 @@ export default function App() {
     <main>
       <h1>taliott</h1>
       <EventSetupForm onCreated={setConfirmation} />
+      <p><a href="/resend">Lost your link? Recover it here</a></p>
     </main>
   );
 }
