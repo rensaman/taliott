@@ -313,14 +313,14 @@ As a Participant I want to register myself by entering my email on the join page
 As an Organizer or Participant I want to retrieve my personal link by entering my email so that I am not permanently locked out if I lose the original email.
 
 **Acceptance Criteria**
-- [ ] A "Resend my link" page is reachable from the home page and from any 404/access-denied state
-- [ ] Page shows a single email input field and a submit button
-- [ ] On submit, if the email matches an organizer: the admin link is re-sent to that address (one email per matching event)
-- [ ] On submit, if the email matches one or more participant records (email_invites mode): the participation link is re-sent for each matching event
-- [ ] On submit, if the email matches a shared_link participant: the participation link is re-sent
-- [ ] If the email matches nothing, the response is still 200 (no user enumeration) but no email is sent
-- [ ] The resend operation is rate-limited (max 3 requests per email per 15 minutes) to prevent abuse
-- [ ] Confirmation message shown after submit: "If we found a matching event, we've sent the link to your inbox"
+- [ ] A "Resend my link" page is reachable from the home page and from any 404/access-denied state (page exists at `/resend`; link from home page not yet added)
+- [x] Page shows a single email input field and a submit button
+- [x] On submit, if the email matches an organizer: the admin link is re-sent to that address (one email per matching event)
+- [x] On submit, if the email matches one or more participant records (email_invites mode): the participation link is re-sent for each matching event
+- [x] On submit, if the email matches a shared_link participant: the participation link is re-sent
+- [x] If the email matches nothing, the response is still 200 (no user enumeration) but no email is sent
+- [x] The resend operation is rate-limited (max 3 requests per email per 15 minutes) to prevent abuse
+- [x] Confirmation message shown after submit: "If we found a matching event, we've sent the link to your inbox"
 
 **Entities touched:** `Event` (organizer_email, admin_token), `Participant` (email, id)
 
@@ -330,13 +330,13 @@ As an Organizer or Participant I want to retrieve my personal link by entering m
 **UI components:** `ResendLinkView` (email form + confirmation message)
 
 **Test cases**
-- Integration: POST /api/resend-link with organizer email → admin link email sent
-- Integration: POST /api/resend-link with participant email (email_invites) → participation link email sent
-- Integration: POST /api/resend-link with participant email (shared_link) → participation link email sent
-- Integration: POST /api/resend-link with unknown email → 200, no email sent
-- Integration: POST /api/resend-link exceeding rate limit → 429
-- E2E: organizer loses admin link → uses "Resend my link" → receives admin link in inbox
-- E2E: participant loses invite → uses "Resend my link" → receives participation link in inbox
+- Integration: POST /api/resend-link with organizer email → admin link email sent ✓
+- Integration: POST /api/resend-link with participant email (email_invites) → participation link email sent ✓
+- Integration: POST /api/resend-link with participant email (shared_link) → participation link email sent ✓
+- Integration: POST /api/resend-link with unknown email → 200, no email sent ✓
+- Integration: POST /api/resend-link exceeding rate limit → 429 ✓
+- E2E: organizer loses admin link → uses "Resend my link" → receives admin link in inbox ✓
+- E2E: participant loses invite → uses "Resend my link" → receives participation link in inbox ✓
 
 ---
 
@@ -428,7 +428,8 @@ As a Participant I want to see the group heatmap and fair center update live as 
 - Unit: centroid calculation averages all active coordinate pairs
 - Integration: updating availability triggers a broadcast to subscribed clients ✓
 - Integration: updating a participant location triggers centroid recalculation broadcast ✓
-- E2E: two participants open simultaneously → one changes slot → other sees heatmap update without refresh
+- E2E: two participants open simultaneously → one changes slot → other sees heatmap update without refresh ✓
+- E2E: one participant sets location → other sees centroid update without refresh ✓
 
 ---
 
@@ -556,4 +557,4 @@ As an Organizer I want to confirm the final time and venue so that the system no
 - Integration: notification jobs are enqueued for all participants + organizer
 - Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields ✓
 - E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue
-- E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only
+- E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only ✓ (finalize panel replaced by notice; participant view locked)
