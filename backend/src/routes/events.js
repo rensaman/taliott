@@ -44,8 +44,10 @@ router.post('/', async (req, res) => {
 
   const isSharedLink = invite_mode === 'shared_link';
   const joinToken = isSharedLink ? randomUUID() : null;
+  // Organizer is always a participant. In shared_link mode, only the organizer is
+  // created at event creation time; others self-register via the join link.
   const participantEmails = isSharedLink
-    ? []
+    ? [organizer_email]
     : [organizer_email, ...participant_emails.filter(e => e !== organizer_email)];
 
   let event;
@@ -76,9 +78,9 @@ router.post('/', async (req, res) => {
   }
 
   // Fire-and-forget — emails are best-effort; don't block the response
-  if (!isSharedLink) {
-    sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
-  }
+  // Always send participant invites (organizer is always enrolled; in shared_link mode
+  // they are the only participant at creation time).
+  sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
   sendOrganizerConfirmation(event).catch(err => console.error('[invite-mailer]', err));
 
   const response = {

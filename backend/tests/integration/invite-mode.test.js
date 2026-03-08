@@ -44,14 +44,15 @@ describe('POST /api/events — invite_mode', () => {
     expect(res.body.join_url).toBeUndefined();
   });
 
-  it('with shared_link: creates zero participant rows', async () => {
+  it('with shared_link: creates exactly 1 participant row (the organizer)', async () => {
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,
       invite_mode: 'shared_link',
     });
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
-    expect(res.body.participants).toHaveLength(0);
+    expect(res.body.participants).toHaveLength(1);
+    expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email);
   });
 
   it('with shared_link: returns join_url in response', async () => {
@@ -64,7 +65,7 @@ describe('POST /api/events — invite_mode', () => {
     expect(res.body.join_url).toMatch(/\/join\/[0-9a-f-]{36}$/);
   });
 
-  it('with shared_link: ignores participant_emails even if provided', async () => {
+  it('with shared_link: ignores participant_emails even if provided (only organizer enrolled)', async () => {
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,
       invite_mode: 'shared_link',
@@ -72,7 +73,8 @@ describe('POST /api/events — invite_mode', () => {
     });
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
-    expect(res.body.participants).toHaveLength(0);
+    expect(res.body.participants).toHaveLength(1);
+    expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email);
   });
 
   it('returns 400 for an invalid invite_mode value', async () => {

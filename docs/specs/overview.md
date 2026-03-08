@@ -185,22 +185,20 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 - [x] Participation UUIDs are non-sequential (v4)
 - [x] Organizer receives a separate admin link with a distinct admin_token
 - [x] No two participants share the same token
-- [ ] If the organizer's email appears in the participant list, they receive both a confirmation email (admin link) and a participant invite email (participation link); these are two distinct emails with distinct purposes
-- [ ] If the organizer's email does not appear in the participant list, they are NOT auto-enrolled as a participant; the UI shows a hint suggesting they add themselves if they want to participate
+- [x] Organizer is always auto-enrolled as a participant; `organizer_email` is prepended to the participant list at creation and deduplicated if also provided in `participant_emails`
+- [x] Organizer always receives both a confirmation email (admin link) and a participant invite email (participation link) — two distinct emails with distinct purposes
 
 **Entities touched:** `Event` (admin_token), `Participant` (id used as token)
 
-**API:** `POST /api/events` — accepts organizer email + participant email list; creates one Participant row per email; sends emails
+**API:** `POST /api/events` — accepts organizer email + participant email list; organizer is always added as participant; sends emails
 
-**UI components:** `InviteForm` (email list input, organizer-as-participant hint), `ConfirmationScreen` (shows admin link to organizer)
+**UI components:** `InviteForm` (email list input), `ConfirmationScreen` (shows admin link to organizer)
 
 **Test cases**
 - Unit: token generation produces v4 UUIDs ✓
-- Integration: POST /api/events with 3 participant emails creates 3 Participant rows with distinct UUIDs ✓
+- Integration: POST /api/events with 2 invitee emails creates 3 Participant rows (organizer + 2) with distinct UUIDs ✓
 - Integration: each participant UUID differs from admin_token ✓
-- Integration: email sending job is queued once per participant ✓
-- Integration: POST /api/events where organizer_email is in participant list → organizer receives 2 emails (confirmation + invite)
-- Integration: POST /api/events where organizer_email is NOT in participant list → organizer receives only 1 email (confirmation)
+- Integration: organizer always receives 2 emails (participant invite + confirmation) regardless of whether their email is in participant_emails ✓
 - E2E: organizer submits invite form → confirmation screen shows admin link ✓
 
 > **Note:** Organizer email delivery of the admin link is a separate concern handled in US 1.4. The admin_token is currently returned in the API response and displayed on the confirmation screen only.
@@ -244,27 +242,27 @@ As an Organizer I want to choose at creation time between sending email invites 
 - [x] When `shared_link` is selected the email list input is hidden; no `participant_emails` are submitted
 - [x] `POST /api/events` accepts `invite_mode` field (`email_invites` | `shared_link`); defaults to `email_invites` when omitted
 - [x] When `invite_mode = email_invites`: behaviour is unchanged from US 1.3 / US 1.4
-- [x] When `invite_mode = shared_link`: no `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
+- [x] When `invite_mode = shared_link`: organizer is auto-enrolled as a participant (as always); no other `Participant` rows are created at event creation time; a `join_token` UUID is generated and stored on the `Event`
 - [x] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
 - [x] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
 - [x] `invite_mode` is immutable after creation (no update endpoint exists; enforced by API design)
-- [ ] When `invite_mode = shared_link`: confirmation screen displays a note reminding the organizer to register themselves via the join link if they wish to participate (organizer is not auto-enrolled)
+- [x] When `invite_mode = shared_link`: organizer receives their participant invite email at creation time; other participants self-register via the join link
 
-**Entities touched:** `Event` (invite_mode, join_token)
+**Entities touched:** `Event` (invite_mode, join_token), `Participant`
 
 **API:** `POST /api/events` — new optional field `invite_mode`; response gains `join_url` when applicable
 
-**UI components:** `InviteModeSelector`, `EventSetupForm` (conditional email list), `ConfirmationScreen` (conditional join URL display + organizer self-registration reminder)
+**UI components:** `InviteModeSelector`, `EventSetupForm` (conditional email list), `ConfirmationScreen` (conditional join URL display)
 
 **Test cases**
-- Unit: POST /api/events with invite_mode=shared_link generates a join_token and no participants
-- Unit: POST /api/events with invite_mode=email_invites behaves as before (participants created, emails sent)
+- Unit: POST /api/events with invite_mode=shared_link generates a join_token and 1 participant (the organizer)
+- Unit: POST /api/events with invite_mode=email_invites behaves as before (organizer + invitees created, emails sent)
 - Unit: POST /api/events without invite_mode defaults to email_invites
 - Integration: POST /api/events with shared_link returns join_url in response
-- Integration: POST /api/events with shared_link creates zero Participant rows
+- Integration: POST /api/events with shared_link creates exactly 1 Participant row (the organizer)
+- Integration: POST /api/events with shared_link: organizer receives participant invite + confirmation emails
 - Integration: POST /api/events with invalid invite_mode returns 400
-- E2E: organizer selects "Share a join link" → confirmation screen shows join URL → no invite emails sent
-- E2E: confirmation screen (shared_link mode) shows self-registration reminder to organizer
+- E2E: organizer selects "Share a join link" → confirmation screen shows join URL
 
 ---
 
