@@ -15,5 +15,14 @@ test-results/
 # Vite
 frontend/dist/
 
+# Test
+.env.test
+coverage/
+backend/coverage/
+frontend/coverage/
+
+# Claude
+CLAUDE.md
+
 # OS
 .DS_Store

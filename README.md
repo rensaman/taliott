@@ -132,6 +132,8 @@ taliott/
 ├── frontend/          # React/Vite app
 │   ├── src/
 │   │   ├── features/  # Feature-scoped components + co-located tests
+│   │   ├── hooks/     # Shared React hooks
+│   │   ├── lib/       # Frontend utilities
 │   │   └── App.jsx
 │   └── Dockerfile
 ├── backend/           # Express API
