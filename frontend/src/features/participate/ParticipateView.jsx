@@ -3,6 +3,9 @@ import DeadlineBadge from './DeadlineBadge.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import LocationMap from './LocationMap.jsx';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
+import HeatmapGrid from './HeatmapGrid.jsx';
+import GroupMap from '../admin/GroupMap.jsx';
+import { useEventStream } from '../../hooks/useEventStream.js';
 
 export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
@@ -11,6 +14,8 @@ export default function ParticipateView({ participantId }) {
   const [saveError, setSaveError] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [confirmError, setConfirmError] = useState(null);
+  const [heatmap, setHeatmap] = useState(null);
+  const [centroid, setCentroid] = useState(null);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -25,9 +30,17 @@ export default function ParticipateView({ participantId }) {
           setLocation({ lat: latitude, lng: longitude, label: address_label });
         }
         if (responded_at) setConfirmed(true);
+        setHeatmap(d.heatmap ?? null);
+        setCentroid(d.centroid ?? null);
       })
       .catch(err => setError(err.message));
   }, [participantId]);
+
+  // Subscribe to live event updates once we know the event ID
+  useEventStream(data?.event?.id ?? null, msg => {
+    if (msg.type === 'availability') setHeatmap(msg.heatmap);
+    if (msg.type === 'location') setCentroid(msg.centroid);
+  });
 
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
@@ -89,6 +102,12 @@ export default function ParticipateView({ participantId }) {
         initialAvailability={availability}
         locked={event.locked}
       />
+
+      <HeatmapGrid slots={slots} heatmap={heatmap} />
+
+      <section aria-label="Estimated meetup area">
+        <GroupMap centroid={centroid} participants={[]} />
+      </section>
 
       {!event.locked && (
         <section aria-label="Confirm response">

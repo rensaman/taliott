@@ -37,11 +37,14 @@ Event
   date_range_start date
   date_range_end   date
   part_of_day     enum(morning|afternoon|evening|all)
+  timezone        string                 # IANA tz string, e.g. "Europe/Paris"; set at creation
   venue_type      string                 # e.g. "bar", "restaurant"
-  deadline        datetime
+  deadline        datetime               # stored in UTC
   status          enum(open|locked|finalized)
   final_slot_id   FK → Slot?
-  final_venue_id  FK → Venue?
+  final_venue_id  FK → Venue?            # null when organizer used custom venue details
+  final_venue_name    string?            # populated when no Venue row selected (custom venue)
+  final_venue_address string?            # populated when no Venue row selected (custom venue)
   created_at      datetime
 
 Participant
@@ -54,11 +57,11 @@ Participant
   address_label   string?
   responded_at    datetime?
 
-Slot                                     # generated from Event date range
+Slot                                     # generated from Event date range; times stored in UTC
   id              UUID PK
   event_id        FK → Event
-  starts_at       datetime
-  ends_at         datetime
+  starts_at       datetime               # UTC; convert to Event.timezone for display
+  ends_at         datetime               # UTC; convert to Event.timezone for display
 
 Availability
   id              UUID PK
@@ -119,18 +122,25 @@ As an Organizer I want to define a date range and part-of-day filter so that onl
 - [x] Part-of-day filter (morning / afternoon / evening / all) bounds the hour rows shown
 - [x] Edge case: 1-day range renders a single column
 - [x] Edge case: range crossing a month boundary renders correctly
+- [ ] Organizer must provide a timezone (IANA string, e.g. "Europe/Paris") at creation (required field)
+- [ ] Timezone is persisted and returned in all event API responses
+- [ ] Slot `starts_at` / `ends_at` are generated in UTC using the event timezone as the reference
+- [ ] POST /api/events without timezone returns 400; invalid IANA string returns 400
 
-**Entities touched:** `Event` (name, date_range_start, date_range_end, part_of_day), `Slot`
+**Entities touched:** `Event` (name, date_range_start, date_range_end, part_of_day, timezone), `Slot`
 
-**API:** `POST /api/events` — body includes name, date_range_start, date_range_end, part_of_day; response includes name and generated slots
+**API:** `POST /api/events` — body includes name, date_range_start, date_range_end, part_of_day, timezone; response includes name and generated slots
 
-**UI components:** `DateRangePicker`, `PartOfDaySelector`, `EventSetupForm`
+**UI components:** `DateRangePicker`, `PartOfDaySelector`, `TimezonePicker`, `EventSetupForm`
 
 **Test cases**
 - Unit: slot generation function produces correct count for N-day range
 - Unit: part-of-day filter maps to correct hour boundaries
+- Unit: slot times generated in UTC correctly for a given IANA timezone
 - Integration: POST /api/events includes name in request and response
 - Integration: POST /api/events without name returns 400
+- Integration: POST /api/events without timezone returns 400
+- Integration: POST /api/events with invalid timezone string returns 400
 - Integration: POST /api/events with 3-day range creates 3×N slots
 - Integration: POST /api/events with month-crossing range succeeds
 - E2E: organizer fills name → confirmation screen displays it
@@ -175,18 +185,22 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 - [x] Participation UUIDs are non-sequential (v4)
 - [x] Organizer receives a separate admin link with a distinct admin_token
 - [x] No two participants share the same token
+- [ ] If the organizer's email appears in the participant list, they receive both a confirmation email (admin link) and a participant invite email (participation link); these are two distinct emails with distinct purposes
+- [ ] If the organizer's email does not appear in the participant list, they are NOT auto-enrolled as a participant; the UI shows a hint suggesting they add themselves if they want to participate
 
 **Entities touched:** `Event` (admin_token), `Participant` (id used as token)
 
 **API:** `POST /api/events` — accepts organizer email + participant email list; creates one Participant row per email; sends emails
 
-**UI components:** `InviteForm` (email list input), `ConfirmationScreen` (shows admin link to organizer)
+**UI components:** `InviteForm` (email list input, organizer-as-participant hint), `ConfirmationScreen` (shows admin link to organizer)
 
 **Test cases**
 - Unit: token generation produces v4 UUIDs ✓
 - Integration: POST /api/events with 3 participant emails creates 3 Participant rows with distinct UUIDs ✓
 - Integration: each participant UUID differs from admin_token ✓
 - Integration: email sending job is queued once per participant ✓
+- Integration: POST /api/events where organizer_email is in participant list → organizer receives 2 emails (confirmation + invite)
+- Integration: POST /api/events where organizer_email is NOT in participant list → organizer receives only 1 email (confirmation)
 - E2E: organizer submits invite form → confirmation screen shows admin link ✓
 
 > **Note:** Organizer email delivery of the admin link is a separate concern handled in US 1.4. The admin_token is currently returned in the API response and displayed on the confirmation screen only.
@@ -234,12 +248,13 @@ As an Organizer I want to choose at creation time between sending email invites 
 - [x] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
 - [x] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
 - [x] `invite_mode` is immutable after creation (no update endpoint exists; enforced by API design)
+- [ ] When `invite_mode = shared_link`: confirmation screen displays a note reminding the organizer to register themselves via the join link if they wish to participate (organizer is not auto-enrolled)
 
 **Entities touched:** `Event` (invite_mode, join_token)
 
 **API:** `POST /api/events` — new optional field `invite_mode`; response gains `join_url` when applicable
 
-**UI components:** `InviteModeSelector`, `EventSetupForm` (conditional email list), `ConfirmationScreen` (conditional join URL display)
+**UI components:** `InviteModeSelector`, `EventSetupForm` (conditional email list), `ConfirmationScreen` (conditional join URL display + organizer self-registration reminder)
 
 **Test cases**
 - Unit: POST /api/events with invite_mode=shared_link generates a join_token and no participants
@@ -249,6 +264,7 @@ As an Organizer I want to choose at creation time between sending email invites 
 - Integration: POST /api/events with shared_link creates zero Participant rows
 - Integration: POST /api/events with invalid invite_mode returns 400
 - E2E: organizer selects "Share a join link" → confirmation screen shows join URL → no invite emails sent
+- E2E: confirmation screen (shared_link mode) shows self-registration reminder to organizer
 
 ---
 
@@ -267,6 +283,8 @@ As a Participant I want to register myself by entering my email on the join page
 - [x] `GET /join/:joinToken` on a locked or finalized event returns a "voting closed" page (no registration allowed)
 - [x] `POST /api/join/:joinToken` on a locked or finalized event returns 403
 - [x] Email is validated (format check) before the Participant row is created; invalid email returns 400
+- [ ] When a new (previously unseen) participant registers via the join link, the organizer receives a notification email naming the participant and linking to the admin dashboard
+- [ ] Re-registration of an existing email does NOT trigger a second organizer notification
 
 **Entities touched:** `Event` (join_token, invite_mode, status), `Participant` (email, name)
 
@@ -284,8 +302,43 @@ As a Participant I want to register myself by entering my email on the join page
 - Integration: POST /api/join/:joinToken on locked event returns 403
 - Integration: POST /api/join/:joinToken with invalid email returns 400
 - Integration: POST /api/join/:joinToken sends confirmation email with participation link
+- Integration: POST /api/join/:joinToken (new participant) sends organizer a notification email
+- Integration: POST /api/join/:joinToken (same email twice) does NOT send a second organizer notification
 - E2E: participant opens join URL → enters email → is redirected to participate view
 - E2E: same participant re-registers with same email → lands on same participate view
+
+---
+
+#### US 1.7 — Link Recovery
+
+**Story**
+As an Organizer or Participant I want to retrieve my personal link by entering my email so that I am not permanently locked out if I lose the original email.
+
+**Acceptance Criteria**
+- [ ] A "Resend my link" page is reachable from the home page and from any 404/access-denied state
+- [ ] Page shows a single email input field and a submit button
+- [ ] On submit, if the email matches an organizer: the admin link is re-sent to that address (one email per matching event)
+- [ ] On submit, if the email matches one or more participant records (email_invites mode): the participation link is re-sent for each matching event
+- [ ] On submit, if the email matches a shared_link participant: the participation link is re-sent
+- [ ] If the email matches nothing, the response is still 200 (no user enumeration) but no email is sent
+- [ ] The resend operation is rate-limited (max 3 requests per email per 15 minutes) to prevent abuse
+- [ ] Confirmation message shown after submit: "If we found a matching event, we've sent the link to your inbox"
+
+**Entities touched:** `Event` (organizer_email, admin_token), `Participant` (email, id)
+
+**API:**
+- `POST /api/resend-link` — body: `{email}`; always returns 200; triggers email(s) asynchronously
+
+**UI components:** `ResendLinkView` (email form + confirmation message)
+
+**Test cases**
+- Integration: POST /api/resend-link with organizer email → admin link email sent
+- Integration: POST /api/resend-link with participant email (email_invites) → participation link email sent
+- Integration: POST /api/resend-link with participant email (shared_link) → participation link email sent
+- Integration: POST /api/resend-link with unknown email → 200, no email sent
+- Integration: POST /api/resend-link exceeding rate limit → 429
+- E2E: organizer loses admin link → uses "Resend my link" → receives admin link in inbox
+- E2E: participant loses invite → uses "Resend my link" → receives participation link in inbox
 
 ---
 
@@ -471,24 +524,38 @@ As an Organizer I want venue suggestions near the fair center so that I can pick
 As an Organizer I want to confirm the final time and venue so that the system notifies everyone and sends calendar files.
 
 **Acceptance Criteria**
-- [x] Organizer selects a slot and a venue (or enters custom details) before finalizing
-- [x] POST /finalize sets Event.status to "finalized" and stores final_slot_id + final_venue_id
+- [x] Organizer selects a slot and either a recommended venue OR enters custom venue details before finalizing
+- [x] POST /finalize sets Event.status to "finalized"
+- [ ] POST /finalize body accepts `{slot_id, venue_id}` OR `{slot_id, venue_name, venue_address}` (custom venue); exactly one venue form must be provided, otherwise 400
+- [ ] When a recommended venue is selected: `final_slot_id` and `final_venue_id` are stored
+- [ ] When a custom venue is entered: `final_slot_id`, `final_venue_name`, and `final_venue_address` are stored; `final_venue_id` remains null
 - [x] All further edits to availability or location are blocked after finalization
 - [x] System generates a valid .ics file (correct DTSTART, DTEND, LOCATION, SUMMARY)
+- [ ] ICS DTSTART and DTEND use the event's timezone (TZID property set to Event.timezone); times are not rendered as UTC floating times
 - [x] Each participant receives a notification email with the .ics file attached
 - [x] Organizer receives the same email
+- [ ] After finalization, `GET /api/participate/:participantId` returns the final slot and venue details (name + address) so participants can view the decision in their participation URL even if they lose the ICS email
 
-**Entities touched:** `Event` (status → finalized, final_slot_id, final_venue_id)
+**Entities touched:** `Event` (status → finalized, final_slot_id, final_venue_id, final_venue_name, final_venue_address)
 
-**API:** `POST /api/events/:adminToken/finalize` — body: {slot_id, venue_id}; triggers notification worker
+**API:**
+- `POST /api/events/:adminToken/finalize` — body: `{slot_id, venue_id}` or `{slot_id, venue_name, venue_address}`; triggers notification worker
+- `GET /api/participate/:participantId` — response includes `finalSlot` and `finalVenue` when event is finalized
 
-**UI components:** `FinalizePanel`, `SlotPicker` (admin), `VenuePicker` (admin)
+**UI components:** `FinalizePanel`, `SlotPicker` (admin), `VenuePicker` (admin, toggle between recommended/custom), `FinalizedBanner` (participant view, shows final slot + venue)
 
 **Test cases**
-- Unit: generateICS({slot, venue}) returns valid iCal string
+- Unit: generateICS({slot, venue, timezone}) returns valid iCal string
 - Unit: ICS contains correct DTSTART, DTEND, LOCATION, SUMMARY fields
+- Unit: ICS DTSTART/DTEND include TZID matching Event.timezone
+- Integration: POST /finalize with venue_id sets final_venue_id, null final_venue_name
+- Integration: POST /finalize with venue_name+venue_address sets final_venue_name+address, null final_venue_id
+- Integration: POST /finalize with both venue_id and venue_name returns 400
+- Integration: POST /finalize with neither venue_id nor venue_name returns 400
 - Integration: POST /finalize sets status to finalized
 - Integration: POST /finalize on already-finalized event returns 409
 - Integration: PATCH availability after finalization returns 403
 - Integration: notification jobs are enqueued for all participants + organizer
+- Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields
+- E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue
 - E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only

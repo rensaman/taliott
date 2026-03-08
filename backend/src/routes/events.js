@@ -5,6 +5,7 @@ import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerConfirmation, sendFinalizationNotifications } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
 import { fetchVenuesFromOverpass, sortVenues } from '../lib/venues.js';
+import { subscribe } from '../lib/sse.js';
 
 const router = Router();
 
@@ -117,6 +118,7 @@ router.get('/:adminToken', async (req, res) => {
   const centroid = computeCentroid(event.participants);
 
   return res.json({
+    id: event.id,
     name: event.name,
     deadline: event.deadline,
     status: event.status,
@@ -132,6 +134,10 @@ router.get('/:adminToken', async (req, res) => {
       longitude: p.longitude ?? null,
     })),
   });
+});
+
+router.get('/:eventId/stream', (req, res) => {
+  subscribe(req.params.eventId, res);
 });
 
 router.get('/:adminToken/venues', async (req, res) => {

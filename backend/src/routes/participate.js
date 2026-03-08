@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { getPrisma } from '../lib/prisma.js';
 import { isEventLocked } from '../lib/event.js';
+import { computeHeatmap } from '../lib/heatmap.js';
+import { computeCentroid } from '../lib/centroid.js';
+import { broadcast } from '../lib/sse.js';
 
 const router = Router();
 
@@ -24,6 +27,15 @@ router.get('/:participantId', async (req, res) => {
   if (!participant) return res.status(404).json({ error: 'Participant not found' });
 
   const locked = isEventLocked(participant.event);
+
+  const [heatmap, allParticipants] = await Promise.all([
+    computeHeatmap(getPrisma(), participant.event.id),
+    getPrisma().participant.findMany({
+      where: { eventId: participant.event.id },
+      select: { latitude: true, longitude: true },
+    }),
+  ]);
+  const centroid = computeCentroid(allParticipants);
 
   return res.json({
     event: {
@@ -50,6 +62,8 @@ router.get('/:participantId', async (req, res) => {
       slot_id: a.slotId,
       state: a.state,
     })),
+    heatmap,
+    centroid,
   });
 });
 
@@ -107,6 +121,11 @@ router.patch('/:participantId/availability', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 
+  // Broadcast heatmap update to all subscribers of this event
+  computeHeatmap(getPrisma(), participant.event.id)
+    .then(heatmap => broadcast(participant.event.id, { type: 'availability', heatmap }))
+    .catch(err => console.error('[sse] heatmap broadcast failed:', err));
+
   return res.json({ ok: true });
 });
 
@@ -150,6 +169,17 @@ router.patch('/:participantId/location', async (req, res) => {
     console.error('Failed to update location:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
+
+  // Broadcast centroid update to all subscribers of this event
+  getPrisma().participant.findMany({
+    where: { eventId: participant.event.id },
+    select: { latitude: true, longitude: true },
+  })
+    .then(participants => {
+      const centroid = computeCentroid(participants);
+      broadcast(participant.event.id, { type: 'location', centroid });
+    })
+    .catch(err => console.error('[sse] centroid broadcast failed:', err));
 
   return res.json({ ok: true });
 });

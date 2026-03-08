@@ -1,16 +1,28 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock child components that use Leaflet or fetch internally.
-// Using vi.fn() so individual tests can override the implementation.
 vi.mock('./LocationMap.jsx', () => ({ default: vi.fn() }));
 vi.mock('./AddressSearchInput.jsx', () => ({ default: vi.fn() }));
 vi.mock('./AvailabilityGrid.jsx', () => ({ default: vi.fn() }));
+vi.mock('./HeatmapGrid.jsx', () => ({ default: vi.fn() }));
+vi.mock('../admin/GroupMap.jsx', () => ({ default: vi.fn() }));
+
+// Capture the SSE message handler so tests can push events
+let capturedSseHandler = null;
+vi.mock('../../hooks/useEventStream.js', () => ({
+  useEventStream: (_eventId, onMessage) => {
+    capturedSseHandler = onMessage;
+  },
+}));
 
 import LocationMap from './LocationMap.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
+import HeatmapGrid from './HeatmapGrid.jsx';
+import GroupMap from '../admin/GroupMap.jsx';
 import ParticipateView from './ParticipateView.jsx';
+
+const BASE_HEATMAP = { total_participants: 1, slots: [{ slot_id: 's-1', yes_count: 0 }] };
 
 const LOCKED_RESPONSE = {
   event: {
@@ -23,6 +35,8 @@ const LOCKED_RESPONSE = {
   participant: { id: 'p-1', email: 'jamie@example.com', latitude: null, longitude: null, address_label: null, responded_at: null },
   slots: [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }],
   availability: [],
+  heatmap: BASE_HEATMAP,
+  centroid: null,
 };
 
 const OPEN_RESPONSE = {
@@ -38,11 +52,18 @@ const OPEN_RESPONSE = {
 
 describe('ParticipateView', () => {
   beforeEach(() => {
+    capturedSseHandler = null;
     vi.stubGlobal('fetch', vi.fn());
     LocationMap.mockImplementation(() => <div data-testid="location-map" />);
     AddressSearchInput.mockImplementation(() => <div data-testid="address-search" />);
     AvailabilityGrid.mockImplementation(({ slots }) => (
       <div data-testid="availability-grid" data-slots={slots.length} />
+    ));
+    HeatmapGrid.mockImplementation(({ heatmap }) => (
+      <div data-testid="heatmap-grid" data-total={heatmap?.total_participants ?? 0} />
+    ));
+    GroupMap.mockImplementation(({ centroid }) => (
+      <div data-testid="group-map" data-centroid={centroid ? 'set' : 'null'} />
     ));
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -78,22 +99,6 @@ describe('ParticipateView', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('shows "Voting closed" badge when locked', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
-    render(<ParticipateView participantId="p-1" />);
-    await waitFor(() =>
-      expect(screen.getByText(/voting closed/i)).toBeInTheDocument()
-    );
-  });
-
-  it('shows "Voting deadline" badge when open', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
-    render(<ParticipateView participantId="p-1" />);
-    await waitFor(() =>
-      expect(screen.getByText(/voting deadline/i)).toBeInTheDocument()
-    );
-  });
-
   it('shows an error when fetch fails', async () => {
     fetch.mockResolvedValue({ ok: false });
     render(<ParticipateView participantId="bad" />);
@@ -110,6 +115,37 @@ describe('ParticipateView', () => {
     );
   });
 
+  it('renders HeatmapGrid with initial heatmap from API', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByTestId('heatmap-grid')).toHaveAttribute('data-total', '1')
+    );
+  });
+
+  it('updates HeatmapGrid when SSE availability event arrives', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('heatmap-grid')).toBeInTheDocument());
+
+    const updatedHeatmap = { total_participants: 2, slots: [{ slot_id: 's-1', yes_count: 1 }] };
+    act(() => capturedSseHandler({ type: 'availability', heatmap: updatedHeatmap }));
+    await waitFor(() =>
+      expect(screen.getByTestId('heatmap-grid')).toHaveAttribute('data-total', '2')
+    );
+  });
+
+  it('updates GroupMap centroid when SSE location event arrives', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('group-map')).toHaveAttribute('data-centroid', 'null'));
+
+    act(() => capturedSseHandler({ type: 'location', centroid: { lat: 1, lng: 2, count: 1 } }));
+    await waitFor(() =>
+      expect(screen.getByTestId('group-map')).toHaveAttribute('data-centroid', 'set')
+    );
+  });
+
   it('shows location section when event is open', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
@@ -117,6 +153,13 @@ describe('ParticipateView', () => {
       expect(screen.getByTestId('address-search')).toBeInTheDocument()
     );
     expect(screen.getByTestId('location-map')).toBeInTheDocument();
+  });
+
+  it('hides location section when event is locked', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByRole('heading')).toBeInTheDocument());
+    expect(screen.queryByTestId('address-search')).not.toBeInTheDocument();
   });
 
   it('passes existing location to LocationMap when participant has coordinates', async () => {
@@ -129,7 +172,6 @@ describe('ParticipateView', () => {
       capturedLocation = location;
       return <div data-testid="location-map" />;
     });
-
     fetch.mockResolvedValue({ ok: true, json: async () => withLocation });
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() => expect(screen.getByTestId('location-map')).toBeInTheDocument());
@@ -143,7 +185,6 @@ describe('ParticipateView', () => {
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
       .mockResolvedValueOnce({ ok: false });
-
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() => expect(screen.getByRole('button', { name: 'select' })).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'select' }));
@@ -159,22 +200,12 @@ describe('ParticipateView', () => {
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
       .mockRejectedValueOnce(new Error('Network error'));
-
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() => expect(screen.getByRole('button', { name: 'select' })).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: 'select' }));
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent(/failed to save location/i)
     );
-  });
-
-  it('hides location section when event is locked', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
-    render(<ParticipateView participantId="p-1" />);
-    await waitFor(() =>
-      expect(screen.getByRole('heading')).toBeInTheDocument()
-    );
-    expect(screen.queryByTestId('address-search')).not.toBeInTheDocument();
   });
 
   it('shows "Mark as done" button on open event', async () => {
@@ -188,9 +219,7 @@ describe('ParticipateView', () => {
   it('hides confirm button when event is locked', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() =>
-      expect(screen.getByRole('heading')).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByRole('heading')).toBeInTheDocument());
     expect(screen.queryByTestId('confirm-btn')).not.toBeInTheDocument();
   });
 
@@ -217,6 +246,22 @@ describe('ParticipateView', () => {
     fireEvent.click(screen.getByTestId('confirm-btn'));
     await waitFor(() =>
       expect(screen.getByTestId('confirm-btn')).toHaveTextContent(/submitted/i)
+    );
+  });
+
+  it('shows "Voting closed" badge when locked', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByText(/voting closed/i)).toBeInTheDocument()
+    );
+  });
+
+  it('shows "Voting deadline" badge when open', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() =>
+      expect(screen.getByText(/voting deadline/i)).toBeInTheDocument()
     );
   });
 });

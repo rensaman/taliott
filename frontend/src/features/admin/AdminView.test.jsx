@@ -1,6 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AdminView from './AdminView.jsx';
+
+let capturedSseHandler = null;
+vi.mock('../../hooks/useEventStream.js', () => ({
+  useEventStream: (_eventId, onMessage) => {
+    capturedSseHandler = onMessage;
+  },
+}));
 
 // GroupMap uses Leaflet — mock it for AdminView tests
 vi.mock('./GroupMap.jsx', () => ({
@@ -22,6 +29,7 @@ vi.mock('./VenueList.jsx', () => ({
 }));
 
 const OPEN_DATA = {
+  id: 'event-uuid-1',
   name: 'Summer Meetup',
   deadline: '2099-06-01T12:00:00Z',
   status: 'open',
@@ -37,6 +45,7 @@ const OPEN_DATA = {
 
 describe('AdminView', () => {
   beforeEach(() => {
+    capturedSseHandler = null;
     vi.stubGlobal('fetch', vi.fn());
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -118,6 +127,19 @@ describe('AdminView', () => {
     render(<AdminView adminToken="some-token" />);
     await waitFor(() =>
       expect(screen.getByTestId('venue-list')).toHaveAttribute('data-venue-type', 'restaurant')
+    );
+  });
+
+  it('updates group map centroid when SSE location event arrives', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    // initial centroid from API
+    await waitFor(() => expect(screen.getByTestId('coverage-counter')).toHaveTextContent('1 of 3'));
+
+    // SSE pushes a new centroid with count=2
+    act(() => capturedSseHandler({ type: 'location', centroid: { lat: 2, lng: 3, count: 2 } }));
+    await waitFor(() =>
+      expect(screen.getByTestId('coverage-counter')).toHaveTextContent('2 of 3')
     );
   });
 });
