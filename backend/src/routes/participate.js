@@ -15,7 +15,11 @@ router.get('/:participantId', async (req, res) => {
     participant = await getPrisma().participant.findUnique({
       where: { id: req.params.participantId },
       include: {
-        event: { include: { slots: { orderBy: { startsAt: 'asc' } } } },
+        event: {
+          include: {
+            slots: { orderBy: { startsAt: 'asc' } },
+          },
+        },
         availability: true,
       },
     });
@@ -36,6 +40,27 @@ router.get('/:participantId', async (req, res) => {
     }),
   ]);
   const centroid = computeCentroid(allParticipants);
+
+  // Resolve final slot and venue when event is finalized
+  let finalSlot = null;
+  let finalVenue = null;
+  if (participant.event.status === 'finalized') {
+    if (participant.event.finalSlotId) {
+      const slot = participant.event.slots.find(s => s.id === participant.event.finalSlotId);
+      if (slot) finalSlot = { id: slot.id, starts_at: slot.startsAt, ends_at: slot.endsAt };
+    }
+    if (participant.event.finalVenueId) {
+      const venueRow = await getPrisma().venue.findUnique({ where: { id: participant.event.finalVenueId } });
+      if (venueRow) {
+        finalVenue = { name: venueRow.name, address: null };
+      }
+    } else if (participant.event.finalVenueName) {
+      finalVenue = {
+        name: participant.event.finalVenueName,
+        address: participant.event.finalVenueAddress ?? null,
+      };
+    }
+  }
 
   return res.json({
     event: {
@@ -64,6 +89,8 @@ router.get('/:participantId', async (req, res) => {
     })),
     heatmap,
     centroid,
+    finalSlot,
+    finalVenue,
   });
 });
 

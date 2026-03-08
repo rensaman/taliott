@@ -23,6 +23,7 @@ const BASE_EVENT = {
   date_range_start: '2025-06-15',
   date_range_end: '2025-06-15',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: FUTURE_DEADLINE,
 };
 
@@ -184,6 +185,80 @@ describe('PATCH availability after finalization returns 403', () => {
       .send({ latitude: 51.5, longitude: -0.1 });
 
     expect(res.status).toBe(403);
+  });
+});
+
+describe('POST /api/events/:adminToken/finalize — custom venue', () => {
+  it('accepts venue_name + venue_address and stores them', async () => {
+    const { admin_token, slots } = await createEvent();
+    const slotId = slots[0].id;
+
+    const res = await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slotId, venue_name: 'The Grand Hall', venue_address: '1 Main St' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalVenueName).toBe('The Grand Hall');
+    expect(event.finalVenueAddress).toBe('1 Main St');
+    expect(event.finalVenueId).toBeNull();
+  });
+
+  it('returns 400 when both venue_id and venue_name are provided', async () => {
+    const { admin_token, slots } = await createEvent();
+    const slotId = slots[0].id;
+
+    const res = await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slotId, venue_id: '00000000-0000-0000-0000-000000000001', venue_name: 'A Place' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/venue/i);
+  });
+
+  it('sets final_venue_id to null when custom venue is used', async () => {
+    const { admin_token, slots } = await createEvent();
+    const slotId = slots[0].id;
+
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slotId, venue_name: 'Cozy Cafe' });
+
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalVenueId).toBeNull();
+    expect(event.finalVenueName).toBe('Cozy Cafe');
+  });
+});
+
+describe('GET /api/participate/:participantId — finalized event returns final details', () => {
+  it('returns finalSlot and finalVenue after finalization with custom venue', async () => {
+    const { admin_token, slots, participants } = await createEvent();
+    const slotId = slots[0].id;
+    const participantId = participants[0].id;
+
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slotId, venue_name: 'Grand Venue', venue_address: '42 Park Ave' });
+
+    const res = await request(app).get(`/api/participate/${participantId}`);
+    expect(res.status).toBe(200);
+    expect(res.body.finalSlot).toBeDefined();
+    expect(res.body.finalSlot.id).toBe(slotId);
+    expect(res.body.finalVenue).toBeDefined();
+    expect(res.body.finalVenue.name).toBe('Grand Venue');
+    expect(res.body.finalVenue.address).toBe('42 Park Ave');
+  });
+
+  it('returns null finalSlot and finalVenue for open event', async () => {
+    const { participants } = await createEvent();
+    const participantId = participants[0].id;
+
+    const res = await request(app).get(`/api/participate/${participantId}`);
+    expect(res.status).toBe(200);
+    expect(res.body.finalSlot).toBeNull();
+    expect(res.body.finalVenue).toBeNull();
   });
 });
 

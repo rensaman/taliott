@@ -2,10 +2,14 @@
  * Integration tests for US 1.6 — Self-Registration via Shared Join Link
  * Tests GET /api/join/:joinToken and POST /api/join/:joinToken
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
+
+vi.mock('../../src/lib/mailer.js', () => ({ sendEmail: vi.fn().mockResolvedValue(undefined) }));
+
 import app from '../../src/index.js';
+import { sendEmail } from '../../src/lib/mailer.js';
 
 const prisma = new PrismaClient();
 const createdEventIds = [];
@@ -17,6 +21,7 @@ const BASE_EVENT = {
   date_range_start: '2025-09-01',
   date_range_end: '2025-09-01',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: '2099-12-31T23:59:59.000Z',
 };
 
@@ -29,6 +34,10 @@ beforeAll(async () => {
   eventId = res.body.event_id;
   createdEventIds.push(eventId);
   joinToken = res.body.join_url.replace('/join/', '');
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
 });
 
 afterAll(async () => {
@@ -152,5 +161,46 @@ describe('POST /api/join/:joinToken', () => {
       email: 'late@example.com',
     });
     expect(res.status).toBe(403);
+  });
+
+  it('sends a confirmation email to the participant on successful registration', async () => {
+    await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'email-check@example.com',
+    });
+    await new Promise(r => setTimeout(r, 50));
+
+    const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(recipients).toContain('email-check@example.com');
+  });
+});
+
+describe('POST /api/join/:joinToken — organizer notification', () => {
+  it('sends organizer a notification email when a new participant registers', async () => {
+    await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'new-notify@example.com',
+    });
+    await new Promise(r => setTimeout(r, 50));
+
+    const subjects = sendEmail.mock.calls.map(([msg]) => msg.subject);
+    expect(subjects.some(s => s.includes('New participant joined'))).toBe(true);
+
+    const toAddresses = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(toAddresses).toContain(BASE_EVENT.organizer_email);
+  });
+
+  it('does NOT send organizer notification on re-registration with same email', async () => {
+    const email = 'repeat-notify@example.com';
+
+    // First registration
+    await request(app).post(`/api/join/${joinToken}`).send({ email });
+    await new Promise(r => setTimeout(r, 50));
+    vi.clearAllMocks();
+
+    // Second registration (same email)
+    await request(app).post(`/api/join/${joinToken}`).send({ email });
+    await new Promise(r => setTimeout(r, 50));
+
+    const subjects = sendEmail.mock.calls.map(([msg]) => msg.subject);
+    expect(subjects.some(s => s.includes('New participant joined'))).toBe(false);
   });
 });

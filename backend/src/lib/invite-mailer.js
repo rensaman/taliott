@@ -73,11 +73,52 @@ export async function sendJoinConfirmation(participant, event) {
   await sendEmail(buildJoinConfirmation(participant, event));
 }
 
+export function buildOrganizerJoinNotification(participant, event) {
+  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const participantLabel = participant.name
+    ? `${participant.name} (${participant.email})`
+    : participant.email;
+  return {
+    to: event.organizerEmail,
+    subject: `New participant joined: ${event.name}`,
+    text: [
+      `Hi,`,
+      ``,
+      `${participantLabel} has just registered for your event "${event.name}".`,
+      ``,
+      `View your dashboard:`,
+      `${baseUrl}/admin/${event.adminToken}`,
+    ].join('\n'),
+  };
+}
+
+export async function sendOrganizerJoinNotification(participant, event) {
+  await sendEmail(buildOrganizerJoinNotification(participant, event));
+}
+
+/**
+ * Resolves venue display info from either a Venue object or custom venue fields on the event.
+ * Returns { name, address } or null if no venue info is available.
+ */
+function resolveVenueInfo(venue, event) {
+  if (venue?.name) {
+    return { name: venue.name, address: null };
+  }
+  if (event?.finalVenueName) {
+    return { name: event.finalVenueName, address: event.finalVenueAddress ?? null };
+  }
+  return null;
+}
+
 export function buildFinalizationEmail(recipient, event, slot, venue) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const slotStart = new Date(slot.startsAt).toUTCString();
-  const venueLine = venue ? `Venue: ${venue.name}` : 'Venue: TBD';
-  const icsContent = generateICS({ slot, venue, eventName: event.name });
+  const venueInfo = resolveVenueInfo(venue, event);
+  const venueLine = venueInfo
+    ? `Venue: ${venueInfo.address ? `${venueInfo.name}, ${venueInfo.address}` : venueInfo.name}`
+    : 'Venue: TBD';
+  const icsVenue = venueInfo ? { name: venueInfo.name, address: venueInfo.address } : null;
+  const icsContent = generateICS({ slot, venue: icsVenue, eventName: event.name, timezone: event.timezone ?? 'UTC' });
 
   return {
     to: recipient.email,
@@ -101,8 +142,12 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
 export function buildOrganizerFinalizationEmail(event, slot, venue) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const slotStart = new Date(slot.startsAt).toUTCString();
-  const venueLine = venue ? `Venue: ${venue.name}` : 'Venue: TBD';
-  const icsContent = generateICS({ slot, venue, eventName: event.name });
+  const venueInfo = resolveVenueInfo(venue, event);
+  const venueLine = venueInfo
+    ? `Venue: ${venueInfo.address ? `${venueInfo.name}, ${venueInfo.address}` : venueInfo.name}`
+    : 'Venue: TBD';
+  const icsVenue = venueInfo ? { name: venueInfo.name, address: venueInfo.address } : null;
+  const icsContent = generateICS({ slot, venue: icsVenue, eventName: event.name, timezone: event.timezone ?? 'UTC' });
 
   return {
     to: event.organizerEmail,

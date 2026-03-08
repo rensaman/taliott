@@ -1,33 +1,57 @@
 import { randomUUID } from 'crypto';
 
 /**
- * Formats a Date to iCal UTC datetime string: YYYYMMDDTHHMMSSZ
+ * Converts a UTC Date to a local iCal datetime string (YYYYMMDDTHHMMSS) in the
+ * given IANA timezone.
  * @param {Date} date
+ * @param {string} timezone
  * @returns {string}
  */
-function toICalDate(date) {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+function toICalLocalDate(date, timezone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date(date));
+
+  const p = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const h = p.hour === '24' ? '00' : p.hour;
+  return `${p.year}${p.month}${p.day}T${h}${p.minute}${p.second}`;
 }
 
 /**
  * Generates a valid iCal (.ics) string for a finalized event.
- * @param {{ slot: { startsAt: Date, endsAt: Date }, venue: { name: string }|null, eventName: string }} opts
+ * DTSTART/DTEND include a TZID matching the event timezone.
+ *
+ * @param {{
+ *   slot: { startsAt: Date, endsAt: Date },
+ *   venue: { name: string, address?: string }|null,
+ *   eventName: string,
+ *   timezone?: string
+ * }} opts
  * @returns {string}
  */
-export function generateICS({ slot, venue, eventName }) {
+export function generateICS({ slot, venue, eventName, timezone = 'UTC' }) {
+  const dtStart = toICalLocalDate(new Date(slot.startsAt), timezone);
+  const dtEnd = toICalLocalDate(new Date(slot.endsAt), timezone);
+
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//taliott//taliott//EN',
     'BEGIN:VEVENT',
     `UID:${randomUUID()}@taliott`,
-    `DTSTART:${toICalDate(new Date(slot.startsAt))}`,
-    `DTEND:${toICalDate(new Date(slot.endsAt))}`,
+    `DTSTART;TZID=${timezone}:${dtStart}`,
+    `DTEND;TZID=${timezone}:${dtEnd}`,
     `SUMMARY:${eventName}`,
   ];
 
-  if (venue?.name) {
-    lines.push(`LOCATION:${venue.name}`);
+  const venueName = venue?.name;
+  const venueAddress = venue?.address;
+  if (venueName) {
+    const location = venueAddress ? `${venueName}, ${venueAddress}` : venueName;
+    lines.push(`LOCATION:${location}`);
   }
 
   lines.push('END:VEVENT', 'END:VCALENDAR');

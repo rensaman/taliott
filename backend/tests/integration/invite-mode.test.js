@@ -16,6 +16,7 @@ const BASE_BODY = {
   date_range_start: '2025-09-01',
   date_range_end: '2025-09-01',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: '2025-08-25T12:00:00.000Z',
 };
 

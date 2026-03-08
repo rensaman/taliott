@@ -122,10 +122,10 @@ As an Organizer I want to define a date range and part-of-day filter so that onl
 - [x] Part-of-day filter (morning / afternoon / evening / all) bounds the hour rows shown
 - [x] Edge case: 1-day range renders a single column
 - [x] Edge case: range crossing a month boundary renders correctly
-- [ ] Organizer must provide a timezone (IANA string, e.g. "Europe/Paris") at creation (required field)
-- [ ] Timezone is persisted and returned in all event API responses
-- [ ] Slot `starts_at` / `ends_at` are generated in UTC using the event timezone as the reference
-- [ ] POST /api/events without timezone returns 400; invalid IANA string returns 400
+- [x] Organizer must provide a timezone (IANA string, e.g. "Europe/Paris") at creation (required field)
+- [x] Timezone is persisted and returned in all event API responses
+- [x] Slot `starts_at` / `ends_at` are generated in UTC using the event timezone as the reference
+- [x] POST /api/events without timezone returns 400; invalid IANA string returns 400
 
 **Entities touched:** `Event` (name, date_range_start, date_range_end, part_of_day, timezone), `Slot`
 
@@ -139,8 +139,8 @@ As an Organizer I want to define a date range and part-of-day filter so that onl
 - Unit: slot times generated in UTC correctly for a given IANA timezone
 - Integration: POST /api/events includes name in request and response
 - Integration: POST /api/events without name returns 400
-- Integration: POST /api/events without timezone returns 400
-- Integration: POST /api/events with invalid timezone string returns 400
+- Integration: POST /api/events without timezone returns 400 ✓
+- Integration: POST /api/events with invalid timezone string returns 400 ✓
 - Integration: POST /api/events with 3-day range creates 3×N slots
 - Integration: POST /api/events with month-crossing range succeeds
 - E2E: organizer fills name → confirmation screen displays it
@@ -281,8 +281,8 @@ As a Participant I want to register myself by entering my email on the join page
 - [x] `GET /join/:joinToken` on a locked or finalized event returns a "voting closed" page (no registration allowed)
 - [x] `POST /api/join/:joinToken` on a locked or finalized event returns 403
 - [x] Email is validated (format check) before the Participant row is created; invalid email returns 400
-- [ ] When a new (previously unseen) participant registers via the join link, the organizer receives a notification email naming the participant and linking to the admin dashboard
-- [ ] Re-registration of an existing email does NOT trigger a second organizer notification
+- [x] When a new (previously unseen) participant registers via the join link, the organizer receives a notification email naming the participant and linking to the admin dashboard
+- [x] Re-registration of an existing email does NOT trigger a second organizer notification
 
 **Entities touched:** `Event` (join_token, invite_mode, status), `Participant` (email, name)
 
@@ -300,8 +300,8 @@ As a Participant I want to register myself by entering my email on the join page
 - Integration: POST /api/join/:joinToken on locked event returns 403
 - Integration: POST /api/join/:joinToken with invalid email returns 400
 - Integration: POST /api/join/:joinToken sends confirmation email with participation link
-- Integration: POST /api/join/:joinToken (new participant) sends organizer a notification email
-- Integration: POST /api/join/:joinToken (same email twice) does NOT send a second organizer notification
+- Integration: POST /api/join/:joinToken (new participant) sends organizer a notification email ✓
+- Integration: POST /api/join/:joinToken (same email twice) does NOT send a second organizer notification ✓
 - E2E: participant opens join URL → enters email → is redirected to participate view
 - E2E: same participant re-registers with same email → lands on same participate view
 
@@ -413,9 +413,9 @@ As a Participant I want to toggle slot preferences across Yes / Maybe / No / Neu
 As a Participant I want to see the group heatmap and fair center update live as others respond.
 
 **Acceptance Criteria**
-- [ ] Availability heatmap color intensity reflects the count of "yes" responses per slot
-- [ ] "Estimated Meetup Area" map marker recalculates when any participant updates their location
-- [ ] Updates propagate to all open participant views without a page refresh (WebSocket or SSE)
+- [x] Availability heatmap color intensity reflects the count of "yes" responses per slot
+- [x] "Estimated Meetup Area" map marker recalculates when any participant updates their location
+- [x] Updates propagate to all open participant views without a page refresh (WebSocket or SSE)
 
 **Entities touched:** `Availability`, `Participant` (lat/lng), computed centroid
 
@@ -426,8 +426,8 @@ As a Participant I want to see the group heatmap and fair center update live as 
 **Test cases**
 - Unit: heatmap color mapper returns correct intensity for given yes-count / total-participant ratio
 - Unit: centroid calculation averages all active coordinate pairs
-- Integration: updating availability triggers a broadcast to subscribed clients
-- Integration: updating a participant location triggers centroid recalculation broadcast
+- Integration: updating availability triggers a broadcast to subscribed clients ✓
+- Integration: updating a participant location triggers centroid recalculation broadcast ✓
 - E2E: two participants open simultaneously → one changes slot → other sees heatmap update without refresh
 
 ---
@@ -524,15 +524,15 @@ As an Organizer I want to confirm the final time and venue so that the system no
 **Acceptance Criteria**
 - [x] Organizer selects a slot and either a recommended venue OR enters custom venue details before finalizing
 - [x] POST /finalize sets Event.status to "finalized"
-- [ ] POST /finalize body accepts `{slot_id, venue_id}` OR `{slot_id, venue_name, venue_address}` (custom venue); exactly one venue form must be provided, otherwise 400
-- [ ] When a recommended venue is selected: `final_slot_id` and `final_venue_id` are stored
-- [ ] When a custom venue is entered: `final_slot_id`, `final_venue_name`, and `final_venue_address` are stored; `final_venue_id` remains null
+- [x] POST /finalize body accepts `{slot_id, venue_id}` OR `{slot_id, venue_name, venue_address}` (custom venue); exactly one venue form must be provided, otherwise 400
+- [x] When a recommended venue is selected: `final_slot_id` and `final_venue_id` are stored
+- [x] When a custom venue is entered: `final_slot_id`, `final_venue_name`, and `final_venue_address` are stored; `final_venue_id` remains null
 - [x] All further edits to availability or location are blocked after finalization
 - [x] System generates a valid .ics file (correct DTSTART, DTEND, LOCATION, SUMMARY)
-- [ ] ICS DTSTART and DTEND use the event's timezone (TZID property set to Event.timezone); times are not rendered as UTC floating times
+- [x] ICS DTSTART and DTEND use the event's timezone (TZID property set to Event.timezone); times are not rendered as UTC floating times
 - [x] Each participant receives a notification email with the .ics file attached
 - [x] Organizer receives the same email
-- [ ] After finalization, `GET /api/participate/:participantId` returns the final slot and venue details (name + address) so participants can view the decision in their participation URL even if they lose the ICS email
+- [x] After finalization, `GET /api/participate/:participantId` returns the final slot and venue details (name + address) so participants can view the decision in their participation URL even if they lose the ICS email
 
 **Entities touched:** `Event` (status → finalized, final_slot_id, final_venue_id, final_venue_name, final_venue_address)
 
@@ -544,16 +544,16 @@ As an Organizer I want to confirm the final time and venue so that the system no
 
 **Test cases**
 - Unit: generateICS({slot, venue, timezone}) returns valid iCal string
-- Unit: ICS contains correct DTSTART, DTEND, LOCATION, SUMMARY fields
-- Unit: ICS DTSTART/DTEND include TZID matching Event.timezone
-- Integration: POST /finalize with venue_id sets final_venue_id, null final_venue_name
-- Integration: POST /finalize with venue_name+venue_address sets final_venue_name+address, null final_venue_id
-- Integration: POST /finalize with both venue_id and venue_name returns 400
-- Integration: POST /finalize with neither venue_id nor venue_name returns 400
+- Unit: ICS contains correct DTSTART, DTEND, LOCATION, SUMMARY fields ✓
+- Unit: ICS DTSTART/DTEND include TZID matching Event.timezone ✓
+- Integration: POST /finalize with venue_id sets final_venue_id, null final_venue_name ✓
+- Integration: POST /finalize with venue_name+venue_address sets final_venue_name+address, null final_venue_id ✓
+- Integration: POST /finalize with both venue_id and venue_name returns 400 ✓
+- Integration: POST /finalize with neither venue_id nor venue_name returns 400 (omitting both is allowed — TBD venue)
 - Integration: POST /finalize sets status to finalized
 - Integration: POST /finalize on already-finalized event returns 409
 - Integration: PATCH availability after finalization returns 403
 - Integration: notification jobs are enqueued for all participants + organizer
-- Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields
+- Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields ✓
 - E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue
 - E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only

@@ -42,11 +42,14 @@ model Event {
   dateRangeStart   DateTime
   dateRangeEnd     DateTime
   partOfDay        PartOfDay   @default(all)
+  timezone         String      @default("UTC")
   venueType        String?
   deadline         DateTime
   status           EventStatus @default(open)
   finalSlotId      String?
   finalVenueId     String?
+  finalVenueName   String?
+  finalVenueAddress String?
   createdAt        DateTime    @default(now())
 
   slots            Slot[]

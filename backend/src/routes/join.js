@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getPrisma } from '../lib/prisma.js';
 import { isEventLocked } from '../lib/event.js';
-import { sendJoinConfirmation } from '../lib/invite-mailer.js';
+import { sendJoinConfirmation, sendOrganizerJoinNotification } from '../lib/invite-mailer.js';
 
 const router = Router();
 
@@ -54,6 +54,17 @@ router.post('/:joinToken', async (req, res) => {
     return res.status(403).json({ error: 'Event is locked — voting has closed' });
   }
 
+  // Check if participant already exists (to detect new vs. returning registrations)
+  let existing;
+  try {
+    existing = await getPrisma().participant.findUnique({
+      where: { eventId_email: { eventId: event.id, email } },
+    });
+  } catch (err) {
+    console.error('Failed to check existing participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
   let participant;
   try {
     participant = await getPrisma().participant.upsert({
@@ -66,9 +77,18 @@ router.post('/:joinToken', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 
+  const isNewParticipant = !existing;
+
   sendJoinConfirmation(participant, event).catch(err =>
     console.error('[invite-mailer] join confirmation:', err)
   );
+
+  // Notify organizer only when a genuinely new participant registers
+  if (isNewParticipant) {
+    sendOrganizerJoinNotification(participant, event).catch(err =>
+      console.error('[invite-mailer] organizer join notification:', err)
+    );
+  }
 
   return res.status(201).json({ participant_id: participant.id });
 });

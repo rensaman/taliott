@@ -9,6 +9,15 @@ import { subscribe } from '../lib/sse.js';
 
 const router = Router();
 
+function isValidIANATimezone(tz) {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 router.post('/', async (req, res) => {
   const {
     name,
@@ -18,12 +27,21 @@ router.post('/', async (req, res) => {
     date_range_start,
     date_range_end,
     part_of_day = 'all',
+    timezone,
     venue_type,
     deadline,
   } = req.body;
 
   if (!name || !organizer_email || !date_range_start || !date_range_end || !deadline) {
     return res.status(400).json({ error: 'Missing required fields: name, organizer_email, date_range_start, date_range_end, deadline' });
+  }
+
+  if (!timezone) {
+    return res.status(400).json({ error: 'timezone is required' });
+  }
+
+  if (!isValidIANATimezone(timezone)) {
+    return res.status(400).json({ error: 'timezone must be a valid IANA timezone string (e.g. "Europe/Paris")' });
   }
 
   if (new Date(date_range_end) < new Date(date_range_start)) {
@@ -40,7 +58,7 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `invite_mode must be one of: ${validInviteModes.join(', ')}` });
   }
 
-  const slotData = generateSlots(date_range_start, date_range_end, part_of_day);
+  const slotData = generateSlots(date_range_start, date_range_end, part_of_day, timezone);
 
   const isSharedLink = invite_mode === 'shared_link';
   const joinToken = isSharedLink ? randomUUID() : null;
@@ -61,6 +79,7 @@ router.post('/', async (req, res) => {
         dateRangeStart: new Date(date_range_start),
         dateRangeEnd: new Date(date_range_end),
         partOfDay: part_of_day,
+        timezone,
         venueType: venue_type ?? null,
         deadline: new Date(deadline),
         status: 'open',
@@ -78,14 +97,13 @@ router.post('/', async (req, res) => {
   }
 
   // Fire-and-forget — emails are best-effort; don't block the response
-  // Always send participant invites (organizer is always enrolled; in shared_link mode
-  // they are the only participant at creation time).
   sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
   sendOrganizerConfirmation(event).catch(err => console.error('[invite-mailer]', err));
 
   const response = {
     event_id: event.id,
     name: event.name,
+    timezone: event.timezone,
     admin_token: event.adminToken,
     slots: event.slots.map(s => ({ id: s.id, starts_at: s.startsAt, ends_at: s.endsAt })),
     participants: event.participants.map(p => ({ id: p.id, email: p.email })),
@@ -122,6 +140,7 @@ router.get('/:adminToken', async (req, res) => {
   return res.json({
     id: event.id,
     name: event.name,
+    timezone: event.timezone,
     deadline: event.deadline,
     status: event.status,
     slot_count: event.slots.length,
@@ -197,10 +216,18 @@ router.get('/:adminToken/venues', async (req, res) => {
 
 router.post('/:adminToken/finalize', async (req, res) => {
   const { adminToken } = req.params;
-  const { slot_id, venue_id } = req.body;
+  const { slot_id, venue_id, venue_name, venue_address } = req.body;
 
   if (!slot_id) {
     return res.status(400).json({ error: 'slot_id is required' });
+  }
+
+  // Exactly one venue form must be provided (or neither for TBD)
+  if (venue_id && venue_name) {
+    return res.status(400).json({ error: 'Provide either venue_id or venue_name/venue_address, not both' });
+  }
+  if (venue_name !== undefined && !venue_name) {
+    return res.status(400).json({ error: 'venue_name must not be empty when provided' });
   }
 
   let event;
@@ -221,7 +248,7 @@ router.post('/:adminToken/finalize', async (req, res) => {
   const slot = await getPrisma().slot.findFirst({ where: { id: slot_id, eventId: event.id } });
   if (!slot) return res.status(400).json({ error: 'slot_id not found for this event' });
 
-  // Validate venue if provided
+  // Validate venue_id if provided
   let venue = null;
   if (venue_id) {
     venue = await getPrisma().venue.findFirst({ where: { id: venue_id, eventId: event.id } });
@@ -229,14 +256,19 @@ router.post('/:adminToken/finalize', async (req, res) => {
   }
 
   try {
-    await getPrisma().event.update({
+    const updatedEvent = await getPrisma().event.update({
       where: { id: event.id },
       data: {
         status: 'finalized',
         finalSlotId: slot_id,
         finalVenueId: venue_id ?? null,
+        finalVenueName: venue_name ?? null,
+        finalVenueAddress: venue_address ?? null,
       },
     });
+    // Attach the updated custom venue fields so notifications can use them
+    event.finalVenueName = updatedEvent.finalVenueName;
+    event.finalVenueAddress = updatedEvent.finalVenueAddress;
   } catch (err) {
     console.error('Failed to finalize event:', err);
     return res.status(500).json({ error: 'Internal server error' });

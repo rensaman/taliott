@@ -18,6 +18,7 @@ const BASE_BODY = {
   date_range_start: '2025-06-01',
   date_range_end: '2025-06-03',
   part_of_day: 'all',
+  timezone: 'UTC',
   venue_type: 'bar',
   deadline: '2025-05-25T12:00:00.000Z',
 };
@@ -53,11 +54,12 @@ describe('POST /api/events', () => {
   it('bounds slots to morning hours when part_of_day is morning', async () => {
     const res = await request(app)
       .post('/api/events')
-      .send({ ...BASE_BODY, part_of_day: 'morning' });
+      .send({ ...BASE_BODY, part_of_day: 'morning', timezone: 'UTC' });
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    const startHours = res.body.slots.map(s => new Date(s.starts_at).getHours());
+    // With timezone=UTC, UTC hours equal local hours directly
+    const startHours = res.body.slots.map(s => new Date(s.starts_at).getUTCHours());
     expect(Math.min(...startHours)).toBe(PART_OF_DAY_HOURS.morning.start);
     expect(Math.max(...startHours)).toBe(PART_OF_DAY_HOURS.morning.end - 1);
   });
@@ -129,6 +131,43 @@ describe('POST /api/events', () => {
     const res = await request(app).post('/api/events').send(bodyWithoutName);
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/name/i);
+  });
+
+  it('returns 400 when timezone is missing', async () => {
+    const { timezone: _, ...bodyWithoutTz } = BASE_BODY;
+    const res = await request(app).post('/api/events').send(bodyWithoutTz);
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/timezone/i);
+  });
+
+  it('returns 400 when timezone is an invalid IANA string', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, timezone: 'Not/A/Timezone' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/timezone/i);
+  });
+
+  it('persists timezone and returns it in response', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, timezone: 'Europe/Paris' });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    expect(res.body.timezone).toBe('Europe/Paris');
+  });
+
+  it('generates slots in UTC correctly for Europe/Paris (UTC+2 in summer)', async () => {
+    // 2025-06-15 in Europe/Paris (CEST = UTC+2)
+    // morning starts at 08:00 local → 06:00 UTC
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      date_range_start: '2025-06-15',
+      date_range_end: '2025-06-15',
+      part_of_day: 'morning',
+      timezone: 'Europe/Paris',
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const firstSlot = res.body.slots[0];
+    expect(new Date(firstSlot.starts_at).getUTCHours()).toBe(6); // 08:00 Paris = 06:00 UTC
   });
 
   it('returns 400 when date_range_end is before date_range_start', async () => {

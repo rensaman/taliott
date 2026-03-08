@@ -10,6 +10,8 @@ import {
   sendOrganizerConfirmation,
   buildJoinConfirmation,
   sendJoinConfirmation,
+  buildOrganizerJoinNotification,
+  sendOrganizerJoinNotification,
   buildFinalizationEmail,
   buildOrganizerFinalizationEmail,
   sendFinalizationNotifications,
@@ -146,6 +148,41 @@ describe('sendJoinConfirmation', () => {
   });
 });
 
+describe('buildOrganizerJoinNotification', () => {
+  const participant = { id: 'p-join-1', email: 'joiner@example.com', name: 'Jo' };
+
+  it('sends to organizer email', () => {
+    const msg = buildOrganizerJoinNotification(participant, event);
+    expect(msg.to).toBe('organizer@example.com');
+  });
+
+  it('subject mentions "New participant joined" and the event name', () => {
+    const msg = buildOrganizerJoinNotification(participant, event);
+    expect(msg.subject).toMatch(/new participant joined/i);
+    expect(msg.subject).toContain('Summer Meetup');
+  });
+
+  it('body includes participant name and email', () => {
+    const msg = buildOrganizerJoinNotification(participant, event);
+    expect(msg.text).toContain('Jo');
+    expect(msg.text).toContain('joiner@example.com');
+  });
+
+  it('body includes admin dashboard link', () => {
+    const msg = buildOrganizerJoinNotification(participant, event);
+    expect(msg.text).toContain('/admin/admin-token-uuid');
+  });
+});
+
+describe('sendOrganizerJoinNotification', () => {
+  it('calls sendEmail once with organizer email', async () => {
+    const participant = { id: 'p-join-1', email: 'joiner@example.com', name: null };
+    await sendOrganizerJoinNotification(participant, event);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'organizer@example.com' }));
+  });
+});
+
 const slot = {
   startsAt: new Date('2025-06-15T09:00:00.000Z'),
   endsAt: new Date('2025-06-15T10:00:00.000Z'),
@@ -186,6 +223,13 @@ describe('buildFinalizationEmail', () => {
   it('body says TBD when no venue provided', () => {
     const msg = buildFinalizationEmail(participant, event, slot, null);
     expect(msg.text).toContain('TBD');
+  });
+
+  it('uses custom venue name from event when no venue object but event has finalVenueName', () => {
+    const eventWithCustomVenue = { ...event, finalVenueName: 'Custom Hall', finalVenueAddress: '5 Oak St' };
+    const msg = buildFinalizationEmail(participant, eventWithCustomVenue, slot, null);
+    expect(msg.text).toContain('Custom Hall');
+    expect(msg.text).toContain('5 Oak St');
   });
 });
 

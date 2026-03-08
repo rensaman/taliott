@@ -19,6 +19,7 @@ const BASE_EVENT = {
   date_range_start: '2025-06-01',
   date_range_end: '2025-06-01',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: FUTURE_DEADLINE,
 };
 
