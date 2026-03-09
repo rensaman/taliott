@@ -49,9 +49,9 @@ test('organizer recovers admin link via resend page', async ({ page, request }) 
 
   await expect(page.getByRole('status')).toContainText(/if we found a matching event/i);
 
-  const email = await waitForEmail('org@resend-e2e.com', { timeout: 5000 });
+  // Wait specifically for the organizer confirmation email (not a participant invite)
+  const email = await waitForEmail('org@resend-e2e.com', { timeout: 5000, subject: 'is ready' });
   expect(email).toBeDefined();
-  // The email body should contain an admin link
   const msgRes = await fetch(`http://localhost:8025/api/v1/message/${email.ID}`);
   const msg = await msgRes.json();
   expect(msg.Text).toContain('/admin/');

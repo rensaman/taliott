@@ -12,6 +12,7 @@ const BASE_EVENT = {
   date_range_start: '2025-09-01',
   date_range_end: '2025-09-01',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: '2099-12-31T23:59:59.000Z',
 };
 

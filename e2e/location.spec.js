@@ -12,6 +12,7 @@ async function createEvent(page) {
       date_range_start: '2025-10-01',
       date_range_end: '2025-10-01',
       part_of_day: 'morning',
+      timezone: 'UTC',
       deadline: '2099-12-31T23:59:59.000Z',
     },
   });
@@ -37,6 +38,7 @@ test('participant does not see location section on a locked event', async ({ pag
       date_range_start: '2025-10-01',
       date_range_end: '2025-10-01',
       part_of_day: 'morning',
+      timezone: 'UTC',
       deadline: '2020-01-01T00:00:00.000Z',
     },
   });

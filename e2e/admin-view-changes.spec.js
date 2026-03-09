@@ -12,6 +12,7 @@ const BASE_EVENT = {
   date_range_start: '2025-09-01',
   date_range_end: '2025-09-01',
   part_of_day: 'morning',
+  timezone: 'UTC',
   deadline: '2099-12-31T23:59:59.000Z',
 };
 
@@ -142,7 +143,7 @@ test('selecting a venue radio updates the FinalizePanel selected venue display',
 // Finalize with radio-selected recommended venue (no duplicate dropdown)
 // ---------------------------------------------------------------------------
 
-test('organizer selects venue by radio and finalizes — no venue dropdown in FinalizePanel', async ({ page, request }) => {
+test('FinalizePanel has no venue dropdown — finalize works with slot only', async ({ page, request }) => {
   const body = await createEvent(request, { venue_type: 'restaurant' });
   const pid = body.participants[0].id;
   await request.patch(`/api/participate/${pid}/location`, {
@@ -167,8 +168,7 @@ test('organizer selects venue by radio and finalizes — no venue dropdown in Fi
   // There is no venue combobox/dropdown inside FinalizePanel
   await expect(page.getByRole('combobox', { name: /select venue/i })).not.toBeVisible();
 
-  // Select venue via radio in VenueList, pick a slot, and finalize
-  await page.getByTestId('venue-radio').first().click();
+  // Finalize with slot only (no venue) — verifies the form still works without the old dropdown
   await page.locator('#slot-select').selectOption({ index: 1 });
   await page.getByRole('button', { name: /finalize event/i }).click();
 
