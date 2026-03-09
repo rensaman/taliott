@@ -9,6 +9,7 @@ COPY backend/package*.json ./backend/
 
 RUN npm ci --workspace=backend --ignore-scripts
 
+COPY region.config.js ./
 COPY backend/ ./backend/
 
 RUN cd backend && npx prisma generate

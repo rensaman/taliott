@@ -7,11 +7,6 @@ const SLOTS = [
   { id: 'slot-2', starts_at: '2025-06-15T10:00:00.000Z', ends_at: '2025-06-15T11:00:00.000Z' },
 ];
 
-const VENUES = [
-  { id: 'v1', name: 'The Anchor Pub', distanceM: 300 },
-  { id: 'v2', name: 'Cafe Bistro', distanceM: 500 },
-];
-
 describe('FinalizePanel', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -19,49 +14,48 @@ describe('FinalizePanel', () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it('renders the finalize panel section', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByTestId('finalize-panel')).toBeInTheDocument();
   });
 
   it('renders slot options', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByRole('option', { name: /choose a slot/i })).toBeInTheDocument();
     const options = screen.getAllByRole('option');
     expect(options.length).toBeGreaterThanOrEqual(3); // placeholder + 2 slots
   });
 
   it('renders venue mode radio buttons', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByRole('radio', { name: /select recommended/i })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /enter custom venue/i })).toBeInTheDocument();
   });
 
-  it('shows recommended venue select when venues are provided and mode is recommended', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={VENUES} />);
-    expect(screen.getByRole('combobox', { name: /select venue/i })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /The Anchor Pub/i })).toBeInTheDocument();
+  it('shows selected venue name when one is provided', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
+    expect(screen.getByTestId('selected-venue-display')).toHaveTextContent('The Anchor Pub');
   });
 
-  it('hides recommended venue select when no venues provided', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
-    expect(screen.queryByRole('combobox', { name: /select venue/i })).not.toBeInTheDocument();
+  it('shows no-venue prompt when no venue is selected in recommended mode', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('selected-venue-display')).toHaveTextContent(/no venue selected/i);
   });
 
   it('shows custom venue inputs when custom mode is selected', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={VENUES} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
     expect(screen.getByTestId('custom-venue-name')).toBeInTheDocument();
     expect(screen.getByTestId('custom-venue-address')).toBeInTheDocument();
-    expect(screen.queryByRole('combobox', { name: /select venue/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('selected-venue-display')).not.toBeInTheDocument();
   });
 
   it('finalize button is disabled when no slot selected', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByRole('button', { name: /finalize/i })).toBeDisabled();
   });
 
   it('finalize button is enabled after slot is selected', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
     expect(screen.getByRole('button', { name: /finalize/i })).not.toBeDisabled();
   });
@@ -70,7 +64,7 @@ describe('FinalizePanel', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
     const onFinalized = vi.fn();
 
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} onFinalized={onFinalized} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} onFinalized={onFinalized} />);
     fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
     fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
 
@@ -81,10 +75,24 @@ describe('FinalizePanel', () => {
     expect(onFinalized).toHaveBeenCalled();
   });
 
+  it('submits venue_id when a recommended venue is selected', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
+    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+
+    await waitFor(() => {
+      const [, options] = fetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.venue_id).toBe('v1');
+    });
+  });
+
   it('submits venue_name and venue_address when custom venue mode is used', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
     fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
     fireEvent.change(screen.getByTestId('custom-venue-name'), { target: { value: 'The Blue Note' } });
@@ -106,7 +114,7 @@ describe('FinalizePanel', () => {
       json: async () => ({ error: 'Event is already finalized' }),
     });
 
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} venues={[]} />);
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
     fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
 

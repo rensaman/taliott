@@ -7,7 +7,7 @@ import { useEventStream } from '../../hooks/useEventStream.js';
 
 export default function AdminView({ adminToken }) {
   const [data, setData] = useState(null);
-  const [venues, setVenues] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState(null);
   const [error, setError] = useState(null);
   const [liveCentroid, setLiveCentroid] = useState(null);
 
@@ -48,17 +48,18 @@ export default function AdminView({ adminToken }) {
       <p>Deadline: {new Date(data.deadline).toLocaleString()}</p>
       <p>{responded} of {total} responded</p>
       <GroupMap centroid={liveCentroid} participants={data.participants} />
-      <ParticipantResponseList participants={data.participants} />
+      <ParticipantResponseList participants={data.participants} slots={data.slots || []} />
       <VenueList
         adminToken={adminToken}
         defaultVenueType={data.venue_type || ''}
-        onVenuesLoaded={setVenues}
+        onSelectVenue={setSelectedVenue}
       />
       {data.status !== 'finalized' && (
         <FinalizePanel
           adminToken={adminToken}
           slots={data.slots || []}
-          venues={venues}
+          selectedVenueId={selectedVenue?.id ?? null}
+          selectedVenueName={selectedVenue?.name ?? null}
           onFinalized={loadDashboard}
         />
       )}

@@ -8,6 +8,7 @@ COPY backend/package*.json ./backend/
 
 RUN npm ci --workspace=frontend --ignore-scripts
 
+COPY region.config.js ./
 COPY frontend/ ./frontend/
 
 RUN npm run build --workspace=frontend

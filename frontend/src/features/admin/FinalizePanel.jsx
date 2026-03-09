@@ -1,9 +1,8 @@
 import { useState } from 'react';
 
-export default function FinalizePanel({ adminToken, slots, venues, onFinalized }) {
+export default function FinalizePanel({ adminToken, slots, selectedVenueId, selectedVenueName, onFinalized }) {
   const [slotId, setSlotId] = useState('');
   const [venueMode, setVenueMode] = useState('recommended'); // 'recommended' | 'custom'
-  const [venueId, setVenueId] = useState('');
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,8 +16,8 @@ export default function FinalizePanel({ adminToken, slots, venues, onFinalized }
 
     try {
       const body = { slot_id: slotId };
-      if (venueMode === 'recommended' && venueId) {
-        body.venue_id = venueId;
+      if (venueMode === 'recommended' && selectedVenueId) {
+        body.venue_id = selectedVenueId;
       } else if (venueMode === 'custom' && venueName) {
         body.venue_name = venueName;
         if (venueAddress) body.venue_address = venueAddress;
@@ -90,20 +89,12 @@ export default function FinalizePanel({ adminToken, slots, venues, onFinalized }
             </label>
           </fieldset>
 
-          {venueMode === 'recommended' && venues && venues.length > 0 && (
-            <select
-              id="venue-select"
-              value={venueId}
-              onChange={e => setVenueId(e.target.value)}
-              aria-label="Select venue"
-            >
-              <option value="">-- none / TBD --</option>
-              {venues.map(v => (
-                <option key={v.id} value={v.id}>
-                  {v.name}{v.distanceM ? ` (${Math.round(v.distanceM)}m)` : ''}
-                </option>
-              ))}
-            </select>
+          {venueMode === 'recommended' && (
+            <p data-testid="selected-venue-display">
+              {selectedVenueName
+                ? <>Selected: <strong>{selectedVenueName}</strong></>
+                : 'No venue selected — pick one from the list above.'}
+            </p>
           )}
 
           {venueMode === 'custom' && (

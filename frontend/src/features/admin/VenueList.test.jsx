@@ -70,6 +70,29 @@ describe('VenueList', () => {
     await waitFor(() => expect(screen.getByText(/1\.5 km/i)).toBeInTheDocument());
   });
 
+  it('renders radio buttons for each venue', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
+    await waitFor(() => expect(screen.getAllByTestId('venue-radio')).toHaveLength(2));
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+  });
+
+  it('calls onSelectVenue when a radio button is selected', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
+    const onSelectVenue = vi.fn();
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" onSelectVenue={onSelectVenue} />);
+    await waitFor(() => expect(screen.getAllByTestId('venue-radio')).toHaveLength(2));
+    fireEvent.click(screen.getAllByTestId('venue-radio')[0]);
+    expect(onSelectVenue).toHaveBeenCalledWith(expect.objectContaining({ id: 'v1' }));
+  });
+
+  it('venue names are rendered as links', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
+    await waitFor(() => expect(screen.getByRole('link', { name: 'The Restaurant' })).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: 'The Restaurant' })).toHaveAttribute('href', expect.stringContaining('openstreetmap.org'));
+  });
+
   it('re-fetches with new venue type when filter is changed', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
     render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);

@@ -122,7 +122,7 @@ router.get('/:adminToken', async (req, res) => {
     event = await getPrisma().event.findUnique({
       where: { adminToken },
       include: {
-        participants: { orderBy: { id: 'asc' } },
+        participants: { include: { availability: true }, orderBy: { id: 'asc' } },
         slots: true,
       },
     });
@@ -153,6 +153,7 @@ router.get('/:adminToken', async (req, res) => {
       responded_at: p.respondedAt ?? null,
       latitude: p.latitude ?? null,
       longitude: p.longitude ?? null,
+      availability: p.availability.map(a => ({ slot_id: a.slotId, state: a.state })),
     })),
   });
 });

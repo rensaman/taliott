@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import VenueCard from './VenueCard.jsx';
 import VenueTypeFilter from './VenueTypeFilter.jsx';
 
-export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded }) {
+export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded, onSelectVenue }) {
   const [venues, setVenues] = useState(null);
   const [venueType, setVenueType] = useState(defaultVenueType || '');
+  const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -12,6 +13,8 @@ export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded
     if (!venueType) return;
     setLoading(true);
     setError(null);
+    setSelectedId(null);
+    onSelectVenue?.(null);
     fetch(`/api/events/${adminToken}/venues?venue_type=${encodeURIComponent(venueType)}`)
       .then(res =>
         res.ok
@@ -29,6 +32,11 @@ export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded
       });
   }, [adminToken, venueType]);
 
+  function handleSelect(venue) {
+    setSelectedId(venue.id);
+    onSelectVenue?.(venue);
+  }
+
   return (
     <section data-testid="venue-list-section">
       <h2>Venue Recommendations</h2>
@@ -42,7 +50,12 @@ export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded
       {venues != null && venues.length > 0 && (
         <ul>
           {venues.map(v => (
-            <VenueCard key={v.id} venue={v} />
+            <VenueCard
+              key={v.id}
+              venue={v}
+              selected={v.id === selectedId}
+              onSelect={handleSelect}
+            />
           ))}
         </ul>
       )}
