@@ -4,21 +4,15 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearMailpit } from './mailpit.js';
+import { fillWizard } from './helpers.js';
 
 const BASE_FORM = {
   name: 'Invite Mode E2E',
-  from: '2025-09-01',
-  to: '2025-09-01',
+  organizerEmail: 'organizer@example.com',
+  dateStart: '2025-09-01',
+  dateEnd: '2025-09-01',
   deadline: '2025-08-25T12:00',
 };
-
-async function fillForm(page, { name, from, to, deadline }) {
-  await page.getByLabel(/event name/i).fill(name);
-  await page.getByLabel(/your email/i).fill('organizer@example.com');
-  await page.getByLabel(/from/i).fill(from);
-  await page.getByLabel(/to/i).fill(to);
-  await page.getByLabel(/voting deadline/i).fill(deadline);
-}
 
 test.describe('invite mode selector', () => {
   test.beforeEach(async ({ page }) => {
@@ -26,22 +20,29 @@ test.describe('invite mode selector', () => {
   });
 
   test('shows both invite mode options with email_invites selected by default', async ({ page }) => {
+    await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     await expect(page.getByRole('radio', { name: /send email invites/i })).toBeChecked();
     await expect(page.getByRole('radio', { name: /share a join link/i })).not.toBeChecked();
   });
 
   test('shows participant emails textarea when email_invites is selected', async ({ page }) => {
+    await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
+    // email_invites is the default — advance to the participant_emails step
+    await page.getByRole('button', { name: /continue/i }).click();
     await expect(page.getByLabel(/participant emails/i)).toBeVisible();
   });
 
   test('hides participant emails textarea when shared_link is selected', async ({ page }) => {
+    await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     await page.getByRole('radio', { name: /share a join link/i }).click();
+    await page.getByRole('button', { name: /continue/i }).click();
+    // participant_emails step is skipped — review heading should be visible instead
+    await expect(page.getByRole('heading', { name: /ready to create/i })).toBeVisible();
     await expect(page.getByLabel(/participant emails/i)).not.toBeVisible();
   });
 
   test('confirmation screen shows join URL with copy button when shared_link is selected', async ({ page }) => {
-    await fillForm(page, BASE_FORM);
-    await page.getByRole('radio', { name: /share a join link/i }).click();
+    await fillWizard(page, { ...BASE_FORM, inviteMode: 'shared_link' });
     await page.getByRole('button', { name: /create event/i }).click();
 
     await expect(page.getByTestId('join-url')).toBeVisible();
@@ -51,8 +52,7 @@ test.describe('invite mode selector', () => {
   });
 
   test('confirmation screen shows participant count when email_invites is selected', async ({ page }) => {
-    await fillForm(page, BASE_FORM);
-    await page.getByLabel(/participant emails/i).fill('a@example.com');
+    await fillWizard(page, { ...BASE_FORM, participantEmails: 'a@example.com' });
     await page.getByRole('button', { name: /create event/i }).click();
 
     await expect(page.getByText(/invite emails have been sent/i)).toBeVisible();

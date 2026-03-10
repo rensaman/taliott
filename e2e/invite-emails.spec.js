@@ -4,6 +4,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearMailpit, waitForEmail } from './mailpit.js';
+import { fillWizard } from './helpers.js';
 
 test.describe.serial('invite emails via Mailpit', () => {
   test.beforeAll(async () => {
@@ -87,12 +88,13 @@ test.describe.serial('invite emails via Mailpit', () => {
 
   test('confirmation screen shows admin token after form submit', async ({ page }) => {
     await page.goto('/');
-    await page.getByLabel(/event name/i).fill('E2E Confirmation Test');
-    await page.getByLabel(/your email/i).fill('conf-e2e@example.com');
-    await page.getByLabel(/from/i).fill('2025-09-01');
-    await page.getByLabel(/to/i).fill('2025-09-01');
-    await page.getByLabel(/voting deadline/i).fill('2025-08-31T12:00');
-
+    await fillWizard(page, {
+      name: 'E2E Confirmation Test',
+      organizerEmail: 'conf-e2e@example.com',
+      dateStart: '2025-09-01',
+      dateEnd: '2025-09-01',
+      deadline: '2025-08-31T12:00',
+    });
     await page.getByRole('button', { name: /create event/i }).click();
 
     await expect(page.getByTestId('admin-token')).toBeVisible();

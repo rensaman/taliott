@@ -4,6 +4,7 @@
  * E2E tests for US 3.2 — Contextual Venue Recommendations
  */
 import { test, expect } from '@playwright/test';
+import { fillWizard } from './helpers.js';
 
 const BASE_EVENT = {
   name: 'Admin E2E Event',
@@ -133,11 +134,13 @@ test('changing venue type filter triggers a new venue search', async ({ page, re
 
 test('confirmation screen admin link navigates to dashboard with correct event data', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel(/event name/i).fill('Confirm Nav Test');
-  await page.getByLabel(/your email/i).fill('admin-e2e-org@example.com');
-  await page.getByLabel(/from/i).fill('2025-09-01');
-  await page.getByLabel(/to/i).fill('2025-09-01');
-  await page.getByLabel(/voting deadline/i).fill('2099-12-31T23:59');
+  await fillWizard(page, {
+    name: 'Confirm Nav Test',
+    organizerEmail: 'admin-e2e-org@example.com',
+    dateStart: '2025-09-01',
+    dateEnd: '2025-09-01',
+    deadline: '2099-12-31T23:59',
+  });
   await page.getByRole('button', { name: /create event/i }).click();
 
   const adminLink = page.getByTestId('admin-token');
