@@ -7,6 +7,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { REGION } from '@region-config';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -15,8 +16,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const DEFAULT_CENTER = [51.505, -0.09]; // London
-const DEFAULT_ZOOM = 13;
+const DEFAULT_CENTER = REGION.center;
+const DEFAULT_ZOOM = REGION.locationMapZoom;
 
 function MapFlyTo({ center }) {
   const map = useMap();

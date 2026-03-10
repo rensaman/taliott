@@ -1,6 +1,7 @@
 {
   "name": "taliott",
   "private": true,
+  "type": "module",
   "workspaces": [
     "frontend",
     "backend"

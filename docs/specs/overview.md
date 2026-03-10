@@ -4,6 +4,29 @@
 
 Automate the logistics of finding the best time and location for a group gathering. No accounts for participants. Minimal steps.
 
+## Region Configuration
+
+The active region is **Budapest, Hungary (close agglomeration)**.
+
+Edit `region.config.js` at the project root to change it:
+
+```js
+export const REGION = {
+  center: [47.4979, 19.0402],   // map default center [lat, lng]
+  groupMapZoom: 10,              // group overview map zoom
+  locationMapZoom: 13,           // location picker zoom
+  geocode: {
+    viewbox: [18.75, 47.75, 19.55, 47.25], // [lon_west, lat_north, lon_east, lat_south]
+    bounded: 1,                  // restrict geocode results to viewbox
+    countrycodes: 'hu',          // ISO 3166-1 alpha-2 country code(s)
+  },
+};
+```
+
+This single file controls:
+- Default map center/zoom in `GroupMap` and `LocationMap`
+- Nominatim geocode search area (viewbox + bounded + countrycodes)
+
 **Design Pillars (priority order)**
 1. Frictionless UI — no accounts for participants, fewest possible steps
 2. Geographical Optimization — calculate a fair center from home addresses

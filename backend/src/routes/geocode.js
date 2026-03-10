@@ -1,7 +1,12 @@
 import { Router } from 'express';
+import { REGION } from '../../../region.config.js';
 
 const router = Router();
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+
+const { viewbox, bounded, countrycodes } = REGION.geocode;
+const GEOCODE_PARAMS =
+  `&viewbox=${viewbox.join(',')}&bounded=${bounded}&countrycodes=${countrycodes}`;
 
 export function mapNominatimResult(r) {
   return { lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: r.display_name };
@@ -12,7 +17,7 @@ router.get('/', async (req, res) => {
   if (!q || q.length < 3) return res.json([]);
 
   try {
-    const url = `${NOMINATIM}?q=${encodeURIComponent(q)}&format=json&limit=5`;
+    const url = `${NOMINATIM}?q=${encodeURIComponent(q)}&format=json&limit=5${GEOCODE_PARAMS}`;
     const upstream = await fetch(url, {
       headers: { 'User-Agent': 'taliott/1.0 (group-scheduling-app)' },
     });
