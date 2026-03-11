@@ -47,7 +47,7 @@ function DraggableMarker({ position, onLocationChange }) {
   );
 }
 
-export default function LocationMap({ location, onLocationChange }) {
+export default function LocationMap({ location, onLocationChange, readonly = false }) {
   const center = location ? [location.lat, location.lng] : DEFAULT_CENTER;
 
   return (
@@ -63,10 +63,9 @@ export default function LocationMap({ location, onLocationChange }) {
         />
         <MapFlyTo center={location ? [location.lat, location.lng] : null} />
         {location && (
-          <DraggableMarker
-            position={[location.lat, location.lng]}
-            onLocationChange={onLocationChange}
-          />
+          readonly
+            ? <Marker position={[location.lat, location.lng]} />
+            : <DraggableMarker position={[location.lat, location.lng]} onLocationChange={onLocationChange} />
         )}
       </MapContainer>
     </div>

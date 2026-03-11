@@ -41,4 +41,15 @@ describe('LocationMap', () => {
     render(<LocationMap location={null} onLocationChange={vi.fn()} />);
     expect(screen.queryByTestId('marker')).not.toBeInTheDocument();
   });
+
+  it('renders a static marker when readonly is true', () => {
+    render(
+      <LocationMap
+        location={{ lat: 51.5074, lng: -0.1278 }}
+        onLocationChange={vi.fn()}
+        readonly
+      />
+    );
+    expect(screen.getByTestId('marker')).toBeInTheDocument();
+  });
 });

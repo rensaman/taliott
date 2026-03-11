@@ -430,6 +430,84 @@ As a Participant I want to toggle slot preferences across Yes / Maybe / No / Neu
 
 ---
 
+#### US 2.4 — Step-by-Step Response Wizard
+
+**Story**
+As a Participant I want to give my response through a guided wizard so that each step is clear and unambiguous.
+
+**Flow**
+```
+First visit (or "Update response"):
+  Step 1 — Name       → pre-filled if already set; saved when navigating away from step
+  Step 2 — Availability grid (auto-saved on interaction, unchanged from US 2.2)
+  Step 3 — Location   → address fuzzy search only, no map; skippable
+  "Submit" on step 3  → calls /confirm → navigate to Summary view
+
+Returning visit (responded_at is set):
+  → Summary view directly
+```
+
+**Summary view (own responses only)**
+- Participant name
+- Read-only availability grid (own yes/maybe/no/neutral states)
+- Address label + static (non-draggable) location pin on a small map when location is set
+- "Update response" link → re-enters wizard with data pre-filled
+- "Update response" hidden when event is locked
+
+**Step navigation:** Free-form — any step is reachable at any time via step indicator; "Back" / "Next" also available per step.
+
+**Removed from previous ParticipateView:** group `HeatmapGrid`, `GroupMap`, inline `LocationMap` (replaced by address-only search in wizard and static pin in summary). SSE subscription removed from participant view.
+
+**Acceptance Criteria**
+- [x] Participant without `responded_at` sees the wizard on arrival
+- [x] Participant with `responded_at` set lands on the summary view
+- [x] Name step is pre-filled from `participant.name` when non-null; name is saved via `PATCH /api/participate/:id/name` when navigating away from step 1 (only if changed)
+- [x] Step nav indicator allows jumping to any step at any time
+- [x] Availability auto-saves on interaction (unchanged)
+- [x] Location step is skippable; "Submit" enabled regardless of whether location was provided
+- [x] Submitting step 3 calls `/confirm`, then navigates to summary view
+- [x] Summary shows: name (if set), read-only availability grid, address label + static map pin (if location set)
+- [x] `LocationMap` accepts a `readonly` prop; when true renders a static non-draggable marker
+- [x] "Update response" visible on summary when event is open; hidden when locked
+- [x] Locked event: summary shown in read-only mode, no "Update response"
+- [x] `GET /api/participate/:id` response includes `participant.name`
+- [x] `PATCH /api/participate/:id/name` — body `{name}`; saves name; returns 200; returns 400 for empty/missing name; returns 404 for unknown participant
+
+**Entities touched:** `Participant` (name)
+
+**API:** `PATCH /api/participate/:participantId/name` (new); `GET /api/participate/:participantId` gains `participant.name` in response
+
+**UI components:** `ResponseWizard`, `ResponseSummary`, `LocationMap` (readonly prop added), `ParticipateView` (routing shell only)
+
+**Test cases**
+- Unit: wizard shows name step by default ✓
+- Unit: name input pre-filled from initialName ✓
+- Unit: clicking step nav navigates to any step ✓
+- Unit: name PATCH called when navigating away with changed name ✓
+- Unit: name PATCH not called when name unchanged ✓
+- Unit: step 3 shows AddressSearchInput, no LocationMap ✓
+- Unit: Submit calls /confirm then onComplete ✓
+- Unit: Submit error shown when /confirm fails ✓
+- Unit: summary shows name, AvailabilityGrid (locked=true), address + map when location set ✓
+- Unit: summary hides location section when no location ✓
+- Unit: summary passes readonly=true to LocationMap ✓
+- Unit: "Update response" shown when open, hidden when locked ✓
+- Unit: ParticipateView shows wizard when not responded ✓
+- Unit: ParticipateView shows summary when responded ✓
+- Unit: ParticipateView shows summary when locked ✓
+- Unit: clicking "Update response" switches to wizard ✓
+- Unit: after wizard onComplete, re-fetches and shows summary ✓
+- Unit: LocationMap renders static marker with readonly=true ✓
+- Integration: GET /api/participate/:id returns participant.name ✓
+- Integration: PATCH /api/participate/:id/name saves name ✓
+- Integration: PATCH /api/participate/:id/name returns 400 for empty name ✓
+- Integration: PATCH /api/participate/:id/name returns 404 for unknown participant ✓
+- E2E: participant opens link → wizard shown → completes wizard → summary shown
+- E2E: participant clicks "Update response" → wizard shown with pre-filled name
+- E2E: locked event → summary shown, no "Update response"
+
+---
+
 #### US 2.3 — Real-Time Group Insight
 
 **Story**

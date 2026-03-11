@@ -72,6 +72,7 @@ router.get('/:participantId', async (req, res) => {
     },
     participant: {
       id: participant.id,
+      name: participant.name,
       email: participant.email,
       latitude: participant.latitude,
       longitude: participant.longitude,
@@ -152,6 +153,38 @@ router.patch('/:participantId/availability', async (req, res) => {
   computeHeatmap(getPrisma(), participant.event.id)
     .then(heatmap => broadcast(participant.event.id, { type: 'availability', heatmap }))
     .catch(err => console.error('[sse] heatmap broadcast failed:', err));
+
+  return res.json({ ok: true });
+});
+
+router.patch('/:participantId/name', async (req, res) => {
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'name must be a non-empty string' });
+  }
+
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  try {
+    await getPrisma().participant.update({
+      where: { id: participant.id },
+      data: { name: name.trim() },
+    });
+  } catch (err) {
+    console.error('Failed to update name:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 
   return res.json({ ok: true });
 });
