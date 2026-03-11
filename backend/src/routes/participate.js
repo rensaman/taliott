@@ -163,11 +163,15 @@ router.patch('/:participantId/name', async (req, res) => {
   if (!name || typeof name !== 'string' || !name.trim()) {
     return res.status(400).json({ error: 'name must be a non-empty string' });
   }
+  if (name.trim().length > 200) {
+    return res.status(400).json({ error: 'name must be 200 characters or fewer' });
+  }
 
   let participant;
   try {
     participant = await getPrisma().participant.findUnique({
       where: { id: req.params.participantId },
+      include: { event: true },
     });
   } catch (err) {
     console.error('Failed to fetch participant:', err);
@@ -175,6 +179,10 @@ router.patch('/:participantId/name', async (req, res) => {
   }
 
   if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  if (isEventLocked(participant.event)) {
+    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
+  }
 
   try {
     await getPrisma().participant.update({

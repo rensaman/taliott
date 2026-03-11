@@ -20,35 +20,54 @@ export default function ResponseWizard({
   const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
+  const [nameError, setNameError] = useState(null);
+  const [locationError, setLocationError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
 
   async function saveName() {
     const trimmed = nameValue.trim();
-    if (trimmed === (initialName ?? '').trim()) return;
-    await fetch(`/api/participate/${participantId}/name`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: trimmed }),
-    }).catch(() => {});
+    if (trimmed === (initialName ?? '').trim()) return true;
+    try {
+      const res = await fetch(`/api/participate/${participantId}/name`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   async function navigateTo(targetStep) {
-    if (step === 1) await saveName();
+    if (step === 1) {
+      const ok = await saveName();
+      if (!ok) {
+        setNameError('Failed to save name. Please try again.');
+        return;
+      }
+      setNameError(null);
+    }
     setStep(targetStep);
   }
 
   async function saveLocation(loc) {
     setLocation(loc);
-    await fetch(`/api/participate/${participantId}/location`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
-    }).catch(() => {});
+    try {
+      const res = await fetch(`/api/participate/${participantId}/location`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
+      });
+      if (!res.ok) setLocationError('Failed to save location. Please try again.');
+      else setLocationError(null);
+    } catch {
+      setLocationError('Failed to save location. Please try again.');
+    }
   }
 
   async function handleSubmit() {
     setSubmitError(null);
-    if (step === 1) await saveName();
     try {
       const res = await fetch(`/api/participate/${participantId}/confirm`, { method: 'PATCH' });
       if (!res.ok) {
@@ -86,6 +105,7 @@ export default function ResponseWizard({
             onChange={e => setNameValue(e.target.value)}
             data-testid="name-input"
           />
+          {nameError && <p role="alert">{nameError}</p>}
           <button onClick={() => navigateTo(2)}>Next</button>
         </section>
       )}
@@ -107,6 +127,7 @@ export default function ResponseWizard({
         <section aria-label="Your location">
           <AddressSearchInput onSelect={saveLocation} />
           {location && <p data-testid="selected-address">{location.label}</p>}
+          {locationError && <p role="alert">{locationError}</p>}
           <button onClick={() => navigateTo(2)}>Back</button>
           <button onClick={handleSubmit} data-testid="submit-btn">Submit</button>
           {submitError && <p role="alert">{submitError}</p>}

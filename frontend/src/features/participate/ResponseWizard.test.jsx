@@ -102,6 +102,22 @@ describe('ResponseWizard', () => {
     expect(screen.queryByTestId('location-map')).not.toBeInTheDocument();
   });
 
+  it('shows an error and does not advance when name save fails', async () => {
+    fetch.mockResolvedValueOnce({ ok: false });
+    renderWizard({ initialName: '' });
+    fireEvent.change(screen.getByTestId('name-input'), { target: { value: 'Sam' } });
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByTestId('name-input')).toBeInTheDocument();
+  });
+
+  it('shows an error when location save fails', async () => {
+    fetch.mockResolvedValueOnce({ ok: false });
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+  });
+
   it('calls PATCH /confirm and then onComplete when Submit is clicked', async () => {
     const onComplete = vi.fn();
     renderWizard({ initialName: 'Alex', onComplete });

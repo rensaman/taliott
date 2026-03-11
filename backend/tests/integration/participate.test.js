@@ -204,6 +204,27 @@ describe('PATCH /api/participate/:participantId/name', () => {
     expect(res.status).toBe(400);
   });
 
+  it('returns 403 when event is locked', async () => {
+    const { participants } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).patch(`/api/participate/${pid}/name`).send({ name: 'Alex' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('returns 400 when name exceeds 200 characters', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/name`)
+      .send({ name: 'a'.repeat(201) });
+
+    expect(res.status).toBe(400);
+  });
+
   it('persists the name so GET reflects it', async () => {
     const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
     const pid = participants[0].id;

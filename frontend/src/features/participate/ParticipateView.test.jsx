@@ -149,6 +149,16 @@ describe('ParticipateView', () => {
     await waitFor(() => expect(screen.getByTestId('wizard-complete')).toBeInTheDocument());
   });
 
+  it('shows summary even when re-fetch fails after wizard onComplete', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: false });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('wizard-complete')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('wizard-complete'));
+    await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
+  });
+
   it('re-fetches and shows summary after wizard onComplete', async () => {
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })

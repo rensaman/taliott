@@ -32,7 +32,14 @@ export default function ParticipateView({ participantId }) {
 
   async function handleComplete() {
     const res = await fetch(`/api/participate/${participantId}`).catch(() => null);
-    if (res?.ok) setData(await res.json());
+    if (res?.ok) {
+      setData(await res.json());
+    } else {
+      setData(prev => ({
+        ...prev,
+        participant: { ...prev.participant, responded_at: new Date().toISOString() },
+      }));
+    }
     setUpdating(false);
   }
 
