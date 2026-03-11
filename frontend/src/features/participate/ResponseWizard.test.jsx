@@ -18,6 +18,7 @@ function renderWizard(overrides = {}) {
     <ResponseWizard
       participantId="p-1"
       initialName={overrides.initialName ?? ''}
+      initialStep={overrides.initialStep ?? 1}
       slots={SLOTS}
       initialAvailability={[]}
       initialLocation={null}
@@ -38,6 +39,12 @@ describe('ResponseWizard', () => {
   it('shows the name step by default', () => {
     renderWizard();
     expect(screen.getByTestId('name-input')).toBeInTheDocument();
+  });
+
+  it('starts at the given initialStep', () => {
+    renderWizard({ initialStep: 2, initialName: 'Alex' });
+    expect(screen.getByTestId('availability-grid')).toBeInTheDocument();
+    expect(screen.queryByTestId('name-input')).not.toBeInTheDocument();
   });
 
   it('pre-fills the name input with initialName', () => {

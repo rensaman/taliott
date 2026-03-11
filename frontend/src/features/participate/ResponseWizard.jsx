@@ -11,12 +11,13 @@ const STEPS = [
 export default function ResponseWizard({
   participantId,
   initialName,
+  initialStep = 1,
   slots,
   initialAvailability,
   initialLocation,
   onComplete,
 }) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
   const [submitError, setSubmitError] = useState(null);

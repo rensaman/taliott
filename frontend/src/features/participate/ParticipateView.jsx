@@ -62,6 +62,7 @@ export default function ParticipateView({ participantId }) {
         <ResponseWizard
           participantId={participantId}
           initialName={participant.name}
+          initialStep={!updating && participant.name ? 2 : 1}
           slots={slots}
           initialAvailability={availability}
           initialLocation={location}
