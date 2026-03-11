@@ -19,10 +19,13 @@ export async function processExpiredEvents(prisma, mailer) {
         data: { status: 'locked' },
       });
 
+      const baseUrl = process.env.APP_BASE_URL ?? 'http://localhost:3000';
+      const adminLink = `${baseUrl}/admin/${event.adminToken}`;
+
       await mailer.sendEmail({
         to: event.organizerEmail,
         subject: `${event.name} — voting has closed`,
-        text: `The voting deadline for "${event.name}" has passed. You can now finalize the event via your admin link.`,
+        text: `The voting deadline for "${event.name}" has passed. You can now finalize the event here:\n\n${adminLink}`,
       });
 
       locked++;

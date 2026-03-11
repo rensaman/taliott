@@ -14,6 +14,7 @@ const makeEvent = (overrides = {}) => ({
   id: 'e-1',
   name: 'Past Event',
   organizerEmail: 'alex@example.com',
+  adminToken: 'tok-abc',
   status: 'open',
   ...overrides,
 });
@@ -89,6 +90,21 @@ describe('processExpiredEvents', () => {
     expect(count).toBe(0);
     expect(prisma.event.update).not.toHaveBeenCalled();
     expect(mailer.sendEmail).not.toHaveBeenCalled();
+  });
+
+  it('includes the admin link in the email body', async () => {
+    process.env.APP_BASE_URL = 'https://example.com';
+    const prisma = makePrisma([makeEvent()]);
+    const mailer = { sendEmail: vi.fn().mockResolvedValue(undefined) };
+
+    await processExpiredEvents(prisma, mailer);
+
+    expect(mailer.sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining('https://example.com/admin/tok-abc'),
+      })
+    );
+    delete process.env.APP_BASE_URL;
   });
 
   it('continues processing remaining events when one fails', async () => {
