@@ -8,6 +8,8 @@ import {
   sendEventInvites,
   buildOrganizerConfirmation,
   sendOrganizerConfirmation,
+  buildOrganizerCreationEmail,
+  sendOrganizerCreationEmail,
   buildJoinConfirmation,
   sendJoinConfirmation,
   buildOrganizerJoinNotification,
@@ -64,7 +66,7 @@ describe('buildParticipantInvite', () => {
 });
 
 describe('sendEventInvites', () => {
-  it('calls sendEmail once per participant', async () => {
+  it('calls sendEmail once per non-organizer participant', async () => {
     await sendEventInvites(event);
     expect(sendEmail).toHaveBeenCalledTimes(2);
   });
@@ -74,6 +76,17 @@ describe('sendEventInvites', () => {
     const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
     expect(recipients).toContain('alice@example.com');
     expect(recipients).toContain('bob@example.com');
+  });
+
+  it('skips participant whose email matches organizerEmail', async () => {
+    const eventWithOrganizer = {
+      ...event,
+      participants: [...event.participants, { id: 'p-org', email: 'organizer@example.com' }],
+    };
+    await sendEventInvites(eventWithOrganizer);
+    const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(recipients).not.toContain('organizer@example.com');
+    expect(sendEmail).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -109,6 +122,66 @@ describe('buildOrganizerConfirmation', () => {
 describe('sendOrganizerConfirmation', () => {
   it('calls sendEmail once with organizer email', async () => {
     await sendOrganizerConfirmation(event);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'organizer@example.com' }));
+  });
+});
+
+describe('buildOrganizerCreationEmail', () => {
+  const organizerParticipant = { id: 'p-org', email: 'organizer@example.com' };
+  const emailInvitesEvent = {
+    ...event,
+    inviteMode: 'email_invites',
+    joinToken: null,
+    participants: [...event.participants, organizerParticipant],
+  };
+  const sharedLinkEvent = {
+    ...event,
+    inviteMode: 'shared_link',
+    joinToken: 'join-token-uuid',
+    participants: [organizerParticipant],
+  };
+
+  it('sends to organizer email', () => {
+    const msg = buildOrganizerCreationEmail(emailInvitesEvent);
+    expect(msg.to).toBe('organizer@example.com');
+  });
+
+  it('includes admin link', () => {
+    const msg = buildOrganizerCreationEmail(emailInvitesEvent);
+    expect(msg.text).toContain('/admin/admin-token-uuid');
+  });
+
+  it('includes organizer voting link for email_invites mode', () => {
+    const msg = buildOrganizerCreationEmail(emailInvitesEvent);
+    expect(msg.text).toContain('/participate/p-org');
+  });
+
+  it('includes join link for shared_link mode', () => {
+    const msg = buildOrganizerCreationEmail(sharedLinkEvent);
+    expect(msg.text).toContain('/join/join-token-uuid');
+  });
+
+  it('includes organizer voting link for shared_link mode', () => {
+    const msg = buildOrganizerCreationEmail(sharedLinkEvent);
+    expect(msg.text).toContain('/participate/p-org');
+  });
+
+  it('does not include join link for email_invites mode', () => {
+    const msg = buildOrganizerCreationEmail(emailInvitesEvent);
+    expect(msg.text).not.toContain('/join/');
+  });
+});
+
+describe('sendOrganizerCreationEmail', () => {
+  it('calls sendEmail once with organizer email', async () => {
+    const emailInvitesEvent = {
+      ...event,
+      inviteMode: 'email_invites',
+      joinToken: null,
+      participants: [...event.participants, { id: 'p-org', email: 'organizer@example.com' }],
+    };
+    await sendOrganizerCreationEmail(emailInvitesEvent);
     expect(sendEmail).toHaveBeenCalledTimes(1);
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'organizer@example.com' }));
   });
@@ -208,9 +281,9 @@ describe('buildFinalizationEmail', () => {
     expect(msg.text).toContain('The Anchor Pub');
   });
 
-  it('body includes participation link', () => {
+  it('body does not include participation link', () => {
     const msg = buildFinalizationEmail(participant, event, slot, venue);
-    expect(msg.text).toContain('/participate/p-uuid-1');
+    expect(msg.text).not.toContain('/participate/');
   });
 
   it('has an ICS attachment', () => {
@@ -258,9 +331,9 @@ describe('buildOrganizerFinalizationEmail', () => {
 });
 
 describe('sendFinalizationNotifications', () => {
-  it('calls sendEmail for each participant + organizer', async () => {
+  it('calls sendEmail for each non-organizer participant + organizer', async () => {
     await sendFinalizationNotifications(event, slot, venue);
-    // 2 participants + 1 organizer = 3
+    // 2 participants (neither is organizer) + 1 organizer = 3
     expect(sendEmail).toHaveBeenCalledTimes(3);
   });
 
@@ -280,5 +353,17 @@ describe('sendFinalizationNotifications', () => {
     await sendFinalizationNotifications(eventWithNullEmail, slot, venue);
     // 2 real participants + 1 organizer = 3 (null email skipped)
     expect(sendEmail).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not send duplicate email to organizer when they are also a participant', async () => {
+    const eventWithOrgAsParticipant = {
+      ...event,
+      participants: [...event.participants, { id: 'p-org', email: 'organizer@example.com', name: null }],
+    };
+    await sendFinalizationNotifications(eventWithOrgAsParticipant, slot, venue);
+    // alice + bob + organizer (once) = 3, not 4
+    expect(sendEmail).toHaveBeenCalledTimes(3);
+    const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(recipients.filter(r => r === 'organizer@example.com')).toHaveLength(1);
   });
 });

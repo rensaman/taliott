@@ -209,7 +209,7 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 - [x] Organizer receives a separate admin link with a distinct admin_token
 - [x] No two participants share the same token
 - [x] Organizer is always auto-enrolled as a participant; `organizer_email` is prepended to the participant list at creation and deduplicated if also provided in `participant_emails`
-- [x] Organizer always receives both a confirmation email (admin link) and a participant invite email (participation link) — two distinct emails with distinct purposes
+- [x] Organizer always receives one combined creation email containing both the admin link and their personal voting link (and the join link when `invite_mode = shared_link`)
 
 **Entities touched:** `Event` (admin_token), `Participant` (id used as token)
 
@@ -221,7 +221,7 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 - Unit: token generation produces v4 UUIDs ✓
 - Integration: POST /api/events with 2 invitee emails creates 3 Participant rows (organizer + 2) with distinct UUIDs ✓
 - Integration: each participant UUID differs from admin_token ✓
-- Integration: organizer always receives 2 emails (participant invite + confirmation) regardless of whether their email is in participant_emails ✓
+- Integration: organizer always receives exactly 1 combined creation email (admin link + voting link) regardless of whether their email is in participant_emails ✓
 - E2E: organizer submits invite form → confirmation screen shows admin link ✓
 
 > **Note:** Organizer email delivery of the admin link is a separate concern handled in US 1.4. The admin_token is currently returned in the API response and displayed on the confirmation screen only.
@@ -234,23 +234,23 @@ As an Organizer I want each invitee to receive a unique, passwordless access lin
 As an Organizer I want to receive an email with my admin link after creating an event so that I can return to manage it later without bookmarking the confirmation screen.
 
 **Acceptance Criteria**
-- [x] Organizer receives a distinct email (not a participant invite) after event creation
+- [x] Organizer receives a single combined creation email (not a separate participant invite) after event creation
 - [x] Email contains a direct link to the admin surface: `APP_BASE_URL/admin/:adminToken`
+- [x] Email also contains the organizer's personal voting link: `APP_BASE_URL/participate/:participantId`
 - [x] Subject clearly identifies the event by name
-- [x] Organizer's participant invite (if they are also a participant) is sent separately and is unchanged
 - [x] Confirmation screen also displays the full admin URL (not just the raw token)
 
 **Entities touched:** `Event` (admin_token, organizer_email)
 
-**API:** No new endpoints; `POST /api/events` triggers a second email to `organizer_email` via `invite-mailer.js`
+**API:** No new endpoints; `POST /api/events` triggers one combined creation email to `organizer_email` via `invite-mailer.js`
 
 **UI components:** `ConfirmationScreen` (show full clickable admin URL)
 
 **Test cases**
-- Unit: buildOrganizerConfirmation(event) returns correct subject, to, and admin link in body ✓
-- Integration: POST /api/events sends one additional email to organizer_email with admin link ✓
-- Integration: organizer confirmation email is distinct from participant invite (different subject / body) ✓
-- E2E: organizer creates event → inbox contains a confirmation email with /admin/:adminToken link ✓
+- Unit: buildOrganizerCreationEmail(event) returns combined email with admin link + voting link ✓
+- Integration: POST /api/events sends exactly one email to organizer_email containing both admin and voting links ✓
+- Integration: organizer does not receive a separate participant invite email ✓
+- E2E: organizer creates event → inbox contains a creation email with /admin/:adminToken link ✓
 
 ---
 
@@ -269,7 +269,7 @@ As an Organizer I want to choose at creation time between sending email invites 
 - [x] `POST /api/events` response includes `join_url` (`APP_BASE_URL/join/:joinToken`) when mode is `shared_link`
 - [x] Confirmation screen displays the `join_url` with a copy button when mode is `shared_link`
 - [x] `invite_mode` is immutable after creation (no update endpoint exists; enforced by API design)
-- [x] When `invite_mode = shared_link`: organizer receives their participant invite email at creation time; other participants self-register via the join link
+- [x] When `invite_mode = shared_link`: organizer receives one combined creation email containing the admin link, the shareable join link, and their personal voting link; other participants self-register via the join link
 
 **Entities touched:** `Event` (invite_mode, join_token), `Participant`
 
@@ -283,7 +283,7 @@ As an Organizer I want to choose at creation time between sending email invites 
 - Unit: POST /api/events without invite_mode defaults to email_invites
 - Integration: POST /api/events with shared_link returns join_url in response
 - Integration: POST /api/events with shared_link creates exactly 1 Participant row (the organizer)
-- Integration: POST /api/events with shared_link: organizer receives participant invite + confirmation emails
+- Integration: POST /api/events with shared_link: organizer receives exactly 1 combined creation email with admin link + join link + voting link ✓
 - Integration: POST /api/events with invalid invite_mode returns 400
 - E2E: organizer selects "Share a join link" → confirmation screen shows join URL
 
@@ -632,8 +632,8 @@ As an Organizer I want to confirm the final time and venue so that the system no
 - [x] All further edits to availability or location are blocked after finalization
 - [x] System generates a valid .ics file (correct DTSTART, DTEND, LOCATION, SUMMARY)
 - [x] ICS DTSTART and DTEND use the event's timezone (TZID property set to Event.timezone); times are not rendered as UTC floating times
-- [x] Each participant receives a notification email with the .ics file attached
-- [x] Organizer receives the same email
+- [x] Each participant (excluding the organizer) receives a notification email with the .ics file attached; the email does not include the participant's personal voting link
+- [x] Organizer receives a separate finalization email with their admin link and .ics file attached (not a duplicate participant email)
 - [x] After finalization, `GET /api/participate/:participantId` returns the final slot and venue details (name + address) so participants can view the decision in their participation URL even if they lose the ICS email
 
 **Entities touched:** `Event` (status → finalized, final_slot_id, final_venue_id, final_venue_name, final_venue_address)
@@ -655,7 +655,7 @@ As an Organizer I want to confirm the final time and venue so that the system no
 - Integration: POST /finalize sets status to finalized
 - Integration: POST /finalize on already-finalized event returns 409
 - Integration: PATCH availability after finalization returns 403
-- Integration: notification jobs are enqueued for all participants + organizer
+- Integration: finalization sends one email per non-organizer participant + one organizer-specific email (organizer not double-counted) ✓
 - Integration: GET /api/participate/:id on finalized event returns finalSlot and finalVenue fields ✓
 - E2E: organizer clicks Finalize with custom venue → confirmation shown → participant view becomes read-only and shows final slot + venue ✓
 - E2E: organizer clicks Finalize → confirmation shown → participant view becomes read-only ✓ (finalize panel replaced by notice; participant view locked)

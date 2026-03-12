@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
-import { sendEventInvites, sendOrganizerConfirmation, sendFinalizationNotifications } from '../lib/invite-mailer.js';
+import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
 import { fetchVenuesFromOverpass, sortVenues } from '../lib/venues.js';
 import { subscribe } from '../lib/sse.js';
@@ -98,7 +98,7 @@ router.post('/', async (req, res) => {
 
   // Fire-and-forget — emails are best-effort; don't block the response
   sendEventInvites(event).catch(err => console.error('[invite-mailer]', err));
-  sendOrganizerConfirmation(event).catch(err => console.error('[invite-mailer]', err));
+  sendOrganizerCreationEmail(event).catch(err => console.error('[invite-mailer]', err));
 
   const response = {
     event_id: event.id,

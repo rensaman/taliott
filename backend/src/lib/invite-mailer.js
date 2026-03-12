@@ -23,6 +23,7 @@ export function buildParticipantInvite(participant, event) {
 
 export async function sendEventInvites(event) {
   for (const participant of event.participants) {
+    if (participant.email === event.organizerEmail) continue;
     await sendEmail(buildParticipantInvite(participant, event));
   }
 }
@@ -49,6 +50,44 @@ export function buildOrganizerConfirmation(event) {
 
 export async function sendOrganizerConfirmation(event) {
   await sendEmail(buildOrganizerConfirmation(event));
+}
+
+export function buildOrganizerCreationEmail(event) {
+  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const organizerParticipant = event.participants.find(p => p.email === event.organizerEmail);
+
+  const lines = [
+    `Hi,`,
+    ``,
+    `Your event "${event.name}" has been created successfully.`,
+    ``,
+    `Manage your event here (keep this link private):`,
+    `${baseUrl}/admin/${event.adminToken}`,
+  ];
+
+  if (event.inviteMode === 'shared_link' && event.joinToken) {
+    lines.push(``, `Share this link for others to join:`, `${baseUrl}/join/${event.joinToken}`);
+  }
+
+  if (organizerParticipant) {
+    lines.push(``, `Your voting link:`, `${baseUrl}/participate/${organizerParticipant.id}`);
+  }
+
+  if (event.inviteMode === 'email_invites') {
+    lines.push(``, `Participants have been sent their individual voting links.`);
+  }
+
+  lines.push(``, `Voting deadline: ${new Date(event.deadline).toUTCString()}`);
+
+  return {
+    to: event.organizerEmail,
+    subject: `Your event "${event.name}" is ready`,
+    text: lines.join('\n'),
+  };
+}
+
+export async function sendOrganizerCreationEmail(event) {
+  await sendEmail(buildOrganizerCreationEmail(event));
 }
 
 export function buildJoinConfirmation(participant, event) {
@@ -131,8 +170,6 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
       `When: ${slotStart}`,
       venueLine,
       ``,
-      `Your participation link: ${baseUrl}/participate/${recipient.id}`,
-      ``,
       `A calendar invite is attached.`,
     ].join('\n'),
     attachments: [{ filename: 'event.ics', content: icsContent }],
@@ -171,6 +208,7 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
 export async function sendFinalizationNotifications(event, slot, venue) {
   for (const participant of event.participants) {
     if (!participant.email) continue;
+    if (participant.email === event.organizerEmail) continue;
     await sendEmail(buildFinalizationEmail(participant, event, slot, venue));
   }
   await sendEmail(buildOrganizerFinalizationEmail(event, slot, venue));

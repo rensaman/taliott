@@ -35,16 +35,15 @@ const BASE_BODY = {
 };
 
 describe('POST /api/events — invite emails (US 1.3 + US 1.4)', () => {
-  it('sends one email per participant plus one organizer confirmation', async () => {
+  it('sends one email per non-organizer invitee plus one combined organizer creation email', async () => {
     const res = await request(app).post('/api/events').send(BASE_BODY);
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
     await new Promise(r => setTimeout(r, 50));
 
-    // participants (organizer + 2 invitees) + 1 organizer confirmation = 4
-    const totalParticipants = res.body.participants.length;
-    expect(sendEmail).toHaveBeenCalledTimes(totalParticipants + 1);
+    // 2 invitees (alice, bob) + 1 combined organizer creation email = 3
+    expect(sendEmail).toHaveBeenCalledTimes(3);
   });
 
   it('sends participant invites to each email address', async () => {
@@ -60,7 +59,7 @@ describe('POST /api/events — invite emails (US 1.3 + US 1.4)', () => {
     expect(recipients).toContain('bob@example.com');
   });
 
-  it('organizer receives a confirmation email with a distinct subject', async () => {
+  it('organizer receives exactly one combined creation email', async () => {
     const res = await request(app).post('/api/events').send(BASE_BODY);
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
@@ -71,11 +70,10 @@ describe('POST /api/events — invite emails (US 1.3 + US 1.4)', () => {
       .map(([msg]) => msg)
       .filter(msg => msg.to === 'organizer@example.com');
 
-    // organizer gets 2 emails: one participant invite + one confirmation
-    expect(orgEmails).toHaveLength(2);
-    const subjects = orgEmails.map(m => m.subject);
-    // at least one subject should differ from the participant invite pattern
-    expect(subjects.some(s => s !== subjects[0])).toBe(true);
+    // organizer gets exactly 1 combined email (admin link + voting link)
+    expect(orgEmails).toHaveLength(1);
+    expect(orgEmails[0].text).toContain('/admin/');
+    expect(orgEmails[0].text).toContain('/participate/');
   });
 
   it('organizer confirmation email body contains admin link', async () => {

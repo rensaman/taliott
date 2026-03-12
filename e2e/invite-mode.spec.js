@@ -65,7 +65,7 @@ test.describe.serial('shared_link mode — only organizer enrolled at creation',
     await clearMailpit();
   });
 
-  test('shared_link event creation creates organizer as participant and sends them a participant invite', async ({ page }) => {
+  test('shared_link event creation creates organizer as participant and sends them one combined creation email', async ({ page }) => {
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Shared Link E2E',
@@ -85,14 +85,13 @@ test.describe.serial('shared_link mode — only organizer enrolled at creation',
     expect(body.participants).toHaveLength(1);
     expect(body.participants[0].email).toBe('sl-org@example.com');
 
-    // Organizer receives both a participant invite and a confirmation email
+    // Organizer receives exactly one combined creation email (admin link + voting link + join link)
     await page.waitForTimeout(500);
     const listRes = await fetch('http://localhost:8025/api/v1/messages');
     const data = await listRes.json();
     const orgEmails = data.messages?.filter(m =>
       m.To?.some(t => t.Address === 'sl-org@example.com')
     ) ?? [];
-    // participant invite + organizer confirmation = 2 emails
-    expect(orgEmails).toHaveLength(2);
+    expect(orgEmails).toHaveLength(1);
   });
 });

@@ -115,6 +115,9 @@ describe('POST /api/events/:adminToken/finalize', () => {
     const { admin_token, slots } = await createEvent();
     const slotId = slots[0].id;
 
+    // Clear mocks after event creation so only finalization emails are counted
+    vi.clearAllMocks();
+
     await request(app)
       .post(`/api/events/${admin_token}/finalize`)
       .send({ slot_id: slotId });
@@ -122,12 +125,14 @@ describe('POST /api/events/:adminToken/finalize', () => {
     // Allow fire-and-forget promises to settle
     await new Promise(r => setTimeout(r, 50));
 
-    // 3 participants (organizer + alice + bob) + 1 organizer notification = 4 emails
-    // (organizer gets one as participant, one as organizer finalization)
+    // alice + bob (participant emails) + 1 organizer-specific email = 3
+    // organizer is skipped in the participant loop to avoid duplicate
+    expect(sendEmail).toHaveBeenCalledTimes(3);
     const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
     expect(recipients).toContain('organizer@example.com');
     expect(recipients).toContain('alice@example.com');
     expect(recipients).toContain('bob@example.com');
+    expect(recipients.filter(r => r === 'organizer@example.com')).toHaveLength(1);
   });
 
   it('sends emails with ICS attachment', async () => {
