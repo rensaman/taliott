@@ -2,12 +2,6 @@ import { useState } from 'react';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 
-const STEPS = [
-  { number: 1, label: 'Name' },
-  { number: 2, label: 'Availability' },
-  { number: 3, label: 'Location' },
-];
-
 export default function ResponseWizard({
   participantId,
   initialName,
@@ -82,19 +76,6 @@ export default function ResponseWizard({
 
   return (
     <div>
-      <nav aria-label="Response steps">
-        {STEPS.map(s => (
-          <button
-            key={s.number}
-            onClick={() => navigateTo(s.number)}
-            aria-current={step === s.number ? 'step' : undefined}
-            data-testid={`step-nav-${s.number}`}
-          >
-            {s.number}. {s.label}
-          </button>
-        ))}
-      </nav>
-
       {step === 1 && (
         <section aria-label="Your name">
           <label htmlFor="participant-name">Your name</label>

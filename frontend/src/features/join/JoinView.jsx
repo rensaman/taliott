@@ -4,7 +4,6 @@ export default function JoinView({ joinToken }) {
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [fieldError, setFieldError] = useState('');
 
@@ -31,7 +30,7 @@ export default function JoinView({ joinToken }) {
       const res = await fetch(`/api/join/${joinToken}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: name || undefined }),
+        body: JSON.stringify({ email }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -77,15 +76,6 @@ export default function JoinView({ joinToken }) {
             required
             value={email}
             onChange={e => setEmail(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="join-name">Name (optional)</label>
-          <input
-            id="join-name"
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
           />
         </div>
         {fieldError && <p role="alert">{fieldError}</p>}

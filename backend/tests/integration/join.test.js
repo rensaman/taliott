@@ -128,6 +128,41 @@ describe('POST /api/join/:joinToken', () => {
     expect(participant.name).toBe('Carol');
   });
 
+  it('saves name on re-registration when participant previously had none', async () => {
+    // Simulate pre-created participant (e.g. added by organiser) with no name
+    const pre = await prisma.participant.create({
+      data: { eventId, email: 'nameless@example.com', name: null },
+    });
+
+    const res = await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'nameless@example.com',
+      name: 'Dave',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.participant_id).toBe(pre.id);
+
+    const updated = await prisma.participant.findUnique({ where: { id: pre.id } });
+    expect(updated.name).toBe('Dave');
+  });
+
+  it('does not overwrite existing name on re-registration', async () => {
+    await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'hasname@example.com',
+      name: 'Original',
+    });
+
+    const res = await request(app).post(`/api/join/${joinToken}`).send({
+      email: 'hasname@example.com',
+      name: 'Different',
+    });
+    expect(res.status).toBe(201);
+
+    const participant = await prisma.participant.findUnique({
+      where: { id: res.body.participant_id },
+    });
+    expect(participant.name).toBe('Original');
+  });
+
   it('returns 400 for invalid email format', async () => {
     const res = await request(app).post(`/api/join/${joinToken}`).send({
       email: 'not-an-email',

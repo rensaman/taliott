@@ -69,7 +69,7 @@ router.post('/:joinToken', async (req, res) => {
   try {
     participant = await getPrisma().participant.upsert({
       where: { eventId_email: { eventId: event.id, email } },
-      update: {},
+      update: name && !existing?.name ? { name } : {},
       create: { eventId: event.id, email, name: name ?? null },
     });
   } catch (err) {

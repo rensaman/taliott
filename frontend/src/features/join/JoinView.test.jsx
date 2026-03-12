@@ -36,11 +36,11 @@ describe('JoinView', () => {
     expect(screen.getByText(/deadline/i)).toBeInTheDocument();
   });
 
-  it('shows email and name fields', async () => {
+  it('shows email field', async () => {
     mockFetch([{ body: OPEN_EVENT }]);
     render(<JoinView joinToken={TOKEN} />);
     await waitFor(() => screen.getByLabelText(/email/i));
-    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/name/i)).not.toBeInTheDocument();
   });
 
   it('shows invalid link message on 404', async () => {
@@ -101,7 +101,6 @@ describe('JoinView', () => {
     await waitFor(() => screen.getByLabelText(/email/i));
 
     await userEvent.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await userEvent.type(screen.getByLabelText(/name/i), 'Test User');
     await userEvent.click(screen.getByRole('button', { name: /join event/i }));
 
     await waitFor(() => expect(location.href).toBe('/participate/p-new-id'));

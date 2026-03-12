@@ -52,13 +52,6 @@ describe('ResponseWizard', () => {
     expect(screen.getByTestId('name-input')).toHaveValue('Alex');
   });
 
-  it('renders a step nav with 3 buttons', () => {
-    renderWizard();
-    expect(screen.getByTestId('step-nav-1')).toBeInTheDocument();
-    expect(screen.getByTestId('step-nav-2')).toBeInTheDocument();
-    expect(screen.getByTestId('step-nav-3')).toBeInTheDocument();
-  });
-
   it('navigates to step 2 when clicking Next on step 1', async () => {
     renderWizard({ initialName: 'Alex' });
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
@@ -66,13 +59,21 @@ describe('ResponseWizard', () => {
     expect(screen.queryByTestId('name-input')).not.toBeInTheDocument();
   });
 
-  it('navigates to any step via step nav buttons (free-form)', async () => {
-    renderWizard({ initialName: 'Alex' });
-    fireEvent.click(screen.getByTestId('step-nav-3'));
-    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('step-nav-1'));
+  it('navigates back to step 1 when clicking Back on step 2', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
     await waitFor(() => expect(screen.getByTestId('name-input')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('step-nav-2'));
+  });
+
+  it('navigates to step 3 when clicking Next on step 2', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+  });
+
+  it('navigates back to step 2 when clicking Back on step 3', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
     await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
   });
 
@@ -95,10 +96,9 @@ describe('ResponseWizard', () => {
     expect(fetch).not.toHaveBeenCalledWith('/api/participate/p-1/name', expect.anything());
   });
 
-  it('step 3 shows AddressSearchInput and no LocationMap', async () => {
-    renderWizard({ initialName: 'Alex' });
-    fireEvent.click(screen.getByTestId('step-nav-3'));
-    await waitFor(() => expect(screen.getByRole('button', { name: /select address/i })).toBeInTheDocument());
+  it('step 3 shows AddressSearchInput and no LocationMap', () => {
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    expect(screen.getByRole('button', { name: /select address/i })).toBeInTheDocument();
     expect(screen.queryByTestId('location-map')).not.toBeInTheDocument();
   });
 
@@ -120,9 +120,7 @@ describe('ResponseWizard', () => {
 
   it('calls PATCH /confirm and then onComplete when Submit is clicked', async () => {
     const onComplete = vi.fn();
-    renderWizard({ initialName: 'Alex', onComplete });
-    fireEvent.click(screen.getByTestId('step-nav-3'));
-    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
@@ -136,11 +134,32 @@ describe('ResponseWizard', () => {
   it('shows a submit error and does not call onComplete when /confirm fails', async () => {
     fetch.mockResolvedValue({ ok: false });
     const onComplete = vi.fn();
-    renderWizard({ initialName: 'Alex', onComplete });
-    fireEvent.click(screen.getByTestId('step-nav-3'));
-    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('shows a submit error when /confirm throws a network error', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network error'));
+    const onComplete = vi.fn();
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
+    fireEvent.click(screen.getByTestId('submit-btn'));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('clears location error on successful location save', async () => {
+    fetch.mockResolvedValueOnce({ ok: true });
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+  });
+
+  it('shows an error when location save throws a network error', async () => {
+    fetch.mockRejectedValueOnce(new Error('Network error'));
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });
 });

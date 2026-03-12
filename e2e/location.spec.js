@@ -20,14 +20,15 @@ async function createEvent(page) {
   return res.json();
 }
 
-test('participant sees address search and map on an open event', async ({ page }) => {
+test('participant sees address search on the location step', async ({ page }) => {
   const { participants } = await createEvent(page);
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
+  await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
+  await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
 
   await expect(page.getByLabel(/search address/i)).toBeVisible();
-  await expect(page.locator('[data-testid="location-map"]')).toBeVisible();
 });
 
 test('participant does not see location section on a locked event', async ({ page }) => {
@@ -55,6 +56,8 @@ test('participant types address, selects result, and coordinates are saved', asy
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
+  await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
+  await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
 
   const input = page.getByLabel(/search address/i);
   await input.fill('London');

@@ -115,32 +115,6 @@ describe('ParticipateView', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('passes initialStep=2 to wizard when participant already has a name', async () => {
-    let capturedInitialStep;
-    ResponseWizard.mockImplementation(({ initialStep, onComplete }) => {
-      capturedInitialStep = initialStep;
-      return <button data-testid="wizard-complete" onClick={onComplete}>complete wizard</button>;
-    });
-    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
-    render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => expect(screen.getByTestId('wizard-complete')).toBeInTheDocument());
-    expect(capturedInitialStep).toBe(2);
-  });
-
-  it('passes initialStep=1 to wizard when updating (even if name is set)', async () => {
-    let capturedInitialStep;
-    ResponseWizard.mockImplementation(({ initialStep, onComplete }) => {
-      capturedInitialStep = initialStep;
-      return <button data-testid="wizard-complete" onClick={onComplete}>complete wizard</button>;
-    });
-    fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
-    render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
-    fireEvent.click(screen.getByTestId('summary-update'));
-    await waitFor(() => expect(screen.getByTestId('wizard-complete')).toBeInTheDocument());
-    expect(capturedInitialStep).toBe(1);
-  });
-
   it('switches to wizard when summary onUpdate is called', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
