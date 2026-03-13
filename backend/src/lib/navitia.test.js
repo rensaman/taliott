@@ -1,111 +1,97 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { fetchNavitiaTravelDuration } from './navitia.js';
-
-let savedApiKey;
-beforeEach(() => {
-  savedApiKey = process.env.NAVITIA_API_KEY;
-  process.env.NAVITIA_API_KEY = 'test-navitia-key';
-});
-afterEach(() => {
-  if (savedApiKey === undefined) delete process.env.NAVITIA_API_KEY;
-  else process.env.NAVITIA_API_KEY = savedApiKey;
-});
 
 const ORIGIN = { latitude: 47.497, longitude: 19.040 };
 const DEST = { lat: 47.520, lng: 19.060 };
 
-describe('fetchNavitiaTravelDuration', () => {
-  it('throws when NAVITIA_API_KEY is not set', async () => {
-    delete process.env.NAVITIA_API_KEY;
-    await expect(
-      fetchNavitiaTravelDuration(ORIGIN, DEST, vi.fn()),
-    ).rejects.toThrow('NAVITIA_API_KEY not configured');
-  });
+const OTP_RESPONSE = (duration) => ({
+  plan: { itineraries: [{ duration }] },
+});
 
-  it('calls the correct Navitia journeys endpoint', async () => {
+describe('fetchNavitiaTravelDuration', () => {
+  it('calls the OTP plan endpoint', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [{ duration: 900 }] }),
+      json: async () => OTP_RESPONSE(900),
     });
 
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
 
     expect(mockFetch).toHaveBeenCalledOnce();
     const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain('api.navitia.io/v1/journeys');
+    expect(url).toContain('/otp/routers/default/plan');
   });
 
-  it('encodes origin as lon;lat in the from parameter', async () => {
+  it('passes origin as fromPlace=lat,lon', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [{ duration: 900 }] }),
+      json: async () => OTP_RESPONSE(900),
     });
 
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
 
     const [url] = mockFetch.mock.calls[0];
-    // Navitia uses longitude;latitude format
-    expect(url).toContain(encodeURIComponent(`${ORIGIN.longitude};${ORIGIN.latitude}`));
+    expect(url).toContain(`fromPlace=${ORIGIN.latitude},${ORIGIN.longitude}`);
   });
 
-  it('encodes destination as lon;lat in the to parameter', async () => {
+  it('passes destination as toPlace=lat,lon', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [{ duration: 900 }] }),
+      json: async () => OTP_RESPONSE(900),
     });
 
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
 
     const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain(encodeURIComponent(`${DEST.lng};${DEST.lat}`));
+    expect(url).toContain(`toPlace=${DEST.lat},${DEST.lng}`);
   });
 
-  it('sends the Authorization header with the API key', async () => {
+  it('requests TRANSIT,WALK mode', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [{ duration: 900 }] }),
+      json: async () => OTP_RESPONSE(900),
     });
 
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
 
-    const [, opts] = mockFetch.mock.calls[0];
-    expect(opts.headers.Authorization).toBe('test-navitia-key');
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toContain('mode=TRANSIT,WALK');
   });
 
-  it('returns the duration of the first journey', async () => {
+  it('returns the duration of the first itinerary', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [{ duration: 1234 }, { duration: 999 }] }),
+      json: async () => ({ plan: { itineraries: [{ duration: 1234 }, { duration: 999 }] } }),
     });
 
     const result = await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
     expect(result).toBe(1234);
   });
 
-  it('throws when Navitia returns a non-2xx response', async () => {
+  it('throws when OTP returns a non-2xx response', async () => {
     const mockFetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
     await expect(
       fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch),
-    ).rejects.toThrow('Navitia API error: 503');
+    ).rejects.toThrow('OTP API error: 503');
   });
 
-  it('throws when journeys array is empty', async () => {
+  it('throws when itineraries array is empty', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ journeys: [] }),
+      json: async () => ({ plan: { itineraries: [] } }),
     });
     await expect(
       fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch),
-    ).rejects.toThrow('no journeys found');
+    ).rejects.toThrow('no itineraries found');
   });
 
-  it('throws when journeys is missing from response', async () => {
+  it('throws when plan is missing from response', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ message: 'no solution' }),
+      json: async () => ({ error: 'no path' }),
     });
     await expect(
       fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch),
-    ).rejects.toThrow('no journeys found');
+    ).rejects.toThrow('no itineraries found');
   });
 });

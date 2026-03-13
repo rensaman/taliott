@@ -1,36 +1,43 @@
-const NAVITIA_BASE_URL = 'https://api.navitia.io/v1';
+const OTP_BASE_URL = process.env.OTP_BASE_URL || 'http://localhost:8080';
+
+/**
+ * Returns the date string (YYYY-MM-DD) of the next Monday,
+ * used as a representative weekday for transit time estimation.
+ */
+function nextMondayDate() {
+  const d = new Date();
+  const daysUntilMonday = d.getDay() === 1 ? 7 : (8 - d.getDay()) % 7;
+  d.setDate(d.getDate() + daysUntilMonday);
+  return d.toISOString().slice(0, 10);
+}
 
 /**
  * Fetch transit travel duration (seconds) from one origin to one destination
- * using the Navitia journeys API.
+ * using the local OpenTripPlanner (OTP) REST API.
  *
- * Navitia uses lon;lat coordinate format (longitude first, semicolon separated).
+ * Uses next Monday 09:00 as a representative weekday morning departure time.
  *
  * @param {{ latitude: number, longitude: number }} origin
  * @param {{ lat: number, lng: number }} destination
  * @param {function} fetchFn  injectable fetch for testing
  * @returns {Promise<number>}  duration in seconds
- * @throws if NAVITIA_API_KEY is not set, API returns non-2xx, or no journeys found
+ * @throws if OTP returns non-2xx or no itineraries found
  */
 export async function fetchNavitiaTravelDuration(origin, destination, fetchFn = fetch) {
-  const apiKey = process.env.NAVITIA_API_KEY;
-  if (!apiKey) throw new Error('NAVITIA_API_KEY not configured');
-
-  const from = `${origin.longitude};${origin.latitude}`;
-  const to = `${destination.lng};${destination.lat}`;
+  const date = nextMondayDate();
   const url =
-    `${NAVITIA_BASE_URL}/journeys` +
-    `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&datetime_represents=departure`;
+    `${OTP_BASE_URL}/otp/routers/default/plan` +
+    `?fromPlace=${origin.latitude},${origin.longitude}` +
+    `&toPlace=${destination.lat},${destination.lng}` +
+    `&mode=TRANSIT,WALK` +
+    `&time=09:00:00&date=${date}`;
 
-  const res = await fetchFn(url, {
-    headers: { Authorization: apiKey },
-  });
-
-  if (!res.ok) throw new Error(`Navitia API error: ${res.status}`);
+  const res = await fetchFn(url);
+  if (!res.ok) throw new Error(`OTP API error: ${res.status}`);
 
   const data = await res.json();
-  const journeys = data.journeys;
-  if (!journeys || journeys.length === 0) throw new Error('Navitia: no journeys found');
+  const itineraries = data.plan?.itineraries;
+  if (!itineraries || itineraries.length === 0) throw new Error('OTP: no itineraries found');
 
-  return journeys[0].duration; // seconds
+  return itineraries[0].duration; // seconds
 }

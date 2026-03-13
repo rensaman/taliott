@@ -21,6 +21,15 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  otp:
+    image: opentripplanner/opentripplanner:2.6.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./otp/data:/var/opentripplanner
+    command: ["--build", "--serve", "/var/opentripplanner"]
+    mem_limit: 2g
+
   backend:
     build:
       context: .
@@ -33,12 +42,15 @@ services:
       SMTP_PORT: 1025
       SMTP_FROM: taliott <noreply@taliott.app>
       APP_BASE_URL: http://localhost:3000
+      OTP_BASE_URL: http://otp:8080
     ports:
       - "4000:4000"
     depends_on:
       postgres:
         condition: service_healthy
       mailpit:
+        condition: service_started
+      otp:
         condition: service_started
 
   frontend:
