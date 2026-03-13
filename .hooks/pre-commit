@@ -30,3 +30,13 @@ run_tests() {
 run_tests "unit tests"        "npm run test:coverage --silent"
 run_tests "integration tests" "npm run test:integration"
 run_tests "e2e tests"         "npm run test:e2e"
+
+# AI code review (optional — runs only if claude is installed)
+if command -v claude &> /dev/null; then
+  echo "[review] Running Claude code review…"
+  DIFF=$(git diff --cached)
+  if [ -n "$DIFF" ]; then
+    echo "$DIFF" | claude -p "Review this staged git diff for: bugs, security issues (XSS, injection, auth), missing error handling, and logic errors. Be concise — list only real issues with file:line references. Skip style/formatting. If nothing significant found, say 'No issues found.'"
+  fi
+  echo "[review] ✓ Claude review done."
+fi
