@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-BKK_GTFS_URL="https://bkk.hu/apps/gtfs/budapest_gtfs.zip"
+BKK_GTFS_URL="https://go.bkk.hu/api/static/v1/public-gtfs/budapest_gtfs.zip"
 OUT="otp/data/budapest_gtfs.zip"
 
 mkdir -p otp/data

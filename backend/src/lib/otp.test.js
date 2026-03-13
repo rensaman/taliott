@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchNavitiaTravelDuration } from './navitia.js';
+import { fetchNavitiaTravelDuration } from './otp.js';
 
 const ORIGIN = { latitude: 47.497, longitude: 19.040 };
 const DEST = { lat: 47.520, lng: 19.060 };

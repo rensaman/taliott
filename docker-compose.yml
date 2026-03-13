@@ -27,7 +27,7 @@ services:
       - "8080:8080"
     volumes:
       - ./otp/data:/var/opentripplanner
-    command: ["--build", "--serve", "/var/opentripplanner"]
+    command: ["--build", "--serve"]
     mem_limit: 2g
 
   backend:
