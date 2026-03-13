@@ -135,7 +135,7 @@ router.get('/:adminToken', async (req, res) => {
     return res.status(404).json({ error: 'Event not found' });
   }
 
-  const centroid = computeCentroid(event.participants);
+  const centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
 
   return res.json({
     id: event.id,
@@ -185,7 +185,7 @@ router.get('/:adminToken/venues', async (req, res) => {
     return res.status(400).json({ error: 'Invalid venue type format' });
   }
 
-  const centroid = computeCentroid(event.participants);
+  const centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
   if (!centroid) return res.status(400).json({ error: 'No participant locations available' });
 
   try {

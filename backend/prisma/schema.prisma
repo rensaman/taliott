@@ -111,3 +111,16 @@ model Venue {
 
   @@unique([eventId, externalId, venueType])
 }
+
+model RouteCache {
+  id          String   @id @default(uuid())
+  fromLat     Float
+  fromLng     Float
+  toLat       Float
+  toLng       Float
+  mode        String
+  durationSec Int
+  createdAt   DateTime @default(now())
+
+  @@unique([fromLat, fromLng, toLat, toLng, mode])
+}

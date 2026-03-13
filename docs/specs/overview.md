@@ -574,21 +574,53 @@ As an Organizer I want a dedicated admin page accessible via my secret link so t
 As an Organizer I want to see the mathematically fairest meeting point so that no participant is unreasonably disadvantaged.
 
 **Acceptance Criteria**
-- [x] Fair Center = arithmetic mean of (latitude, longitude) of all participants who have provided a location
+- [x] Fair Center = travel-time-weighted geometric median of all participants who have provided a location (Weiszfeld algorithm)
+- [x] Travel times sourced from ORS driving-car Matrix API when `ORS_API_KEY` is configured; falls back to Euclidean (haversine) distances otherwise
+- [x] ORS results cached in `RouteCache` table (keyed on snapped coordinates + mode, TTL 7 days) to minimise API calls
 - [x] Map adjusts bounds to fit all participant pins and the center marker
 - [x] Participants with no location set are excluded from the calculation
 - [x] Displays count of participants included in calculation
+- [x] Single participant → their location is the centroid (no routing needed)
 
-**Entities touched:** `Participant` (lat/lng), computed centroid (not persisted until finalization)
+**Algorithm:** Iterative Weiszfeld (max 5 iterations, convergence threshold 1 × 10⁻⁶ °):
+1. Start from arithmetic mean
+2. Per iteration: fetch travel durations from all participants to current estimate (cache → ORS → Euclidean fallback)
+3. Update estimate: weighted average with `wᵢ = 1 / max(durationᵢ, 1)`
+4. Stop when movement < threshold
 
-**API:** Centroid computed server-side; exposed via admin dashboard endpoint `GET /api/events/:adminToken`
+**External service (Phase 1):** OpenRouteService Matrix API (`driving-car` profile)
+- Free tier: 500 req/day, matrix up to 50 sources × 1 destination per request
+- 1 API call per iteration → max 5 calls per centroid computation
+- Cache warms quickly; subsequent computations for same participants cost 0 calls
+
+**Phase 2 (not yet implemented):** Per-participant travel mode (walking / cycling / driving / transit via Navitia)
+
+**Entities touched:** `Participant` (lat/lng), `RouteCache` (fromLat, fromLng, toLat, toLng, mode, durationSec), computed centroid (not persisted)
+
+**API:** Centroid computed server-side (async); exposed via `GET /api/events/:adminToken` and `GET /api/participate/:participantId`
 
 **UI components:** `GroupMap`, `CentroidMarker`, `CoverageCounter`
 
 **Test cases**
-- Unit: centroid({[0,0],[2,2]}) → {lat:1, lng:1} ✓
-- Unit: participants missing lat/lng are excluded ✓
-- Integration: GET /api/events/:adminToken returns centroid object ✓
+- Unit: returns null for empty / all-null participants ✓
+- Unit: returns single point for one located participant ✓
+- Unit: symmetric layout converges to center (same as arithmetic mean) ✓
+- Unit: result pulled toward participant with shorter travel time when ORS durations differ ✓
+- Unit: falls back to Euclidean geometric median when ORS is unavailable ✓
+- Unit: excludes participants missing lat/lng ✓
+- Unit: count reflects number of located participants ✓
+- Unit (ORS client): builds correct Matrix API request (locations in [lng,lat] order, sources/destinations indices) ✓
+- Unit (ORS client): parses N×1 durations matrix correctly ✓
+- Unit (ORS client): throws when ORS_API_KEY not set ✓
+- Unit (ORS client): throws on non-2xx response ✓
+- Unit (route-cache): snapCoord rounds to 3 decimal places ✓
+- Unit (route-cache): getCachedDurations returns null for missing entries ✓
+- Unit (route-cache): getCachedDurations returns null for expired entries (> 7 days) ✓
+- Unit (route-cache): storeCachedDurations upserts with snapped coordinates ✓
+- Integration: GET /api/events/:adminToken returns centroid when ORS_API_KEY set and fetch mocked ✓
+- Integration: ORS called on first request; RouteCache populated ✓
+- Integration: second request uses RouteCache — ORS not called again ✓
+- Integration: centroid still returned when ORS_API_KEY absent (Euclidean fallback) ✓
 - E2E: organizer admin view shows centroid marker on map ✓
 
 ---

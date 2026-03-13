@@ -77,3 +77,39 @@ test('participant types address, selects result, and coordinates are saved', asy
   expect(data.participant.latitude).not.toBeNull();
   expect(data.participant.longitude).not.toBeNull();
 });
+
+test('centroid is returned in admin view after participant sets location (Euclidean fallback — no ORS key in E2E env)', async ({ page }) => {
+  // Create event with two participants so centroid computation is meaningful
+  const res = await page.request.post('/api/events', {
+    data: {
+      name: 'Centroid E2E',
+      organizer_email: 'centroid-e2e@example.com',
+      participant_emails: ['other-e2e@example.com'],
+      date_range_start: '2025-10-01',
+      date_range_end: '2025-10-01',
+      part_of_day: 'morning',
+      timezone: 'UTC',
+      deadline: '2099-12-31T23:59:59.000Z',
+    },
+  });
+  expect(res.ok()).toBeTruthy();
+  const { admin_token, participants } = await res.json();
+
+  // Give both participants Budapest-area locations
+  await page.request.patch(`/api/participate/${participants[0].id}/location`, {
+    data: { latitude: 47.497, longitude: 19.040 },
+  });
+  await page.request.patch(`/api/participate/${participants[1].id}/location`, {
+    data: { latitude: 47.550, longitude: 19.080 },
+  });
+
+  // Admin endpoint must include a centroid between the two locations
+  const adminRes = await page.request.get(`/api/events/${admin_token}`);
+  expect(adminRes.ok()).toBeTruthy();
+  const adminData = await adminRes.json();
+
+  expect(adminData.centroid).not.toBeNull();
+  expect(adminData.centroid.count).toBe(2);
+  expect(adminData.centroid.lat).toBeGreaterThan(47.49);
+  expect(adminData.centroid.lat).toBeLessThan(47.56);
+});

@@ -126,8 +126,12 @@ describe('GET /api/events/:adminToken', () => {
 
     const { centroid } = res.body;
     expect(centroid).not.toBeNull();
-    expect(centroid.lat).toBeCloseTo(20);
-    expect(centroid.lng).toBeCloseTo(30);
+    // Weiszfeld geometric median — exact value depends on haversine geometry,
+    // so just verify it is between the two participant latitudes/longitudes.
+    expect(centroid.lat).toBeGreaterThan(10);
+    expect(centroid.lat).toBeLessThan(30);
+    expect(centroid.lng).toBeGreaterThan(20);
+    expect(centroid.lng).toBeLessThan(40);
     expect(centroid.count).toBe(2);
   });
 

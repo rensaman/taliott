@@ -39,7 +39,7 @@ router.get('/:participantId', async (req, res) => {
       select: { latitude: true, longitude: true },
     }),
   ]);
-  const centroid = computeCentroid(allParticipants);
+  const centroid = await computeCentroid(allParticipants, { prisma: getPrisma() });
 
   // Resolve final slot and venue when event is finalized
   let finalSlot = null;
@@ -243,8 +243,8 @@ router.patch('/:participantId/location', async (req, res) => {
     where: { eventId: participant.event.id },
     select: { latitude: true, longitude: true },
   })
-    .then(participants => {
-      const centroid = computeCentroid(participants);
+    .then(async participants => {
+      const centroid = await computeCentroid(participants, { prisma: getPrisma() });
       broadcast(participant.event.id, { type: 'location', centroid });
     })
     .catch(err => console.error('[sse] centroid broadcast failed:', err));
