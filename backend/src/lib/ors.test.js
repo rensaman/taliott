@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { fetchORSTravelDurations, DEFAULT_MODE } from './ors.js';
+import { fetchORSTravelDurations, DEFAULT_ORS_PROFILE as DEFAULT_MODE } from './ors.js';
 
 const ORIGINS = [
   { latitude: 47.5, longitude: 19.05 },

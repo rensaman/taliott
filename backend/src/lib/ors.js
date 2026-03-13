@@ -1,16 +1,16 @@
 const ORS_BASE_URL = 'https://api.openrouteservice.org';
 
 /**
- * ORS Matrix API profile names.
- * Phase 2 will expose per-participant mode selection.
+ * Maps app-level travel mode names to ORS Matrix API profile names.
+ * 'transit' is handled by Navitia and has no ORS profile.
  */
-export const ORS_PROFILE = {
-  'driving-car': 'driving-car',
-  'foot-walking': 'foot-walking',
-  'cycling-regular': 'cycling-regular',
+export const TRAVEL_MODE_TO_ORS = {
+  walking: 'foot-walking',
+  cycling: 'cycling-regular',
+  driving: 'driving-car',
 };
 
-export const DEFAULT_MODE = 'driving-car';
+export const DEFAULT_ORS_PROFILE = 'driving-car';
 
 /**
  * Fetch travel durations (seconds) from each origin to a single destination
@@ -28,7 +28,7 @@ export const DEFAULT_MODE = 'driving-car';
 export async function fetchORSTravelDurations(
   origins,
   destination,
-  mode = DEFAULT_MODE,
+  mode = DEFAULT_ORS_PROFILE,
   fetchFn = fetch,
 ) {
   const apiKey = process.env.ORS_API_KEY;

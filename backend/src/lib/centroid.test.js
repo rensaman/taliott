@@ -1,12 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { computeCentroid } from './centroid.js';
 
-// Ensure ORS_API_KEY is absent for tests that rely on Euclidean fallback
-let savedApiKey;
-beforeEach(() => { savedApiKey = process.env.ORS_API_KEY; delete process.env.ORS_API_KEY; });
+// Ensure both API keys are absent by default
+let savedOrsKey, savedNavitiaKey;
+beforeEach(() => {
+  savedOrsKey = process.env.ORS_API_KEY;
+  savedNavitiaKey = process.env.NAVITIA_API_KEY;
+  delete process.env.ORS_API_KEY;
+  delete process.env.NAVITIA_API_KEY;
+});
 afterEach(() => {
-  if (savedApiKey === undefined) delete process.env.ORS_API_KEY;
-  else process.env.ORS_API_KEY = savedApiKey;
+  if (savedOrsKey === undefined) delete process.env.ORS_API_KEY;
+  else process.env.ORS_API_KEY = savedOrsKey;
+  if (savedNavitiaKey === undefined) delete process.env.NAVITIA_API_KEY;
+  else process.env.NAVITIA_API_KEY = savedNavitiaKey;
 });
 
 // ---------------------------------------------------------------------------
@@ -51,7 +58,7 @@ describe('computeCentroid — single participant', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Euclidean fallback (no ORS_API_KEY, no prisma)
+// Euclidean fallback (no API keys, no prisma)
 // ---------------------------------------------------------------------------
 describe('computeCentroid — Euclidean fallback', () => {
   it('converges to the center for a symmetric layout', async () => {
@@ -100,23 +107,24 @@ describe('computeCentroid — Euclidean fallback', () => {
 });
 
 // ---------------------------------------------------------------------------
-// ORS-weighted behaviour (mock fetch, ORS_API_KEY set)
+// ORS-weighted behaviour (driving mode, mock fetch, ORS_API_KEY set)
 // ---------------------------------------------------------------------------
-describe('computeCentroid — ORS travel-time weights', () => {
+describe('computeCentroid — ORS travel-time weights (driving)', () => {
   beforeEach(() => { process.env.ORS_API_KEY = 'test-key'; });
 
   it('pulls the result toward the participant with shorter travel time', async () => {
     // Participant A at (0,0): 100 s away
     // Participant B at (2,0): 1000 s away
-    // Weight A = 1/100 = 0.01, weight B = 1/1000 = 0.001
-    // Weighted avg lat = (0.01*0 + 0.001*2) / 0.011 ≈ 0.182 — much closer to A
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ durations: [[100], [1000]] }),
     });
 
     const result = await computeCentroid(
-      [{ latitude: 0, longitude: 0 }, { latitude: 2, longitude: 0 }],
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 0, travelMode: 'driving' },
+      ],
       { fetchFn: mockFetch },
     );
 
@@ -129,7 +137,10 @@ describe('computeCentroid — ORS travel-time weights', () => {
     const mockFetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
 
     const result = await computeCentroid(
-      [{ latitude: 0, longitude: 0 }, { latitude: 2, longitude: 2 }],
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 2, travelMode: 'driving' },
+      ],
       { fetchFn: mockFetch },
     );
 
@@ -142,7 +153,10 @@ describe('computeCentroid — ORS travel-time weights', () => {
     const mockFetch = vi.fn().mockRejectedValue(new Error('network error'));
 
     const result = await computeCentroid(
-      [{ latitude: 0, longitude: 0 }, { latitude: 2, longitude: 2 }],
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 2, travelMode: 'driving' },
+      ],
       { fetchFn: mockFetch },
     );
 
@@ -171,7 +185,10 @@ describe('computeCentroid — ORS travel-time weights', () => {
     };
 
     const result = await computeCentroid(
-      [{ latitude: 0, longitude: 0 }, { latitude: 2, longitude: 2 }],
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 2, travelMode: 'driving' },
+      ],
       { prisma: mockPrisma, fetchFn: mockFetch },
     );
 
@@ -193,10 +210,113 @@ describe('computeCentroid — ORS travel-time weights', () => {
     };
 
     await computeCentroid(
-      [{ latitude: 0, longitude: 0 }, { latitude: 2, longitude: 2 }],
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 2, travelMode: 'driving' },
+      ],
       { prisma: mockPrisma, fetchFn: mockFetch },
     );
 
     expect(mockUpsert).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Navitia-weighted behaviour (transit mode, mock navitiaFetchFn, NAVITIA_API_KEY set)
+// ---------------------------------------------------------------------------
+describe('computeCentroid — Navitia travel-time weights (transit)', () => {
+  beforeEach(() => { process.env.NAVITIA_API_KEY = 'test-navitia-key'; });
+
+  it('pulls the result toward the participant with shorter transit time', async () => {
+    // Transit participant A at (0,0): 200 s; B at (2,0): 2000 s
+    const navMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ journeys: [{ duration: 200 }] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ journeys: [{ duration: 2000 }] }) });
+
+    const result = await computeCentroid(
+      [
+        { latitude: 0, longitude: 0, travelMode: 'transit' },
+        { latitude: 2, longitude: 0, travelMode: 'transit' },
+      ],
+      { navitiaFetchFn: navMock },
+    );
+
+    expect(result.lat).toBeLessThan(0.5);
+    expect(result.count).toBe(2);
+  });
+
+  it('falls back to Euclidean when Navitia throws', async () => {
+    const navMock = vi.fn().mockRejectedValue(new Error('network error'));
+
+    const result = await computeCentroid(
+      [
+        { latitude: 0, longitude: 0, travelMode: 'transit' },
+        { latitude: 2, longitude: 2, travelMode: 'transit' },
+      ],
+      { navitiaFetchFn: navMock },
+    );
+
+    expect(result).not.toBeNull();
+    expect(result.lat).toBeCloseTo(1, 2);
+  });
+
+  it('caches transit durations with mode "transit"', async () => {
+    const navMock = vi.fn()
+      .mockResolvedValue({ ok: true, json: async () => ({ journeys: [{ duration: 500 }] }) });
+    const mockUpsert = vi.fn().mockResolvedValue({});
+    const mockPrisma = {
+      routeCache: {
+        findMany: vi.fn().mockResolvedValue([]), // all misses
+        upsert: mockUpsert,
+      },
+    };
+
+    await computeCentroid(
+      [
+        { latitude: 0, longitude: 0, travelMode: 'transit' },
+        { latitude: 2, longitude: 2, travelMode: 'transit' },
+      ],
+      { prisma: mockPrisma, navitiaFetchFn: navMock },
+    );
+
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ fromLat_fromLng_toLat_toLng_mode: expect.objectContaining({ mode: 'transit' }) }) }),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Mixed modes
+// ---------------------------------------------------------------------------
+describe('computeCentroid — mixed travel modes', () => {
+  beforeEach(() => {
+    process.env.ORS_API_KEY = 'test-ors-key';
+    process.env.NAVITIA_API_KEY = 'test-navitia-key';
+  });
+
+  it('routes driving participants to ORS and transit participants to Navitia', async () => {
+    const orsMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ durations: [[300]] }),
+    });
+    const navMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ journeys: [{ duration: 600 }] }),
+    });
+
+    const result = await computeCentroid(
+      [
+        { latitude: 0, longitude: 0, travelMode: 'driving' },
+        { latitude: 2, longitude: 0, travelMode: 'transit' },
+      ],
+      { fetchFn: orsMock, navitiaFetchFn: navMock },
+    );
+
+    expect(result).not.toBeNull();
+    expect(result.count).toBe(2);
+    const orsCall = orsMock.mock.calls.find(([url]) => url.includes('openrouteservice.org'));
+    expect(orsCall).toBeDefined();
+    const navCall = navMock.mock.calls.find(([url]) => url.includes('navitia.io'));
+    expect(navCall).toBeDefined();
   });
 });

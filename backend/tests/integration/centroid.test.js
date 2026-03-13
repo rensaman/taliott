@@ -55,7 +55,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-async function createEventWithLocations(fetchStub) {
+async function createEventWithLocations(fetchStub, { travelMode } = {}) {
   // Set the mock BEFORE PATCH calls so the SSE broadcast also uses it.
   if (fetchStub) vi.stubGlobal('fetch', fetchStub);
 
@@ -65,6 +65,11 @@ async function createEventWithLocations(fetchStub) {
   const { admin_token, participants } = res.body;
 
   for (let i = 0; i < participants.length && i < LOCATIONS.length; i++) {
+    if (travelMode) {
+      await request(app)
+        .patch(`/api/participate/${participants[i].id}/travel-mode`)
+        .send({ travel_mode: travelMode });
+    }
     await request(app)
       .patch(`/api/participate/${participants[i].id}/location`)
       .send(LOCATIONS[i]);
@@ -137,7 +142,7 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
 
   it('calls ORS and returns a centroid on the first request', async () => {
     const orsMock = mockORS([300, 450]);
-    const { admin_token } = await createEventWithLocations(orsMock);
+    const { admin_token } = await createEventWithLocations(orsMock, { travelMode: 'driving' });
 
     const res = await request(app).get(`/api/events/${admin_token}`);
     expect(res.status).toBe(200);
@@ -150,7 +155,7 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
 
   it('populates RouteCache after the first ORS call', async () => {
     const orsMock = mockORS([300, 450]);
-    const { admin_token } = await createEventWithLocations(orsMock);
+    const { admin_token } = await createEventWithLocations(orsMock, { travelMode: 'driving' });
 
     await request(app).get(`/api/events/${admin_token}`);
 
@@ -161,7 +166,7 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
 
   it('uses RouteCache on the second request — ORS not called again', async () => {
     const orsMock = mockORS([300, 450]);
-    const { admin_token } = await createEventWithLocations(orsMock);
+    const { admin_token } = await createEventWithLocations(orsMock, { travelMode: 'driving' });
 
     // First request: populates cache (via SSE broadcast and/or GET /admin)
     const res1 = await request(app).get(`/api/events/${admin_token}`);
@@ -187,10 +192,20 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
   });
 
   it('centroid is pulled toward participant with shorter ORS travel time', async () => {
-    // P0 at (0, 0): 100 s away  →  weight = 1/100 = 0.01
-    // P1 at (2, 0): 1000 s away →  weight = 1/1000 = 0.001
-    // Weighted mean lat = (0.01×0 + 0.001×2) / 0.011 ≈ 0.182 — well below arithmetic mean of 1.0
-    const orsMock = mockORS([100, 1000]);
+    // P0 at lat=0: 100 s away  → weight = 1/100 = 0.01
+    // P1 at lat=2: 1000 s away → weight = 1/1000 = 0.001
+    // Weighted mean lat ≈ 0.182 — well below arithmetic mean of 1.0
+    //
+    // Use a coordinate-aware mock so the result is independent of the DB row order
+    // returned by participant.findMany (which has no guaranteed ordering).
+    const orsMock = vi.fn().mockImplementation(async (_url, opts) => {
+      const body = JSON.parse(opts.body);
+      const durations = body.sources.map(i => {
+        const [, lat] = body.locations[i]; // ORS format: [lng, lat]
+        return lat < 1 ? 100 : 1000;       // lat≈0 → 100 s, lat≈2 → 1000 s
+      });
+      return { ok: true, json: async () => ({ durations: durations.map(d => [d]) }) };
+    });
     vi.stubGlobal('fetch', orsMock);
 
     const res = await request(app).post('/api/events').send({
@@ -201,6 +216,13 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
     const { admin_token, participants } = res.body;
+
+    // Set driving mode so ORS is used
+    for (const p of participants) {
+      await request(app)
+        .patch(`/api/participate/${p.id}/travel-mode`)
+        .send({ travel_mode: 'driving' });
+    }
 
     await request(app)
       .patch(`/api/participate/${participants[0].id}/location`)

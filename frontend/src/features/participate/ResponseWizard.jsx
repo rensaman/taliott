@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
+import TravelModeSelector from './TravelModeSelector.jsx';
 
 export default function ResponseWizard({
   participantId,
@@ -9,11 +10,13 @@ export default function ResponseWizard({
   slots,
   initialAvailability,
   initialLocation,
+  initialTravelMode = 'transit',
   onComplete,
 }) {
   const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
+  const [travelMode, setTravelMode] = useState(initialTravelMode);
   const [nameError, setNameError] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
@@ -57,6 +60,19 @@ export default function ResponseWizard({
       else setLocationError(null);
     } catch {
       setLocationError('Failed to save location. Please try again.');
+    }
+  }
+
+  async function saveTravelMode(mode) {
+    setTravelMode(mode);
+    try {
+      await fetch(`/api/participate/${participantId}/travel-mode`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ travel_mode: mode }),
+      });
+    } catch {
+      // Non-critical — centroid will fall back gracefully
     }
   }
 
@@ -106,6 +122,7 @@ export default function ResponseWizard({
 
       {step === 3 && (
         <section aria-label="Your location">
+          <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
           <AddressSearchInput onSelect={saveLocation} />
           {location && <p data-testid="selected-address">{location.label}</p>}
           {locationError && <p role="alert">{locationError}</p>}

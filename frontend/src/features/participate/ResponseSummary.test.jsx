@@ -15,7 +15,7 @@ import ResponseSummary from './ResponseSummary.jsx';
 const SLOTS = [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }];
 const LOCATION = { lat: 47.5, lng: 19.0, label: 'Budapest' };
 
-function renderSummary({ name = 'Jamie', location = null, locked = false, onUpdate } = {}) {
+function renderSummary({ name = 'Jamie', location = null, travelMode = null, locked = false, onUpdate } = {}) {
   return render(
     <ResponseSummary
       participantId="p-1"
@@ -23,6 +23,7 @@ function renderSummary({ name = 'Jamie', location = null, locked = false, onUpda
       slots={SLOTS}
       availability={[]}
       location={location}
+      travelMode={travelMode}
       locked={locked}
       onUpdate={onUpdate ?? vi.fn()}
     />
@@ -76,6 +77,21 @@ describe('ResponseSummary', () => {
     });
     renderSummary({ location: LOCATION });
     expect(capturedReadonly).toBe(true);
+  });
+
+  it('shows the travel mode label when travelMode is set', () => {
+    renderSummary({ travelMode: 'cycling' });
+    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Cycling');
+  });
+
+  it('shows transit label for transit mode', () => {
+    renderSummary({ travelMode: 'transit' });
+    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Transit');
+  });
+
+  it('does not show travel mode element when travelMode is null', () => {
+    renderSummary({ travelMode: null });
+    expect(screen.queryByTestId('summary-travel-mode')).not.toBeInTheDocument();
   });
 
   it('shows "Update response" button when not locked', () => {

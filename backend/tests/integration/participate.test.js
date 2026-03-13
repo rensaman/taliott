@@ -236,6 +236,74 @@ describe('PATCH /api/participate/:participantId/name', () => {
   });
 });
 
+describe('PATCH /api/participate/:participantId/travel-mode', () => {
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app)
+      .patch('/api/participate/00000000-0000-0000-0000-000000000000/travel-mode')
+      .send({ travel_mode: 'driving' });
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 400 for an invalid travel mode', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/travel-mode`)
+      .send({ travel_mode: 'helicopter' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/travel_mode/i);
+  });
+
+  it('returns 403 when event is locked', async () => {
+    const { participants } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/travel-mode`)
+      .send({ travel_mode: 'cycling' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it.each(['walking', 'cycling', 'driving', 'transit'])(
+    'accepts valid travel mode "%s"',
+    async (mode) => {
+      const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+      const pid = participants[0].id;
+
+      const res = await request(app)
+        .patch(`/api/participate/${pid}/travel-mode`)
+        .send({ travel_mode: mode });
+
+      expect(res.status).toBe(200);
+      expect(res.body.ok).toBe(true);
+    },
+  );
+
+  it('persists the travel mode so GET reflects it', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app)
+      .patch(`/api/participate/${pid}/travel-mode`)
+      .send({ travel_mode: 'cycling' });
+
+    const get = await request(app).get(`/api/participate/${pid}`);
+    expect(get.body.participant.travel_mode).toBe('cycling');
+  });
+
+  it('GET returns travel_mode with default value "transit"', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const get = await request(app).get(`/api/participate/${pid}`);
+    expect(get.body.participant.travel_mode).toBe('transit');
+  });
+});
+
 describe('PATCH /api/participate/:participantId/confirm', () => {
   it('returns 404 for an unknown participant id', async () => {
     const res = await request(app).patch(

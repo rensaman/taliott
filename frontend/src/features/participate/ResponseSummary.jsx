@@ -1,5 +1,6 @@
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import LocationMap from './LocationMap.jsx';
+import { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
 
 export default function ResponseSummary({
   participantId,
@@ -7,6 +8,7 @@ export default function ResponseSummary({
   slots,
   availability,
   location,
+  travelMode,
   locked,
   onUpdate,
 }) {
@@ -20,6 +22,12 @@ export default function ResponseSummary({
         initialAvailability={availability}
         locked={true}
       />
+
+      {travelMode && (
+        <p data-testid="summary-travel-mode">
+          {TRAVEL_MODE_LABELS[travelMode] ?? travelMode}
+        </p>
+      )}
 
       {location && (
         <div>

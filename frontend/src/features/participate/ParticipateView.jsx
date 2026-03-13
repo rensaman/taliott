@@ -28,6 +28,8 @@ export default function ParticipateView({ participantId }) {
       ? { lat: participant.latitude, lng: participant.longitude, label: participant.address_label }
       : null;
 
+  const travelMode = participant.travel_mode ?? 'transit';
+
   const showWizard = !event.locked && (!participant.responded_at || updating);
 
   async function handleComplete() {
@@ -72,6 +74,7 @@ export default function ParticipateView({ participantId }) {
           slots={slots}
           initialAvailability={availability}
           initialLocation={location}
+          initialTravelMode={travelMode}
           onComplete={handleComplete}
         />
       ) : (
@@ -81,6 +84,7 @@ export default function ParticipateView({ participantId }) {
           slots={slots}
           availability={availability}
           location={location}
+          travelMode={travelMode}
           locked={event.locked}
           onUpdate={() => setUpdating(true)}
         />

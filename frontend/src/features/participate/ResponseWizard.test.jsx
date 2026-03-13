@@ -7,8 +7,12 @@ vi.mock('./AvailabilityGrid.jsx', () => ({
 vi.mock('./AddressSearchInput.jsx', () => ({
   default: vi.fn(),
 }));
+vi.mock('./TravelModeSelector.jsx', () => ({
+  default: vi.fn(),
+}));
 
 import AddressSearchInput from './AddressSearchInput.jsx';
+import TravelModeSelector from './TravelModeSelector.jsx';
 import ResponseWizard from './ResponseWizard.jsx';
 
 const SLOTS = [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }];
@@ -22,6 +26,7 @@ function renderWizard(overrides = {}) {
       slots={SLOTS}
       initialAvailability={[]}
       initialLocation={null}
+      initialTravelMode={overrides.initialTravelMode ?? 'transit'}
       onComplete={overrides.onComplete ?? vi.fn()}
     />
   );
@@ -32,6 +37,15 @@ describe('ResponseWizard', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
     AddressSearchInput.mockImplementation(({ onSelect }) => (
       <button onClick={() => onSelect({ lat: 1, lng: 2, label: 'Paris' })}>select address</button>
+    ));
+    TravelModeSelector.mockImplementation(({ value, onChange }) => (
+      <button
+        data-testid="travel-mode-selector"
+        data-value={value}
+        onClick={() => onChange('cycling')}
+      >
+        travel mode: {value}
+      </button>
     ));
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -96,10 +110,34 @@ describe('ResponseWizard', () => {
     expect(fetch).not.toHaveBeenCalledWith('/api/participate/p-1/name', expect.anything());
   });
 
-  it('step 3 shows AddressSearchInput and no LocationMap', () => {
+  it('step 3 shows TravelModeSelector and AddressSearchInput', () => {
     renderWizard({ initialName: 'Alex', initialStep: 3 });
+    expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /select address/i })).toBeInTheDocument();
+  });
+
+  it('step 3 does not show a LocationMap', () => {
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
     expect(screen.queryByTestId('location-map')).not.toBeInTheDocument();
+  });
+
+  it('passes initialTravelMode to TravelModeSelector', () => {
+    renderWizard({ initialName: 'Alex', initialStep: 3, initialTravelMode: 'cycling' });
+    expect(screen.getByTestId('travel-mode-selector')).toHaveAttribute('data-value', 'cycling');
+  });
+
+  it('calls PATCH /travel-mode when a mode is selected', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    fireEvent.click(screen.getByTestId('travel-mode-selector'));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/participate/p-1/travel-mode',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ travel_mode: 'cycling' }),
+        })
+      )
+    );
   });
 
   it('shows an error and does not advance when name save fails', async () => {

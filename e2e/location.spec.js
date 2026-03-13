@@ -78,6 +78,30 @@ test('participant types address, selects result, and coordinates are saved', asy
   expect(data.participant.longitude).not.toBeNull();
 });
 
+test('participant can select a travel mode on step 3', async ({ page }) => {
+  const { participants } = await createEvent(page);
+  const pid = participants[0].id;
+
+  await page.goto(`/participate/${pid}`);
+  await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
+  await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
+
+  // Travel mode selector should be visible
+  await expect(page.getByText(/how will you get there/i)).toBeVisible();
+
+  // Select 'cycling' and wait for the PATCH to complete
+  const patchDone = page.waitForResponse(r =>
+    r.url().includes('/travel-mode') && r.request().method() === 'PATCH'
+  );
+  await page.getByRole('radio', { name: /cycling/i }).click();
+  await patchDone;
+
+  // Verify mode was saved
+  const participantRes = await page.request.get(`/api/participate/${pid}`);
+  const data = await participantRes.json();
+  expect(data.participant.travel_mode).toBe('cycling');
+});
+
 test('centroid is returned in admin view after participant sets location (Euclidean fallback — no ORS key in E2E env)', async ({ page }) => {
   // Create event with two participants so centroid computation is meaningful
   const res = await page.request.post('/api/events', {

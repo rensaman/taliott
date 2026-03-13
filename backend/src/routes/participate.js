@@ -77,6 +77,7 @@ router.get('/:participantId', async (req, res) => {
       latitude: participant.latitude,
       longitude: participant.longitude,
       address_label: participant.addressLabel,
+      travel_mode: participant.travelMode,
       responded_at: participant.respondedAt,
     },
     slots: participant.event.slots.map(s => ({
@@ -248,6 +249,47 @@ router.patch('/:participantId/location', async (req, res) => {
       broadcast(participant.event.id, { type: 'location', centroid });
     })
     .catch(err => console.error('[sse] centroid broadcast failed:', err));
+
+  return res.json({ ok: true });
+});
+
+const VALID_TRAVEL_MODES = ['walking', 'cycling', 'driving', 'transit'];
+
+router.patch('/:participantId/travel-mode', async (req, res) => {
+  const { travel_mode } = req.body;
+
+  if (!VALID_TRAVEL_MODES.includes(travel_mode)) {
+    return res.status(400).json({
+      error: `travel_mode must be one of: ${VALID_TRAVEL_MODES.join(', ')}`,
+    });
+  }
+
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+      include: { event: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  if (isEventLocked(participant.event)) {
+    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
+  }
+
+  try {
+    await getPrisma().participant.update({
+      where: { id: participant.id },
+      data: { travelMode: travel_mode },
+    });
+  } catch (err) {
+    console.error('Failed to update travel mode:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 
   return res.json({ ok: true });
 });
