@@ -1,7 +1,7 @@
 import { haversineDistance } from './venues.js';
 import { getCachedDurations, storeCachedDurations } from './route-cache.js';
 import { fetchORSTravelDurations, TRAVEL_MODE_TO_ORS } from './ors.js';
-import { fetchNavitiaTravelDuration } from './navitia.js';
+import { fetchNavitiaTravelDuration } from './otp.js';
 
 const MAX_ITER = 5;
 const CONVERGENCE_DEG = 1e-6; // ≈ 0.1 m — stop when estimate barely moves
