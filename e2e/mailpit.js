@@ -10,16 +10,19 @@ export async function clearMailpit() {
  * Returns the message summary object from the Mailpit API.
  *
  * @param {string} toAddress
- * @param {{ timeout?: number, subject?: string }} opts
+ * @param {{ timeout?: number, subject?: string, since?: Date }} opts
+ *   since — only return messages created at or after this Date (use to avoid
+ *   interference from parallel tests without needing clearMailpit).
  */
-export async function waitForEmail(toAddress, { timeout = 5_000, subject } = {}) {
+export async function waitForEmail(toAddress, { timeout = 5_000, subject, since } = {}) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const res = await fetch(`${MAILPIT_API}/messages`);
     const data = await res.json();
     const match = data.messages?.find(m =>
       m.To?.some(t => t.Address === toAddress) &&
-      (subject === undefined || m.Subject?.includes(subject))
+      (subject === undefined || m.Subject?.includes(subject)) &&
+      (since === undefined || new Date(m.Created) >= since)
     );
     if (match) return match;
     await new Promise(r => setTimeout(r, 300));

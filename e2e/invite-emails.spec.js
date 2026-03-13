@@ -3,15 +3,12 @@
  * Verifies that invite and confirmation emails land in Mailpit after event creation.
  */
 import { test, expect } from '@playwright/test';
-import { clearMailpit, waitForEmail } from './mailpit.js';
+import { waitForEmail } from './mailpit.js';
 import { fillWizard } from './helpers.js';
 
 test.describe.serial('invite emails via Mailpit', () => {
-  test.beforeAll(async () => {
-    await clearMailpit();
-  });
-
   test('organizer receives a confirmation email with admin link', async ({ page }) => {
+    const since = new Date();
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Invite E2E Event',
@@ -35,7 +32,8 @@ test.describe.serial('invite emails via Mailpit', () => {
       const data = await listRes.json();
       confirmationEmail = data.messages?.find(m =>
         m.To?.some(t => t.Address === 'organizer-e2e@example.com') &&
-        m.Subject?.includes('is ready')
+        m.Subject?.includes('is ready') &&
+        new Date(m.Created) >= since
       );
       if (confirmationEmail) break;
       await page.waitForTimeout(300);
@@ -48,6 +46,7 @@ test.describe.serial('invite emails via Mailpit', () => {
   });
 
   test('each invitee receives an email containing their participation link', async ({ page }) => {
+    const since = new Date();
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Multi Invite E2E',
@@ -66,8 +65,8 @@ test.describe.serial('invite emails via Mailpit', () => {
     const guest1 = participants.find(p => p.email === 'guest1-e2e@example.com');
     const guest2 = participants.find(p => p.email === 'guest2-e2e@example.com');
 
-    const email1 = await waitForEmail('guest1-e2e@example.com', { timeout: 10_000 });
-    const email2 = await waitForEmail('guest2-e2e@example.com', { timeout: 10_000 });
+    const email1 = await waitForEmail('guest1-e2e@example.com', { timeout: 10_000, since });
+    const email2 = await waitForEmail('guest2-e2e@example.com', { timeout: 10_000, since });
 
     // Verify each email links to the correct participant path
     const body1 = email1.Snippet ?? '';

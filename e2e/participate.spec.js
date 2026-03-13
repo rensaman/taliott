@@ -59,11 +59,8 @@ test('participation view shows the correct number of time slots', async ({ page 
 
 // Email tests run serially to avoid Mailpit race conditions between parallel workers.
 test.describe.serial('email notifications via Mailpit', () => {
-  test.beforeAll(async () => {
-    await clearMailpit();
-  });
-
   test('deadline worker sends organizer email when event expires', async ({ page }) => {
+    const since = new Date();
     await createEvent(page, {
       deadline: PAST_DEADLINE,
       name: 'Email Notification Test',
@@ -75,12 +72,13 @@ test.describe.serial('email notifications via Mailpit', () => {
     const { locked } = await res.json();
     expect(locked).toBeGreaterThanOrEqual(1);
 
-    const email = await waitForEmail('notify1@example.com');
+    const email = await waitForEmail('notify1@example.com', { since });
     expect(email.Subject).toContain('Email Notification Test');
     expect(email.Subject).toMatch(/voting has closed/i);
   });
 
   test('deadline worker does not re-email when event is already locked', async ({ page }) => {
+    const since = new Date();
     await createEvent(page, {
       deadline: PAST_DEADLINE,
       name: 'Already Locked Event',
@@ -89,7 +87,7 @@ test.describe.serial('email notifications via Mailpit', () => {
 
     // First run — locks and emails
     await page.request.post('/api/admin/run-deadline-worker');
-    await waitForEmail('notify2@example.com');
+    await waitForEmail('notify2@example.com', { since });
 
     // Second run — already locked, no new email
     await page.request.post('/api/admin/run-deadline-worker');
@@ -98,7 +96,8 @@ test.describe.serial('email notifications via Mailpit', () => {
     const data = await (await fetch('http://localhost:8025/api/v1/messages')).json();
     const count = data.messages?.filter(m =>
       m.To?.some(t => t.Address === 'notify2@example.com') &&
-      m.Subject?.toLowerCase().includes('voting has closed')
+      m.Subject?.toLowerCase().includes('voting has closed') &&
+      new Date(m.Created) >= since
     ).length ?? 0;
     expect(count).toBe(1);
   });
