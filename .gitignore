@@ -24,5 +24,8 @@ frontend/coverage/
 # Claude
 CLAUDE.md
 
+# OTP data
+otp/data/*.zip
+
 # OS
 .DS_Store
