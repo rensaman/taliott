@@ -186,4 +186,73 @@ describe('POST /api/events', () => {
     });
     expect(res.status).toBe(400);
   });
+
+  it('returns 400 when organizer_email is not a valid email address', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      organizer_email: 'not-an-email',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/organizer_email/i);
+  });
+
+  it('returns 400 when participant_emails contains an invalid address', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      participant_emails: ['valid@example.com', 'not-an-email'],
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/participant_emails/i);
+  });
+
+  it('normalizes emails to lowercase and deduplicates case-insensitively', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      organizer_email: 'Alex@Example.com',
+      participant_emails: ['alex@example.com', 'Other@Example.com'],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const emails = res.body.participants.map(p => p.email);
+    // alex@example.com is the organizer (normalized); duplicate filtered out
+    expect(emails.every(e => e === e.toLowerCase())).toBe(true);
+    expect(new Set(emails).size).toBe(emails.length);
+    expect(emails).toContain('alex@example.com');
+    expect(emails).toContain('other@example.com');
+    expect(emails).toHaveLength(2);
+  });
+
+  it('creates only the organizer participant when participant_emails is [] with email_invites', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      participant_emails: [],
+      invite_mode: 'email_invites',
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    expect(res.body.participants).toHaveLength(1);
+    expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email.toLowerCase());
+  });
+
+  it('generates slots at correct UTC offsets across a DST boundary (Europe/Helsinki spring-forward)', async () => {
+    // 2025-03-30: Helsinki clocks spring forward (EET UTC+2 → EEST UTC+3) at 03:00 local.
+    // Morning 08:00 on 2025-03-29 (EET = UTC+2) → 06:00 UTC
+    // Morning 08:00 on 2025-03-30 (EEST = UTC+3) → 05:00 UTC
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      date_range_start: '2025-03-29',
+      date_range_end: '2025-03-30',
+      part_of_day: 'morning',
+      timezone: 'Europe/Helsinki',
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const slots29 = res.body.slots.filter(s => s.starts_at.startsWith('2025-03-29'));
+    expect(new Date(slots29[0].starts_at).getUTCHours()).toBe(6); // 08:00 EET = 06:00 UTC
+
+    const slots30 = res.body.slots.filter(s => s.starts_at.startsWith('2025-03-30'));
+    expect(new Date(slots30[0].starts_at).getUTCHours()).toBe(5); // 08:00 EEST = 05:00 UTC
+  });
 });

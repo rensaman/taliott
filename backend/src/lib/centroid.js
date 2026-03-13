@@ -111,20 +111,32 @@ async function resolveDurations(located, dest, { prisma, fetchFn, navitiaFetchFn
       const fallback = origins.map(o =>
         haversineDistance(o.latitude, o.longitude, dest.lat, dest.lng),
       );
+      // Cache the Euclidean approximation so repeated ORS failures don't re-compute it.
+      if (prisma) {
+        storeCachedDurations(prisma, origins, dest, orsProfile, fallback).catch(err =>
+          console.error('[centroid] failed to cache ORS fallback:', err),
+        );
+      }
       for (let j = 0; j < idxs.length; j++) durations[idxs[j]] = fallback[j];
     }
   }
 
-  // Fetch transit via Navitia (one call per participant)
+  // Fetch transit via OTP (one call per participant)
   for (const i of (missByMode['transit'] ?? [])) {
     try {
       const d = await fetchNavitiaTravelDuration(located[i], dest, navitiaFetchFn);
       if (prisma) await storeCachedDurations(prisma, [located[i]], dest, 'transit', [d]);
       durations[i] = d;
     } catch {
-      durations[i] = haversineDistance(
+      const fallback = haversineDistance(
         located[i].latitude, located[i].longitude, dest.lat, dest.lng,
       );
+      if (prisma) {
+        storeCachedDurations(prisma, [located[i]], dest, 'transit', [fallback]).catch(err =>
+          console.error('[centroid] failed to cache transit fallback:', err),
+        );
+      }
+      durations[i] = fallback;
     }
   }
 

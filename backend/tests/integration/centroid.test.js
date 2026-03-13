@@ -161,7 +161,7 @@ describe('centroid — ORS travel-time weights + RouteCache', () => {
 
     const cached = await prisma.routeCache.findMany({});
     expect(cached.length).toBeGreaterThan(0);
-    expect(cached[0].mode).toBe('driving-car');
+    expect(cached.some(e => e.mode === 'driving-car')).toBe(true);
   });
 
   it('uses RouteCache on the second request — ORS not called again', async () => {

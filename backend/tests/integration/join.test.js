@@ -238,4 +238,25 @@ describe('POST /api/join/:joinToken — organizer notification', () => {
     const subjects = sendEmail.mock.calls.map(([msg]) => msg.subject);
     expect(subjects.some(s => s.includes('New participant joined'))).toBe(false);
   });
+
+  it('sends organizer notification at most once when two concurrent requests use the same new email', async () => {
+    const email = `concurrent-race-${Date.now()}@example.com`;
+    vi.clearAllMocks();
+
+    const [r1, r2] = await Promise.all([
+      request(app).post(`/api/join/${joinToken}`).send({ email }),
+      request(app).post(`/api/join/${joinToken}`).send({ email }),
+    ]);
+
+    expect(r1.status).toBe(201);
+    expect(r2.status).toBe(201);
+    expect(r1.body.participant_id).toBe(r2.body.participant_id);
+
+    await new Promise(r => setTimeout(r, 100));
+
+    const orgNotifications = sendEmail.mock.calls.filter(
+      ([msg]) => msg.subject?.includes('New participant joined'),
+    );
+    expect(orgNotifications.length).toBeLessThanOrEqual(1);
+  });
 });

@@ -31,7 +31,7 @@ async function createEvent(overrides = {}) {
   return res.body;
 }
 
-describe('GET /api/events/:eventId/stream', () => {
+describe('GET /api/events/:adminToken/stream', () => {
   it('returns SSE headers on connect', async () => {
     const event = await createEvent();
 
@@ -44,13 +44,29 @@ describe('GET /api/events/:eventId/stream', () => {
     const controller = new AbortController();
 
     try {
-      const res = await fetch(`http://localhost:${port}/api/events/${event.event_id}/stream`, {
+      const res = await fetch(`http://localhost:${port}/api/events/${event.admin_token}/stream`, {
         signal: controller.signal,
       });
       expect(res.headers.get('content-type')).toMatch(/text\/event-stream/);
       expect(res.headers.get('cache-control')).toBe('no-cache');
     } finally {
       controller.abort();
+      await new Promise(r => server.close(r));
+    }
+  });
+
+  it('returns 404 for an unknown admin token', async () => {
+    const server = await new Promise(resolve => {
+      const s = app.listen(0, () => resolve(s));
+    });
+    const { port } = server.address();
+
+    try {
+      const res = await fetch(
+        `http://localhost:${port}/api/events/00000000-0000-0000-0000-000000000000/stream`,
+      );
+      expect(res.status).toBe(404);
+    } finally {
       await new Promise(r => server.close(r));
     }
   });

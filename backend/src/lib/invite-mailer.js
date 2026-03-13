@@ -3,15 +3,25 @@ import { generateICS } from './ics.js';
 
 const DEFAULT_BASE_URL = 'http://localhost:3000';
 
+/**
+ * Strip CR and LF characters to prevent email header/body injection.
+ * Applied to any user-controlled field embedded in email text or subjects.
+ */
+function sanitizeField(value) {
+  if (typeof value !== 'string') return String(value ?? '');
+  return value.replace(/[\r\n]+/g, ' ').trim();
+}
+
 export function buildParticipantInvite(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
   return {
     to: participant.email,
-    subject: `You're invited: ${event.name}`,
+    subject: `You're invited: ${eventName}`,
     text: [
       `Hi,`,
       ``,
-      `You have been invited to vote for a time to meet up: "${event.name}".`,
+      `You have been invited to vote for a time to meet up: "${eventName}".`,
       ``,
       `Cast your vote here:`,
       `${baseUrl}/participate/${participant.id}`,
@@ -30,13 +40,14 @@ export async function sendEventInvites(event) {
 
 export function buildOrganizerConfirmation(event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
   return {
     to: event.organizerEmail,
-    subject: `Your event "${event.name}" is ready`,
+    subject: `Your event "${eventName}" is ready`,
     text: [
       `Hi,`,
       ``,
-      `Your event "${event.name}" has been created successfully.`,
+      `Your event "${eventName}" has been created successfully.`,
       ``,
       `Manage your event here (keep this link private):`,
       `${baseUrl}/admin/${event.adminToken}`,
@@ -54,12 +65,13 @@ export async function sendOrganizerConfirmation(event) {
 
 export function buildOrganizerCreationEmail(event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
   const organizerParticipant = event.participants.find(p => p.email === event.organizerEmail);
 
   const lines = [
     `Hi,`,
     ``,
-    `Your event "${event.name}" has been created successfully.`,
+    `Your event "${eventName}" has been created successfully.`,
     ``,
     `Manage your event here (keep this link private):`,
     `${baseUrl}/admin/${event.adminToken}`,
@@ -81,7 +93,7 @@ export function buildOrganizerCreationEmail(event) {
 
   return {
     to: event.organizerEmail,
-    subject: `Your event "${event.name}" is ready`,
+    subject: `Your event "${eventName}" is ready`,
     text: lines.join('\n'),
   };
 }
@@ -92,13 +104,15 @@ export async function sendOrganizerCreationEmail(event) {
 
 export function buildJoinConfirmation(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
+  const participantName = participant.name ? sanitizeField(participant.name) : null;
   return {
     to: participant.email,
-    subject: `You're registered: ${event.name}`,
+    subject: `You're registered: ${eventName}`,
     text: [
-      `Hi${participant.name ? ` ${participant.name}` : ''},`,
+      `Hi${participantName ? ` ${participantName}` : ''},`,
       ``,
-      `You've successfully registered for "${event.name}".`,
+      `You've successfully registered for "${eventName}".`,
       ``,
       `Access your personal voting link here:`,
       `${baseUrl}/participate/${participant.id}`,
@@ -114,16 +128,17 @@ export async function sendJoinConfirmation(participant, event) {
 
 export function buildOrganizerJoinNotification(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
   const participantLabel = participant.name
-    ? `${participant.name} (${participant.email})`
+    ? `${sanitizeField(participant.name)} (${participant.email})`
     : participant.email;
   return {
     to: event.organizerEmail,
-    subject: `New participant joined: ${event.name}`,
+    subject: `New participant joined: ${eventName}`,
     text: [
       `Hi,`,
       ``,
-      `${participantLabel} has just registered for your event "${event.name}".`,
+      `${participantLabel} has just registered for your event "${eventName}".`,
       ``,
       `View your dashboard:`,
       `${baseUrl}/admin/${event.adminToken}`,
@@ -150,49 +165,67 @@ function resolveVenueInfo(venue, event) {
 }
 
 export function buildFinalizationEmail(recipient, event, slot, venue) {
-  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
+  const recipientName = recipient.name ? sanitizeField(recipient.name) : null;
   const slotStart = new Date(slot.startsAt).toUTCString();
   const venueInfo = resolveVenueInfo(venue, event);
+  const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
+  const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
   const venueLine = venueInfo
-    ? `Venue: ${venueInfo.address ? `${venueInfo.name}, ${venueInfo.address}` : venueInfo.name}`
+    ? `Venue: ${safeAddress ? `${safeName}, ${safeAddress}` : safeName}`
     : 'Venue: TBD';
-  const icsVenue = venueInfo ? { name: venueInfo.name, address: venueInfo.address } : null;
-  const icsContent = generateICS({ slot, venue: icsVenue, eventName: event.name, timezone: event.timezone ?? 'UTC' });
+  const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
+
+  let icsContent = null;
+  try {
+    icsContent = generateICS({ slot, venue: icsVenue, eventName, timezone: event.timezone ?? 'UTC' });
+  } catch (err) {
+    console.error('[invite-mailer] ICS generation failed:', err);
+  }
 
   return {
     to: recipient.email,
-    subject: `Event finalized: ${event.name}`,
+    subject: `Event finalized: ${eventName}`,
     text: [
-      `Hi${recipient.name ? ` ${recipient.name}` : ''},`,
+      `Hi${recipientName ? ` ${recipientName}` : ''},`,
       ``,
-      `"${event.name}" has been finalized!`,
+      `"${eventName}" has been finalized!`,
       ``,
       `When: ${slotStart}`,
       venueLine,
       ``,
       `A calendar invite is attached.`,
     ].join('\n'),
-    attachments: [{ filename: 'event.ics', content: icsContent }],
+    attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
 }
 
 export function buildOrganizerFinalizationEmail(event, slot, venue) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
   const slotStart = new Date(slot.startsAt).toUTCString();
   const venueInfo = resolveVenueInfo(venue, event);
+  const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
+  const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
   const venueLine = venueInfo
-    ? `Venue: ${venueInfo.address ? `${venueInfo.name}, ${venueInfo.address}` : venueInfo.name}`
+    ? `Venue: ${safeAddress ? `${safeName}, ${safeAddress}` : safeName}`
     : 'Venue: TBD';
-  const icsVenue = venueInfo ? { name: venueInfo.name, address: venueInfo.address } : null;
-  const icsContent = generateICS({ slot, venue: icsVenue, eventName: event.name, timezone: event.timezone ?? 'UTC' });
+  const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
+
+  let icsContent = null;
+  try {
+    icsContent = generateICS({ slot, venue: icsVenue, eventName, timezone: event.timezone ?? 'UTC' });
+  } catch (err) {
+    console.error('[invite-mailer] ICS generation failed:', err);
+  }
 
   return {
     to: event.organizerEmail,
-    subject: `Event finalized: ${event.name}`,
+    subject: `Event finalized: ${eventName}`,
     text: [
       `Hi,`,
       ``,
-      `You've finalized "${event.name}".`,
+      `You've finalized "${eventName}".`,
       ``,
       `When: ${slotStart}`,
       venueLine,
@@ -201,7 +234,7 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
       ``,
       `A calendar invite is attached.`,
     ].join('\n'),
-    attachments: [{ filename: 'event.ics', content: icsContent }],
+    attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
 }
 

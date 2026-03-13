@@ -204,6 +204,9 @@ router.patch('/:participantId/location', async (req, res) => {
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
     return res.status(400).json({ error: 'latitude and longitude must be numbers' });
   }
+  if (!isFinite(latitude) || !isFinite(longitude)) {
+    return res.status(400).json({ error: 'latitude and longitude must be finite numbers' });
+  }
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
     return res.status(400).json({ error: 'latitude or longitude out of valid range' });
   }

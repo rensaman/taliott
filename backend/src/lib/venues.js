@@ -21,20 +21,28 @@ export function sortVenues(venues) {
 }
 
 export async function fetchVenuesFromOverpass(venueType, lat, lng, fetchFn = fetch) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+
   const query = `[out:json];node(around:${SEARCH_RADIUS_M},${lat},${lng})[amenity=${venueType}];out body;`;
-  const res = await fetchFn(OVERPASS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${encodeURIComponent(query)}`,
-  });
-  if (!res.ok) throw new Error(`Overpass API error: ${res.status}`);
-  const data = await res.json();
-  return (data.elements || []).map(el => ({
-    externalId: String(el.id),
-    name: el.tags?.name || 'Unnamed',
-    latitude: el.lat,
-    longitude: el.lon,
-    rating: null,
-    distanceM: Math.round(haversineDistance(lat, lng, el.lat, el.lon)),
-  }));
+  try {
+    const res = await fetchFn(OVERPASS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Overpass API error: ${res.status}`);
+    const data = await res.json();
+    return (data.elements || []).map(el => ({
+      externalId: String(el.id),
+      name: el.tags?.name || 'Unnamed',
+      latitude: el.lat,
+      longitude: el.lon,
+      rating: null,
+      distanceM: Math.round(haversineDistance(lat, lng, el.lat, el.lon)),
+    }));
+  } finally {
+    clearTimeout(timeout);
+  }
 }

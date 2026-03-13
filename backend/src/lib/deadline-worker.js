@@ -18,19 +18,24 @@ export async function processExpiredEvents(prisma, mailer) {
         where: { id: event.id },
         data: { status: 'locked' },
       });
+    } catch (err) {
+      console.error('[deadline-worker] Failed to lock event', event.id, ':', err);
+      continue;
+    }
 
-      const baseUrl = process.env.APP_BASE_URL ?? 'http://localhost:3000';
-      const adminLink = `${baseUrl}/admin/${event.adminToken}`;
+    locked++;
 
+    const baseUrl = process.env.APP_BASE_URL ?? 'http://localhost:3000';
+    const adminLink = `${baseUrl}/admin/${event.adminToken}`;
+
+    try {
       await mailer.sendEmail({
         to: event.organizerEmail,
         subject: `${event.name} — voting has closed`,
         text: `The voting deadline for "${event.name}" has passed. You can now finalize the event here:\n\n${adminLink}`,
       });
-
-      locked++;
     } catch (err) {
-      console.error('[deadline-worker] Failed to process event', event.id, err);
+      console.error('[deadline-worker] Failed to email organizer for event', event.id, ':', err);
     }
   }
 

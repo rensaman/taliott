@@ -9,6 +9,8 @@ import { subscribe } from '../lib/sse.js';
 
 const router = Router();
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function isValidIANATimezone(tz) {
   try {
     Intl.DateTimeFormat(undefined, { timeZone: tz });
@@ -44,7 +46,32 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'timezone must be a valid IANA timezone string (e.g. "Europe/Paris")' });
   }
 
-  if (new Date(date_range_end) < new Date(date_range_start)) {
+  // Normalize emails to lowercase to prevent case-sensitive duplicates
+  const normalizedOrganizerEmail = organizer_email.toLowerCase();
+  const normalizedParticipantEmails = Array.isArray(participant_emails)
+    ? participant_emails.map(e => (typeof e === 'string' ? e.toLowerCase() : e))
+    : [];
+
+  if (!EMAIL_RE.test(normalizedOrganizerEmail)) {
+    return res.status(400).json({ error: 'organizer_email is not a valid email address' });
+  }
+  if (!Array.isArray(participant_emails)) {
+    return res.status(400).json({ error: 'participant_emails must be an array' });
+  }
+  const invalidEmail = normalizedParticipantEmails.find(e => !EMAIL_RE.test(e));
+  if (invalidEmail !== undefined) {
+    return res.status(400).json({ error: `participant_emails contains an invalid address: ${invalidEmail}` });
+  }
+
+  const startDateObj = new Date(date_range_start);
+  const endDateObj = new Date(date_range_end);
+  if (isNaN(startDateObj.getTime())) {
+    return res.status(400).json({ error: 'date_range_start is not a valid date' });
+  }
+  if (isNaN(endDateObj.getTime())) {
+    return res.status(400).json({ error: 'date_range_end is not a valid date' });
+  }
+  if (endDateObj < startDateObj) {
     return res.status(400).json({ error: 'date_range_end must be on or after date_range_start' });
   }
 
@@ -65,15 +92,15 @@ router.post('/', async (req, res) => {
   // Organizer is always a participant. In shared_link mode, only the organizer is
   // created at event creation time; others self-register via the join link.
   const participantEmails = isSharedLink
-    ? [organizer_email]
-    : [organizer_email, ...participant_emails.filter(e => e !== organizer_email)];
+    ? [normalizedOrganizerEmail]
+    : [normalizedOrganizerEmail, ...normalizedParticipantEmails.filter(e => e !== normalizedOrganizerEmail)];
 
   let event;
   try {
     event = await getPrisma().event.create({
       data: {
         name,
-        organizerEmail: organizer_email,
+        organizerEmail: normalizedOrganizerEmail,
         inviteMode: invite_mode,
         joinToken,
         dateRangeStart: new Date(date_range_start),
@@ -158,8 +185,19 @@ router.get('/:adminToken', async (req, res) => {
   });
 });
 
-router.get('/:eventId/stream', (req, res) => {
-  subscribe(req.params.eventId, res);
+router.get('/:adminToken/stream', async (req, res) => {
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken: req.params.adminToken },
+      select: { id: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event for stream:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+  subscribe(event.id, res);
 });
 
 router.get('/:adminToken/venues', async (req, res) => {
@@ -183,6 +221,9 @@ router.get('/:adminToken/venues', async (req, res) => {
   if (!venueType) return res.status(400).json({ error: 'No venue type set for this event' });
   if (!/^[a-z0-9_-]+$/i.test(venueType)) {
     return res.status(400).json({ error: 'Invalid venue type format' });
+  }
+  if (venueType.length > 100) {
+    return res.status(400).json({ error: 'venue_type must be 100 characters or fewer' });
   }
 
   const centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
@@ -223,11 +264,14 @@ router.post('/:adminToken/finalize', async (req, res) => {
     return res.status(400).json({ error: 'slot_id is required' });
   }
 
+  const trimmedVenueName = typeof venue_name === 'string' ? venue_name.trim() : venue_name;
+  const trimmedVenueAddress = typeof venue_address === 'string' ? venue_address.trim() : venue_address;
+
   // Exactly one venue form must be provided (or neither for TBD)
-  if (venue_id && venue_name) {
+  if (venue_id && trimmedVenueName) {
     return res.status(400).json({ error: 'Provide either venue_id or venue_name/venue_address, not both' });
   }
-  if (venue_name !== undefined && !venue_name) {
+  if (venue_name !== undefined && !trimmedVenueName) {
     return res.status(400).json({ error: 'venue_name must not be empty when provided' });
   }
 
@@ -263,8 +307,8 @@ router.post('/:adminToken/finalize', async (req, res) => {
         status: 'finalized',
         finalSlotId: slot_id,
         finalVenueId: venue_id ?? null,
-        finalVenueName: venue_name ?? null,
-        finalVenueAddress: venue_address ?? null,
+        finalVenueName: trimmedVenueName ?? null,
+        finalVenueAddress: trimmedVenueAddress ?? null,
       },
     });
     // Attach the updated custom venue fields so notifications can use them

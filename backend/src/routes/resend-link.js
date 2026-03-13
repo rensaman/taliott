@@ -20,6 +20,21 @@ export function clearRateLimitStore() {
   rateLimitStore.clear();
 }
 
+function sweepExpiredEntries() {
+  const now = Date.now();
+  for (const [email, timestamps] of rateLimitStore.entries()) {
+    const active = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (active.length === 0) {
+      rateLimitStore.delete(email);
+    } else {
+      rateLimitStore.set(email, active);
+    }
+  }
+}
+
+const _sweepTimer = setInterval(sweepExpiredEntries, 30 * 60 * 1000);
+if (_sweepTimer.unref) _sweepTimer.unref();
+
 function isRateLimited(email) {
   const now = Date.now();
   const prev = (rateLimitStore.get(email) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);

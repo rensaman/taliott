@@ -211,6 +211,20 @@ describe('POST /api/events/:adminToken/finalize — custom venue', () => {
     expect(event.finalVenueId).toBeNull();
   });
 
+  it('allows finalization with neither venue_id nor venue_name (TBD venue)', async () => {
+    const { admin_token, slots } = await createEvent();
+    const res = await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id });
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.status).toBe('finalized');
+
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalVenueId).toBeNull();
+    expect(event.finalVenueName).toBeNull();
+  });
+
   it('returns 400 when both venue_id and venue_name are provided', async () => {
     const { admin_token, slots } = await createEvent();
     const slotId = slots[0].id;

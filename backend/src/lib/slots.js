@@ -1,3 +1,7 @@
+// Hour boundaries (local time, inclusive start / exclusive end) for each
+// part-of-day filter. Values are 24-hour clock:
+//   morning   08:00–12:00  afternoon  12:00–18:00
+//   evening   18:00–22:00  all        08:00–22:00
 export const PART_OF_DAY_HOURS = {
   morning:   { start: 8,  end: 12 },
   afternoon: { start: 12, end: 18 },

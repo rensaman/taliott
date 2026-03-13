@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { subscribe, broadcast, subscriberCount } from './sse.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { subscribe, broadcast, subscriberCount, subscriptions } from './sse.js';
 
 function makeFakeRes() {
   const events = [];
@@ -69,5 +69,19 @@ describe('SSE broadcast', () => {
 
   it('does nothing when no subscribers exist', () => {
     expect(() => broadcast('nonexistent-event', { type: 'test' })).not.toThrow();
+  });
+
+  it('removes dead subscriber when write throws and does not propagate the error', () => {
+    const eventId = `evt-${Date.now()}-dead`;
+    const res = makeFakeRes();
+    subscribe(eventId, res);
+
+    // Simulate a broken connection by replacing write with a throwing function
+    res.write = vi.fn().mockImplementation(() => { throw new Error('write EPIPE'); });
+
+    expect(() => broadcast(eventId, { type: 'test' })).not.toThrow();
+    expect(subscriberCount(eventId)).toBe(0);
+
+    res.simulateClose(); // cleanup keepAlive
   });
 });

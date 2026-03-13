@@ -31,7 +31,7 @@ export default function AdminView({ adminToken }) {
   }, [data?.centroid]);
 
   // Subscribe to live location updates
-  useEventStream(data?.id ?? null, msg => {
+  useEventStream(adminToken ?? null, msg => {
     if (msg.type === 'location') setLiveCentroid(msg.centroid);
   });
 

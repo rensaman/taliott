@@ -5,17 +5,17 @@ import { useEffect, useRef } from 'react';
  * Calls onMessage(data) for each parsed JSON payload received.
  * EventSource auto-reconnects on network errors.
  *
- * @param {string|null} eventId - The event UUID from the participate/admin response.
+ * @param {string|null} adminToken - The admin token for the event.
  * @param {(data: object) => void} onMessage
  */
-export function useEventStream(eventId, onMessage) {
+export function useEventStream(adminToken, onMessage) {
   // Keep a stable ref so the effect doesn't re-run when onMessage identity changes
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
 
   useEffect(() => {
-    if (!eventId) return;
-    const es = new EventSource(`/api/events/${eventId}/stream`);
+    if (!adminToken) return;
+    const es = new EventSource(`/api/events/${adminToken}/stream`);
     es.onmessage = e => {
       try {
         onMessageRef.current(JSON.parse(e.data));
@@ -24,5 +24,5 @@ export function useEventStream(eventId, onMessage) {
       }
     };
     return () => es.close();
-  }, [eventId]);
+  }, [adminToken]);
 }

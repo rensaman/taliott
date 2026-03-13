@@ -30,32 +30,32 @@ describe('useEventStream', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('opens an EventSource for the given eventId', () => {
-    renderHook(() => useEventStream('evt-1', () => {}));
-    expect(EventSource).toHaveBeenCalledWith('/api/events/evt-1/stream');
+  it('opens an EventSource using the admin token', () => {
+    renderHook(() => useEventStream('admin-token-1', () => {}));
+    expect(EventSource).toHaveBeenCalledWith('/api/events/admin-token-1/stream');
   });
 
   it('calls onMessage with parsed data when an event arrives', () => {
     const onMessage = vi.fn();
-    renderHook(() => useEventStream('evt-1', onMessage));
+    renderHook(() => useEventStream('admin-token-1', onMessage));
     act(() => mockES.emit({ type: 'availability', heatmap: {} }));
     expect(onMessage).toHaveBeenCalledWith({ type: 'availability', heatmap: {} });
   });
 
   it('closes the EventSource on unmount', () => {
-    const { unmount } = renderHook(() => useEventStream('evt-1', () => {}));
+    const { unmount } = renderHook(() => useEventStream('admin-token-1', () => {}));
     unmount();
     expect(mockES.close).toHaveBeenCalled();
   });
 
-  it('does not open EventSource when eventId is null', () => {
+  it('does not open EventSource when adminToken is null', () => {
     renderHook(() => useEventStream(null, () => {}));
     expect(EventSource).not.toHaveBeenCalled();
   });
 
   it('does not throw on malformed SSE frame', () => {
     const onMessage = vi.fn();
-    renderHook(() => useEventStream('evt-1', onMessage));
+    renderHook(() => useEventStream('admin-token-1', onMessage));
     act(() => {
       if (mockES.onmessage) mockES.onmessage({ data: 'not-json' });
     });
