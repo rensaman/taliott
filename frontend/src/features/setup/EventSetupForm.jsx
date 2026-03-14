@@ -283,6 +283,12 @@ export default function EventSetupForm({ onCreated }) {
               <dt>Invite mode</dt>
               <dd>{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</dd>
             </dl>
+            <p>
+              By creating this event you confirm that any participant emails you have provided were
+              collected with their knowledge. Emails are used solely to send event invitations and
+              notifications. See our{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+            </p>
           </>
         );
 

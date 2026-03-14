@@ -4,6 +4,9 @@ import ParticipateView from './features/participate/ParticipateView.jsx';
 import AdminView from './features/admin/AdminView.jsx';
 import JoinView from './features/join/JoinView.jsx';
 import ResendLinkView from './features/resend/ResendLinkView.jsx';
+import PrivacyPolicyView from './features/legal/PrivacyPolicyView.jsx';
+import TermsView from './features/legal/TermsView.jsx';
+import LegalFooter from './features/legal/LegalFooter.jsx';
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
@@ -24,12 +27,28 @@ function isResendPage() {
   return window.location.pathname === '/resend';
 }
 
+function isPrivacyPage() {
+  return window.location.pathname === '/privacy';
+}
+
+function isTermsPage() {
+  return window.location.pathname === '/terms';
+}
+
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const participantId = getParticipantId();
   const adminToken = getAdminToken();
   const joinToken = getJoinToken();
   const resend = isResendPage();
+
+  if (isPrivacyPage()) {
+    return <PrivacyPolicyView />;
+  }
+
+  if (isTermsPage()) {
+    return <TermsView />;
+  }
 
   if (resend) {
     return <ResendLinkView />;
@@ -75,10 +94,13 @@ export default function App() {
   }
 
   return (
-    <main>
-      <h1>taliott</h1>
-      <EventSetupForm onCreated={setConfirmation} />
-      <p><a href="/resend">Lost your link? Recover it here</a></p>
-    </main>
+    <>
+      <main>
+        <h1>taliott</h1>
+        <EventSetupForm onCreated={setConfirmation} />
+        <p><a href="/resend">Lost your link? Recover it here</a></p>
+      </main>
+      <LegalFooter />
+    </>
   );
 }

@@ -36,6 +36,11 @@ export default function AddressSearchInput({ onSelect }) {
         placeholder="Type your address…"
         autoComplete="off"
       />
+      <small>
+        Your location is used only to calculate a fair meeting point. Coordinates may be processed
+        by OpenRouteService to estimate travel times. See our{' '}
+        <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+      </small>
       {results.length > 0 && (
         <ul role="listbox" aria-label="Address suggestions">
           {results.map((r, i) => (

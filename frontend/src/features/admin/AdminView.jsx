@@ -10,6 +10,7 @@ export default function AdminView({ adminToken }) {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [error, setError] = useState(null);
   const [liveCentroid, setLiveCentroid] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
   const loadDashboard = useCallback(() => {
     fetch(`/api/events/${adminToken}`)
@@ -34,6 +35,16 @@ export default function AdminView({ adminToken }) {
   useEventStream(adminToken ?? null, msg => {
     if (msg.type === 'location') setLiveCentroid(msg.centroid);
   });
+
+  async function handleDeleteEvent() {
+    if (!window.confirm('Are you sure? This will permanently delete the event and all participant data.')) return;
+    const res = await fetch(`/api/events/${adminToken}`, { method: 'DELETE' });
+    if (res.ok) {
+      window.location.assign('/');
+    } else {
+      setDeleteError('Failed to delete event. Please try again.');
+    }
+  }
 
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
@@ -66,6 +77,10 @@ export default function AdminView({ adminToken }) {
       {data.status === 'finalized' && (
         <p data-testid="finalized-notice"><strong>This event has been finalized.</strong></p>
       )}
+      <section aria-label="Danger zone">
+        <button onClick={handleDeleteEvent}>Delete event</button>
+        {deleteError && <p role="alert">{deleteError}</p>}
+      </section>
     </main>
   );
 }

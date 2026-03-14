@@ -43,7 +43,26 @@ export async function processExpiredEvents(prisma, mailer) {
 }
 
 /**
- * Starts a recurring background job that locks expired events.
+ * Deletes locked/finalized events whose deadline is older than retentionDays.
+ * Cascade deletes participants, availability, slots, and venues.
+ *
+ * @param {import('@prisma/client').PrismaClient} prisma
+ * @param {number} retentionDays
+ * @returns {Promise<number>} number of events deleted
+ */
+export async function purgeOldEvents(prisma, retentionDays = 90) {
+  const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+  const { count } = await prisma.event.deleteMany({
+    where: {
+      status: { in: ['locked', 'finalized'] },
+      deadline: { lt: cutoff },
+    },
+  });
+  return count;
+}
+
+/**
+ * Starts a recurring background job that locks expired events and purges old data.
  *
  * @param {() => import('@prisma/client').PrismaClient} getPrisma
  * @param {{ sendEmail: Function }} mailer
@@ -51,10 +70,15 @@ export async function processExpiredEvents(prisma, mailer) {
  * @returns {NodeJS.Timeout}
  */
 export function startDeadlineWorker(getPrisma, mailer, intervalMs = 60_000) {
-  const run = () =>
-    processExpiredEvents(getPrisma(), mailer).catch(err =>
-      console.error('[deadline-worker]', err)
-    );
+  const run = () => {
+    const prisma = getPrisma();
+    return Promise.all([
+      processExpiredEvents(prisma, mailer),
+      purgeOldEvents(prisma).then(n => {
+        if (n > 0) console.log(`[deadline-worker] purged ${n} old event(s)`);
+      }),
+    ]).catch(err => console.error('[deadline-worker]', err));
+  };
   run();
   return setInterval(run, intervalMs);
 }

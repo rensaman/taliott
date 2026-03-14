@@ -10,6 +10,15 @@ vi.mock('./features/admin/AdminView.jsx', () => ({
 vi.mock('./features/join/JoinView.jsx', () => ({
   default: ({ joinToken }) => <div data-testid="join-view" data-token={joinToken} />,
 }));
+vi.mock('./features/legal/PrivacyPolicyView.jsx', () => ({
+  default: () => <div data-testid="privacy-policy-view" />,
+}));
+vi.mock('./features/legal/TermsView.jsx', () => ({
+  default: () => <div data-testid="terms-view" />,
+}));
+vi.mock('./features/legal/LegalFooter.jsx', () => ({
+  default: () => <div data-testid="legal-footer" />,
+}));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
     <>
@@ -70,5 +79,22 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Link Event' })).toBeInTheDocument();
     expect(screen.getByTestId('join-url')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
+  });
+
+  it('renders PrivacyPolicyView at /privacy', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/privacy' });
+    render(<App />);
+    expect(screen.getByTestId('privacy-policy-view')).toBeInTheDocument();
+  });
+
+  it('renders TermsView at /terms', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/terms' });
+    render(<App />);
+    expect(screen.getByTestId('terms-view')).toBeInTheDocument();
+  });
+
+  it('renders a LegalFooter on the home page', () => {
+    render(<App />);
+    expect(screen.getByTestId('legal-footer')).toBeInTheDocument();
   });
 });

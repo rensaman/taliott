@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { processExpiredEvents, startDeadlineWorker } from './deadline-worker.js';
+import { processExpiredEvents, purgeOldEvents, startDeadlineWorker } from './deadline-worker.js';
 
 function makePrisma(events = []) {
   return {
@@ -108,6 +108,7 @@ describe('processExpiredEvents', () => {
   });
 
   it('continues processing remaining events when one fails', async () => {
+
     const events = [makeEvent({ id: 'e-1' }), makeEvent({ id: 'e-2', name: 'Other', organizerEmail: 'b@b.com' })];
     const prisma = {
       event: {
@@ -124,5 +125,49 @@ describe('processExpiredEvents', () => {
     expect(count).toBe(1);
     expect(mailer.sendEmail).toHaveBeenCalledTimes(1);
     expect(mailer.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'b@b.com' }));
+  });
+});
+
+describe('purgeOldEvents', () => {
+  function makePurge(count = 0) {
+    return {
+      event: {
+        deleteMany: vi.fn().mockResolvedValue({ count }),
+      },
+    };
+  }
+
+  it('deletes locked/finalized events whose deadline is older than the retention period', async () => {
+    const prisma = makePurge(3);
+    const count = await purgeOldEvents(prisma, 90);
+    expect(count).toBe(3);
+    expect(prisma.event.deleteMany).toHaveBeenCalledOnce();
+    const { where } = prisma.event.deleteMany.mock.calls[0][0];
+    expect(where.status.in).toEqual(expect.arrayContaining(['locked', 'finalized']));
+    expect(where.deadline.lt).toBeInstanceOf(Date);
+  });
+
+  it('sets the cutoff date 90 days in the past by default', async () => {
+    const before = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const prisma = makePurge(0);
+    await purgeOldEvents(prisma);
+    const after = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const cutoff = prisma.event.deleteMany.mock.calls[0][0].where.deadline.lt;
+    expect(cutoff.getTime()).toBeGreaterThanOrEqual(before.getTime());
+    expect(cutoff.getTime()).toBeLessThanOrEqual(after.getTime());
+  });
+
+  it('honours a custom retentionDays argument', async () => {
+    const prisma = makePurge(0);
+    await purgeOldEvents(prisma, 30);
+    const cutoff = prisma.event.deleteMany.mock.calls[0][0].where.deadline.lt;
+    const expected = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    expect(Math.abs(cutoff.getTime() - expected.getTime())).toBeLessThan(1000);
+  });
+
+  it('returns 0 when no events match', async () => {
+    const prisma = makePurge(0);
+    const count = await purgeOldEvents(prisma, 90);
+    expect(count).toBe(0);
   });
 });

@@ -7,6 +7,7 @@ export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [dataDeleted, setDataDeleted] = useState(false);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -31,6 +32,24 @@ export default function ParticipateView({ participantId }) {
   const travelMode = participant.travel_mode ?? 'transit';
 
   const showWizard = !event.locked && (!participant.responded_at || updating);
+
+  async function handleExport() {
+    const res = await fetch(`/api/participate/${participantId}/export`);
+    const json = await res.json();
+    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-taliott-data.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleDelete() {
+    if (!window.confirm('Are you sure? This will permanently erase your name, location, and availability from this event.')) return;
+    const res = await fetch(`/api/participate/${participantId}`, { method: 'DELETE' });
+    if (res.ok) setDataDeleted(true);
+  }
 
   async function handleComplete() {
     const res = await fetch(`/api/participate/${participantId}`).catch(() => null);
@@ -89,6 +108,15 @@ export default function ParticipateView({ participantId }) {
           onUpdate={() => setUpdating(true)}
         />
       )}
+      <section aria-label="Privacy and data">
+        <button onClick={handleExport}>Download my data</button>
+        {!dataDeleted && (
+          <button onClick={handleDelete}>Delete my data</button>
+        )}
+        {dataDeleted && (
+          <p role="status">Your personal data has been erased from this event.</p>
+        )}
+      </section>
     </main>
   );
 }

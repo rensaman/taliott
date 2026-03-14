@@ -133,6 +133,88 @@ describe('ParticipateView', () => {
     await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
   });
 
+  // ─── GDPR data controls ───────────────────────────────────────────────────
+
+  it('shows Download my data and Delete my data buttons', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByRole('heading'));
+    expect(screen.getByRole('button', { name: /download my data/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete my data/i })).toBeInTheDocument();
+  });
+
+  it('calls export endpoint when Download is clicked', async () => {
+    const exportData = { participant_id: 'p-1', email: 'jamie@example.com', availability: [] };
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => exportData });
+
+    // jsdom lacks createObjectURL — define a stub before the component calls it
+    URL.createObjectURL = vi.fn(() => 'blob:mock');
+    URL.revokeObjectURL = vi.fn();
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByRole('heading'));
+
+    fireEvent.click(screen.getByRole('button', { name: /download my data/i }));
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/participate/p-1/export'));
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+
+    delete URL.createObjectURL;
+    delete URL.revokeObjectURL;
+  });
+
+  it('calls DELETE and shows confirmation message when Delete is clicked and confirmed', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByRole('heading'));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/participate/p-1',
+        expect.objectContaining({ method: 'DELETE' })
+      )
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(/erased/i)
+    );
+  });
+
+  it('does not call DELETE when user cancels the confirmation', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false));
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByRole('heading'));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
+
+    expect(fetch).toHaveBeenCalledTimes(1); // only the initial load
+  });
+
+  it('hides Delete button after successful deletion', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByRole('heading'));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /delete my data/i })).not.toBeInTheDocument()
+    );
+  });
+
   it('re-fetches and shows summary after wizard onComplete', async () => {
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })

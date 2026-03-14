@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AdminView from './AdminView.jsx';
 
@@ -127,6 +127,66 @@ describe('AdminView', () => {
     render(<AdminView adminToken="some-token" />);
     await waitFor(() =>
       expect(screen.getByTestId('venue-list')).toHaveAttribute('data-venue-type', 'restaurant')
+    );
+  });
+
+  // ─── GDPR: Delete event ───────────────────────────────────────────────────
+
+  it('shows a Delete event button', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+    expect(screen.getByRole('button', { name: /delete event/i })).toBeInTheDocument();
+  });
+
+  it('calls DELETE /api/events/:token when confirmed and navigates home', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
+
+    const assignSpy = vi.fn();
+    vi.stubGlobal('location', { ...window.location, assign: assignSpy });
+
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/events/some-token',
+        expect.objectContaining({ method: 'DELETE' })
+      )
+    );
+    await waitFor(() => expect(assignSpy).toHaveBeenCalledWith('/'));
+  });
+
+  it('does not call DELETE when user cancels the confirmation', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false));
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+
+    expect(fetch).toHaveBeenCalledTimes(1); // only the initial dashboard load
+  });
+
+  it('shows an error when DELETE fails', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toBeInTheDocument()
     );
   });
 

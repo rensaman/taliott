@@ -327,6 +327,32 @@ router.post('/:adminToken/finalize', async (req, res) => {
   return res.json({ ok: true, status: 'finalized' });
 });
 
+router.delete('/:adminToken', async (req, res) => {
+  const { adminToken } = req.params;
+
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken },
+      select: { id: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event for deletion:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  try {
+    await getPrisma().event.delete({ where: { id: event.id } });
+  } catch (err) {
+    console.error('Failed to delete event:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  return res.json({ ok: true });
+});
+
 function toVenueDto(v) {
   return {
     id: v.id,

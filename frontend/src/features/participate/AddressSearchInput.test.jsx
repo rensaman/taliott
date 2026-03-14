@@ -49,6 +49,11 @@ describe('AddressSearchInput', () => {
     expect(screen.getByText(/London, Greater London/i)).toBeInTheDocument();
   });
 
+  it('shows a disclosure note about location data processing', () => {
+    render(<AddressSearchInput onSelect={vi.fn()} />);
+    expect(screen.getByText(/openrouteservice/i)).toBeInTheDocument();
+  });
+
   it('calls onSelect with the result and hides dropdown on selection', async () => {
     const onSelect = vi.fn();
     render(<AddressSearchInput onSelect={onSelect} />);

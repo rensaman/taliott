@@ -192,6 +192,14 @@ describe('EventSetupForm', () => {
 
   // --- Review step ---
 
+  it('shows a privacy notice with a link to the privacy policy at the review step', () => {
+    render(<EventSetupForm />);
+    navigateToReview();
+    const link = screen.getByRole('link', { name: /privacy policy/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/privacy');
+  });
+
   it('shows the review step after navigating all steps', () => {
     render(<EventSetupForm />);
     navigateToReview();

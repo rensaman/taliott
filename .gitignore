@@ -24,6 +24,9 @@ frontend/coverage/
 # Claude
 CLAUDE.md
 
+# Legal analysis (internal, not for distribution)
+docs/legal/gdpr-compliance-analysis.md
+
 # OTP data
 otp/data/*.zip
 

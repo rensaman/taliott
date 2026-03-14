@@ -297,6 +297,79 @@ router.patch('/:participantId/travel-mode', async (req, res) => {
   return res.json({ ok: true });
 });
 
+router.get('/:participantId/export', async (req, res) => {
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+      include: {
+        event: { select: { name: true, deadline: true } },
+        availability: { select: { slotId: true, state: true, updatedAt: true } },
+      },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant for export:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  return res.json({
+    participant_id: participant.id,
+    email: participant.email,
+    name: participant.name,
+    location: participant.latitude != null ? {
+      latitude: participant.latitude,
+      longitude: participant.longitude,
+      address_label: participant.addressLabel,
+    } : null,
+    travel_mode: participant.travelMode,
+    responded_at: participant.respondedAt,
+    event: {
+      name: participant.event.name,
+      deadline: participant.event.deadline,
+    },
+    availability: participant.availability,
+  });
+});
+
+router.delete('/:participantId', async (req, res) => {
+  let participant;
+  try {
+    participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+    });
+  } catch (err) {
+    console.error('Failed to fetch participant for deletion:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  try {
+    const prisma = getPrisma();
+    await prisma.$transaction(async (tx) => {
+      await tx.availability.deleteMany({ where: { participantId: participant.id } });
+      await tx.participant.update({
+        where: { id: participant.id },
+        data: {
+          email: `deleted-${participant.id}@deleted.invalid`,
+          name: null,
+          latitude: null,
+          longitude: null,
+          addressLabel: null,
+          respondedAt: null,
+        },
+      });
+    });
+  } catch (err) {
+    console.error('Failed to anonymise participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  return res.json({ ok: true });
+});
+
 router.patch('/:participantId/confirm', async (req, res) => {
   let participant;
   try {
