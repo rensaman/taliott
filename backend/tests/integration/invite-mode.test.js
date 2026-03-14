@@ -15,7 +15,7 @@ const BASE_BODY = {
   organizer_email: 'org@example.com',
   date_range_start: '2025-09-01',
   date_range_end: '2025-09-01',
-  part_of_day: 'morning',
+  time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: '2025-08-25T12:00:00.000Z',
 };

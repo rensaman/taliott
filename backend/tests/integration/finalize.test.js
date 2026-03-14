@@ -22,7 +22,7 @@ const BASE_EVENT = {
   participant_emails: ['alice@example.com', 'bob@example.com'],
   date_range_start: '2025-06-15',
   date_range_end: '2025-06-15',
-  part_of_day: 'morning',
+  time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: FUTURE_DEADLINE,
 };

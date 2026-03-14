@@ -19,7 +19,7 @@ const BASE_EVENT = {
   organizer_email: 'gdpr-organiser@example.com',
   date_range_start: '2025-06-01',
   date_range_end: '2025-06-01',
-  part_of_day: 'morning',
+  time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: FUTURE_DEADLINE,
 };

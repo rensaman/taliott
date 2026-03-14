@@ -29,7 +29,7 @@ const BASE_BODY = {
   participant_emails: ['alice@example.com', 'bob@example.com'],
   date_range_start: '2025-07-01',
   date_range_end: '2025-07-01',
-  part_of_day: 'morning',
+  time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: '2025-06-30T12:00:00.000Z',
 };

@@ -5,7 +5,7 @@
  * navigation stops after arriving on that step (without advancing past it),
  * so the caller can assert or interact with that step.
  *
- * stopAt values: 'organizer_email' | 'date_range' | 'part_of_day' | 'deadline'
+ * stopAt values: 'organizer_email' | 'date_range' | 'time_range' | 'deadline'
  *                | 'venue_type' | 'invite_mode' | 'participant_emails'
  * Omit stopAt (or pass null) to reach the review step.
  */
@@ -14,7 +14,8 @@ export async function fillWizard(page, {
   organizerEmail = 'alex@example.com',
   dateStart = '2025-06-01',
   dateEnd = '2025-06-03',
-  partOfDay = 'all',
+  timeRangeStart = 480,
+  timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
   venueType = '',
   inviteMode = 'email_invites',
@@ -31,14 +32,15 @@ export async function fillWizard(page, {
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'date_range') return;
 
-  // Step 3: date_range → part_of_day
+  // Step 3: date_range → time_range
   await page.getByLabel(/from/i).fill(dateStart);
   await page.getByLabel(/to/i).fill(dateEnd);
   await page.getByRole('button', { name: /continue/i }).click();
-  if (stopAt === 'part_of_day') return;
+  if (stopAt === 'time_range') return;
 
-  // Step 4: part_of_day → deadline
-  await page.getByRole('radio', { name: partOfDay }).check();
+  // Step 4: time_range → deadline
+  await page.getByLabel(/from time/i).selectOption(String(timeRangeStart));
+  await page.getByLabel(/to time/i).selectOption(String(timeRangeEnd));
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'deadline') return;
 

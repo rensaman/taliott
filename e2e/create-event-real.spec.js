@@ -5,7 +5,6 @@
  * Run: npm run test:e2e
  */
 import { test, expect } from '@playwright/test';
-import { PART_OF_DAY_HOURS } from '../backend/src/lib/slots.js';
 import { fillWizard } from './helpers.js';
 
 test('submitting the form creates a real event and shows confirmation', async ({ page }) => {
@@ -18,12 +17,13 @@ test('submitting the form creates a real event and shows confirmation', async ({
 
 test('confirmation shows the correct slot count for the submitted date range', async ({ page }) => {
   await page.goto('/');
-  await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', partOfDay: 'all' });
+  // 3 days × full range (480–1320) = 3 × 28 = 84 slots
+  await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', timeRangeStart: 480, timeRangeEnd: 1320 });
   await page.getByRole('button', { name: /create event/i }).click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
-  const expectedSlots = 3 * (PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start);
+  const expectedSlots = 3 * (1320 - 480) / 30;
   await expect(page.getByText(`${expectedSlots} slots generated`)).toBeVisible();
 });
 
@@ -49,7 +49,7 @@ test('confirmation shows the admin token returned by the backend', async ({ page
   expect(displayed).toBe(adminToken);
 });
 
-test('API response contains correct slot count for morning filter', async ({ page }) => {
+test('API response contains correct slot count for 480–720 range', async ({ page }) => {
   let responseBody;
   page.on('response', async res => {
     if (res.url().includes('/api/events') && res.request().method() === 'POST') {
@@ -58,12 +58,13 @@ test('API response contains correct slot count for morning filter', async ({ pag
   });
 
   await page.goto('/');
-  await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', partOfDay: 'morning' });
+  // 3 days × (720-480)/30 = 3 × 8 = 24 slots
+  await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', timeRangeStart: 480, timeRangeEnd: 720 });
   await page.getByRole('button', { name: /create event/i }).click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
-  const expectedSlots = 3 * (PART_OF_DAY_HOURS.morning.end - PART_OF_DAY_HOURS.morning.start);
+  const expectedSlots = 3 * (720 - 480) / 30;
   expect(responseBody?.slots?.length).toBe(expectedSlots);
 });
 
@@ -96,12 +97,13 @@ test('1-day range produces the correct slot count', async ({ page }) => {
   });
 
   await page.goto('/');
-  await fillWizard(page, { dateStart: '2025-06-15', dateEnd: '2025-06-15', partOfDay: 'all' });
+  // 1 day × (1320-480)/30 = 28 slots
+  await fillWizard(page, { dateStart: '2025-06-15', dateEnd: '2025-06-15', timeRangeStart: 480, timeRangeEnd: 1320 });
   await page.getByRole('button', { name: /create event/i }).click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
-  const expectedSlots = PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start;
+  const expectedSlots = (1320 - 480) / 30;
   expect(responseBody?.slots?.length).toBe(expectedSlots);
 });
 
@@ -134,7 +136,7 @@ test('backend returns 400 when end date precedes start date', async ({ page }) =
       organizer_email: 'alex@example.com',
       date_range_start: '2025-06-05',
       date_range_end: '2025-06-01',
-      part_of_day: 'all',
+      time_range_start: 480, time_range_end: 1320,
       timezone: 'UTC',
       deadline: '2025-05-25T12:00:00.000Z',
     },

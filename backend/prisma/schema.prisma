@@ -12,13 +12,6 @@ enum InviteMode {
   shared_link
 }
 
-enum PartOfDay {
-  morning
-  afternoon
-  evening
-  all
-}
-
 enum EventStatus {
   open
   locked
@@ -48,7 +41,8 @@ model Event {
   joinToken        String?     @unique
   dateRangeStart   DateTime
   dateRangeEnd     DateTime
-  partOfDay        PartOfDay   @default(all)
+  timeRangeStart   Int         @default(480)
+  timeRangeEnd     Int         @default(1320)
   timezone         String      @default("UTC")
   venueType        String?
   deadline         DateTime

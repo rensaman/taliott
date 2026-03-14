@@ -1,14 +1,3 @@
-// Hour boundaries (local time, inclusive start / exclusive end) for each
-// part-of-day filter. Values are 24-hour clock:
-//   morning   08:00–12:00  afternoon  12:00–18:00
-//   evening   18:00–22:00  all        08:00–22:00
-export const PART_OF_DAY_HOURS = {
-  morning:   { start: 8,  end: 12 },
-  afternoon: { start: 12, end: 18 },
-  evening:   { start: 18, end: 22 },
-  all:       { start: 8,  end: 22 },
-};
-
 /**
  * Returns the UTC-minus-local offset in milliseconds at `date` for `timezone`.
  * Positive means UTC is ahead of local (e.g. UTC+2 → offset = -7200000).
@@ -32,15 +21,19 @@ function getOffsetMs(date, timezone) {
 }
 
 /**
- * Converts a local hour on a given date in `timezone` to a UTC Date.
+ * Converts local minutes-from-midnight on a given date in `timezone` to a UTC Date.
  * Uses a two-step refinement to handle DST transitions correctly.
  * @param {string} dateStr  ISO date string "YYYY-MM-DD"
- * @param {number} hour     0–23
+ * @param {number} minutes  0–1439 (minutes from midnight)
  * @param {string} timezone IANA timezone string
  * @returns {Date}
  */
-function localHourToUTC(dateStr, hour, timezone) {
-  const naive = new Date(`${dateStr}T${String(hour).padStart(2, '0')}:00:00Z`);
+function localMinutesToUTC(dateStr, minutes, timezone) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const naive = new Date(
+    `${dateStr}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00Z`
+  );
   const offset1 = getOffsetMs(naive, timezone);
   const approx = new Date(naive.getTime() + offset1);
   const offset2 = getOffsetMs(approx, timezone);
@@ -48,19 +41,18 @@ function localHourToUTC(dateStr, hour, timezone) {
 }
 
 /**
- * Generate hourly Slot objects for every day in [dateRangeStart, dateRangeEnd]
- * bounded by the given partOfDay filter. Slot times are stored in UTC but
- * represent hours in the event's timezone.
+ * Generate 30-minute Slot objects for every day in [dateRangeStart, dateRangeEnd]
+ * bounded by the given time range (minutes from midnight). Slot times are stored
+ * in UTC but represent times in the event's timezone.
  *
  * @param {string|Date} dateRangeStart
  * @param {string|Date} dateRangeEnd
- * @param {'morning'|'afternoon'|'evening'|'all'} partOfDay
+ * @param {number} [timeRangeStart=480]  start minutes from midnight (default 08:00)
+ * @param {number} [timeRangeEnd=1320]   end minutes from midnight (default 22:00)
  * @param {string} [timezone='UTC']  IANA timezone string
  * @returns {{ startsAt: Date, endsAt: Date }[]}
  */
-export function generateSlots(dateRangeStart, dateRangeEnd, partOfDay = 'all', timezone = 'UTC') {
-  const hours = PART_OF_DAY_HOURS[partOfDay] ?? PART_OF_DAY_HOURS.all;
-
+export function generateSlots(dateRangeStart, dateRangeEnd, timeRangeStart = 480, timeRangeEnd = 1320, timezone = 'UTC') {
   // Walk day-by-day using the date string so we're never affected by server TZ
   const startDate = typeof dateRangeStart === 'string'
     ? dateRangeStart
@@ -77,9 +69,9 @@ export function generateSlots(dateRangeStart, dateRangeEnd, partOfDay = 'all', t
 
   while (current <= end) {
     const dateStr = current.toISOString().slice(0, 10);
-    for (let h = hours.start; h < hours.end; h++) {
-      const startsAt = localHourToUTC(dateStr, h, timezone);
-      const endsAt = localHourToUTC(dateStr, h + 1, timezone);
+    for (let m = timeRangeStart; m < timeRangeEnd; m += 30) {
+      const startsAt = localMinutesToUTC(dateStr, m, timezone);
+      const endsAt = localMinutesToUTC(dateStr, m + 30, timezone);
       slots.push({ startsAt, endsAt });
     }
     current = new Date(current.getTime() + 86_400_000);

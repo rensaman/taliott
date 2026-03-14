@@ -10,7 +10,8 @@ function navigateToReview({
   organizerEmail = 'alex@example.com',
   dateStart = '2025-06-01',
   dateEnd = '2025-06-03',
-  partOfDay = 'all',
+  timeRangeStart = 480,
+  timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
   venueType = '',
   inviteMode = 'email_invites',
@@ -31,16 +32,19 @@ function navigateToReview({
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'date_range') return;
 
-  // Step 3 → part_of_day
-  fireEvent.change(screen.getByLabelText(/from/i), { target: { value: dateStart } });
-  fireEvent.change(screen.getByLabelText(/to/i), { target: { value: dateEnd } });
+  // Step 3 → time_range
+  fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: dateStart } });
+  fireEvent.change(screen.getByLabelText(/^to$/i), { target: { value: dateEnd } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'part_of_day') return;
+  if (stopAt === 'time_range') return;
 
   // Step 4 → deadline
-  if (partOfDay !== 'all') {
-    fireEvent.click(screen.getByRole('radio', { name: partOfDay }));
-  }
+  fireEvent.change(screen.getByRole('combobox', { name: /from time/i }), {
+    target: { value: String(timeRangeStart) },
+  });
+  fireEvent.change(screen.getByRole('combobox', { name: /to time/i }), {
+    target: { value: String(timeRangeEnd) },
+  });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'deadline') return;
 
@@ -132,9 +136,9 @@ describe('EventSetupForm', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'date_range' });
     expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/from/i), { target: { value: '2025-06-01' } });
+    fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: '2025-06-01' } });
     expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/to/i), { target: { value: '2025-06-03' } });
+    fireEvent.change(screen.getByLabelText(/^to$/i), { target: { value: '2025-06-03' } });
     expect(screen.getByRole('button', { name: /continue/i })).toBeEnabled();
   });
 
@@ -168,10 +172,11 @@ describe('EventSetupForm', () => {
     expect(screen.getByRole('heading', { name: /what.s the event called/i })).toBeInTheDocument();
   });
 
-  it('defaults part_of_day to "all"', () => {
+  it('defaults time range to 08:00–22:00', () => {
     render(<EventSetupForm />);
-    navigateToReview({ stopAt: 'part_of_day' });
-    expect(screen.getByRole('radio', { name: 'all' })).toBeChecked();
+    navigateToReview({ stopAt: 'time_range' });
+    expect(screen.getByRole('combobox', { name: /from time/i }).value).toBe('480');
+    expect(screen.getByRole('combobox', { name: /to time/i }).value).toBe('1320');
   });
 
   it('shows participant emails step when invite mode is email_invites', () => {
@@ -207,21 +212,23 @@ describe('EventSetupForm', () => {
     expect(screen.getByRole('button', { name: /create event/i })).toBeInTheDocument();
   });
 
-  it('review step shows the entered event details', () => {
+  it('review step shows entered event details', () => {
     render(<EventSetupForm />);
     navigateToReview({
       name: 'Summer meetup',
       organizerEmail: 'alex@example.com',
       dateStart: '2025-06-01',
       dateEnd: '2025-06-03',
-      partOfDay: 'morning',
+      timeRangeStart: 480,
+      timeRangeEnd: 1320,
       venueType: 'bar',
     });
     expect(screen.getByText('Summer meetup')).toBeInTheDocument();
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
     expect(screen.getByText(/2025-06-01/)).toBeInTheDocument();
     expect(screen.getByText(/2025-06-03/)).toBeInTheDocument();
-    expect(screen.getByText('morning')).toBeInTheDocument();
+    expect(screen.getByText(/08:00/)).toBeInTheDocument();
+    expect(screen.getByText(/22:00/)).toBeInTheDocument();
     expect(screen.getByText('bar')).toBeInTheDocument();
   });
 
@@ -234,7 +241,7 @@ describe('EventSetupForm', () => {
     });
 
     render(<EventSetupForm onCreated={() => {}} />);
-    navigateToReview({ partOfDay: 'morning' });
+    navigateToReview({ timeRangeStart: 480, timeRangeEnd: 720 });
     fireEvent.click(screen.getByRole('button', { name: /create event/i }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
@@ -246,7 +253,8 @@ describe('EventSetupForm', () => {
     expect(body.organizer_email).toBe('alex@example.com');
     expect(body.date_range_start).toBe('2025-06-01');
     expect(body.date_range_end).toBe('2025-06-03');
-    expect(body.part_of_day).toBe('morning');
+    expect(body.time_range_start).toBe(480);
+    expect(body.time_range_end).toBe(720);
     expect(body.deadline).toBe('2025-05-25T12:00');
     expect(body.invite_mode).toBe('email_invites');
   });

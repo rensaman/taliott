@@ -7,8 +7,6 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/index.js';
-import { PART_OF_DAY_HOURS } from '../../src/lib/slots.js';
-
 const prisma = new PrismaClient();
 
 const BASE_BODY = {
@@ -17,7 +15,8 @@ const BASE_BODY = {
   participant_emails: ['jamie@example.com', 'sam@example.com'],
   date_range_start: '2025-06-01',
   date_range_end: '2025-06-03',
-  part_of_day: 'all',
+  time_range_start: 480,
+  time_range_end: 1320,
   timezone: 'UTC',
   venue_type: 'bar',
   deadline: '2025-05-25T12:00:00.000Z',
@@ -47,21 +46,25 @@ describe('POST /api/events', () => {
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    const hoursPerDay = PART_OF_DAY_HOURS.all.end - PART_OF_DAY_HOURS.all.start;
-    expect(res.body.slots).toHaveLength(3 * hoursPerDay);
+    // full range 480–1320 = 840 minutes / 30 = 28 slots/day
+    const slotsPerDay = (1320 - 480) / 30;
+    expect(res.body.slots).toHaveLength(3 * slotsPerDay);
   });
 
-  it('bounds slots to morning hours when part_of_day is morning', async () => {
+  it('bounds slots to correct time range when time_range_start/end are specified', async () => {
     const res = await request(app)
       .post('/api/events')
-      .send({ ...BASE_BODY, part_of_day: 'morning', timezone: 'UTC' });
+      .send({ ...BASE_BODY, time_range_start: 480, time_range_end: 720, timezone: 'UTC' });
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    // With timezone=UTC, UTC hours equal local hours directly
-    const startHours = res.body.slots.map(s => new Date(s.starts_at).getUTCHours());
-    expect(Math.min(...startHours)).toBe(PART_OF_DAY_HOURS.morning.start);
-    expect(Math.max(...startHours)).toBe(PART_OF_DAY_HOURS.morning.end - 1);
+    // With timezone=UTC, UTC minutes equal local minutes directly
+    const starts = res.body.slots.map(s => {
+      const d = new Date(s.starts_at);
+      return d.getUTCHours() * 60 + d.getUTCMinutes();
+    });
+    expect(Math.min(...starts)).toBe(480); // 08:00
+    expect(Math.max(...starts)).toBe(690); // 11:30 (last 30-min slot before 12:00)
   });
 
   it('handles a date range that crosses a month boundary', async () => {
@@ -69,13 +72,14 @@ describe('POST /api/events', () => {
       ...BASE_BODY,
       date_range_start: '2025-01-30',
       date_range_end: '2025-02-01',
-      part_of_day: 'morning',
+      time_range_start: 480,
+      time_range_end: 720,
     });
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    const hoursPerDay = PART_OF_DAY_HOURS.morning.end - PART_OF_DAY_HOURS.morning.start;
-    expect(res.body.slots).toHaveLength(3 * hoursPerDay);
+    // 480–720 = 240 minutes / 30 = 8 slots/day, 3 days
+    expect(res.body.slots).toHaveLength(3 * 8);
   });
 
   it('creates one participant row per email (organizer + invitees)', async () => {
@@ -155,12 +159,13 @@ describe('POST /api/events', () => {
 
   it('generates slots in UTC correctly for Europe/Paris (UTC+2 in summer)', async () => {
     // 2025-06-15 in Europe/Paris (CEST = UTC+2)
-    // morning starts at 08:00 local → 06:00 UTC
+    // 08:00 local (480 min) → 06:00 UTC
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,
       date_range_start: '2025-06-15',
       date_range_end: '2025-06-15',
-      part_of_day: 'morning',
+      time_range_start: 480,
+      time_range_end: 720,
       timezone: 'Europe/Paris',
     });
     expect(res.status).toBe(201);
@@ -179,10 +184,21 @@ describe('POST /api/events', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 for an invalid part_of_day value', async () => {
+  it('returns 400 for invalid time_range values', async () => {
+    // time_range_start >= time_range_end
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,
-      part_of_day: 'night',
+      time_range_start: 720,
+      time_range_end: 480,
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when time_range_start is out of bounds', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      time_range_start: -1,
+      time_range_end: 480,
     });
     expect(res.status).toBe(400);
   });
@@ -237,13 +253,14 @@ describe('POST /api/events', () => {
 
   it('generates slots at correct UTC offsets across a DST boundary (Europe/Helsinki spring-forward)', async () => {
     // 2025-03-30: Helsinki clocks spring forward (EET UTC+2 → EEST UTC+3) at 03:00 local.
-    // Morning 08:00 on 2025-03-29 (EET = UTC+2) → 06:00 UTC
-    // Morning 08:00 on 2025-03-30 (EEST = UTC+3) → 05:00 UTC
+    // 08:00 on 2025-03-29 (EET = UTC+2) → 06:00 UTC
+    // 08:00 on 2025-03-30 (EEST = UTC+3) → 05:00 UTC
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,
       date_range_start: '2025-03-29',
       date_range_end: '2025-03-30',
-      part_of_day: 'morning',
+      time_range_start: 480,
+      time_range_end: 720,
       timezone: 'Europe/Helsinki',
     });
     expect(res.status).toBe(201);

@@ -4,15 +4,15 @@ import SaveStatusIndicator from './SaveStatusIndicator.jsx';
 
 const DEBOUNCE_MS = 600;
 
-// Group slots into { dayKey → { hour → slot } }
+// Group slots into { dayKey → { timeKey (minutes from midnight) → slot } }
 function buildDayMap(slots) {
   const dayMap = new Map();
   for (const slot of slots) {
     const d = new Date(slot.starts_at);
     const dayKey = d.toLocaleDateString('en-CA'); // YYYY-MM-DD, locale-independent
-    const hour = d.getHours();
+    const timeKey = d.getHours() * 60 + d.getMinutes();
     if (!dayMap.has(dayKey)) dayMap.set(dayKey, new Map());
-    dayMap.get(dayKey).set(hour, slot);
+    dayMap.get(dayKey).set(timeKey, slot);
   }
   return dayMap;
 }
@@ -57,7 +57,10 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
 
   const dayMap = buildDayMap(slots);
   const days = [...dayMap.keys()].sort();
-  const hours = [...new Set(slots.map(s => new Date(s.starts_at).getHours()))].sort((a, b) => a - b);
+  const timeKeys = [...new Set(slots.map(s => {
+    const d = new Date(s.starts_at);
+    return d.getHours() * 60 + d.getMinutes();
+  }))].sort((a, b) => a - b);
 
   return (
     <section aria-label="Availability grid">
@@ -76,11 +79,15 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
           </tr>
         </thead>
         <tbody>
-          {hours.map(hour => (
-            <tr key={hour}>
-              <th scope="row">{String(hour).padStart(2, '0')}:00</th>
+          {timeKeys.map(tk => {
+            const h = Math.floor(tk / 60);
+            const m = tk % 60;
+            const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            return (
+            <tr key={tk}>
+              <th scope="row">{label}</th>
               {days.map(day => {
-                const slot = dayMap.get(day)?.get(hour);
+                const slot = dayMap.get(day)?.get(tk);
                 if (!slot) return <td key={day} />;
                 return (
                   <td key={day}>
@@ -94,7 +101,8 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
                 );
               })}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </section>

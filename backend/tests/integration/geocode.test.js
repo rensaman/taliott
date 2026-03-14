@@ -19,7 +19,7 @@ const BASE_EVENT = {
   organizer_email: 'geo@example.com',
   date_range_start: '2025-07-01',
   date_range_end: '2025-07-01',
-  part_of_day: 'morning',
+  time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: '2099-12-31T23:59:59.000Z',
 };

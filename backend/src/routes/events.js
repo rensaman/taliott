@@ -28,7 +28,8 @@ router.post('/', async (req, res) => {
     participant_emails = [],
     date_range_start,
     date_range_end,
-    part_of_day = 'all',
+    time_range_start = 480,
+    time_range_end = 1320,
     timezone,
     venue_type,
     deadline,
@@ -75,9 +76,14 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'date_range_end must be on or after date_range_start' });
   }
 
-  const validPartOfDay = ['morning', 'afternoon', 'evening', 'all'];
-  if (!validPartOfDay.includes(part_of_day)) {
-    return res.status(400).json({ error: `part_of_day must be one of: ${validPartOfDay.join(', ')}` });
+  if (!Number.isInteger(time_range_start) || time_range_start < 0 || time_range_start > 1440) {
+    return res.status(400).json({ error: 'time_range_start must be an integer between 0 and 1440' });
+  }
+  if (!Number.isInteger(time_range_end) || time_range_end < 0 || time_range_end > 1440) {
+    return res.status(400).json({ error: 'time_range_end must be an integer between 0 and 1440' });
+  }
+  if (time_range_start >= time_range_end) {
+    return res.status(400).json({ error: 'time_range_start must be less than time_range_end' });
   }
 
   const validInviteModes = ['email_invites', 'shared_link'];
@@ -85,7 +91,7 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `invite_mode must be one of: ${validInviteModes.join(', ')}` });
   }
 
-  const slotData = generateSlots(date_range_start, date_range_end, part_of_day, timezone);
+  const slotData = generateSlots(date_range_start, date_range_end, time_range_start, time_range_end, timezone);
 
   const isSharedLink = invite_mode === 'shared_link';
   const joinToken = isSharedLink ? randomUUID() : null;
@@ -105,7 +111,8 @@ router.post('/', async (req, res) => {
         joinToken,
         dateRangeStart: new Date(date_range_start),
         dateRangeEnd: new Date(date_range_end),
-        partOfDay: part_of_day,
+        timeRangeStart: time_range_start,
+        timeRangeEnd: time_range_end,
         timezone,
         venueType: venue_type ?? null,
         deadline: new Date(deadline),

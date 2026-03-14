@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-
-const PART_OF_DAY_OPTIONS = ['all', 'morning', 'afternoon', 'evening'];
+import TimeRangeSelector from './PartOfDaySelector.jsx';
 
 function getSteps(inviteMode) {
   const steps = [
     'name',
     'organizer_email',
     'date_range',
-    'part_of_day',
+    'time_range',
     'deadline',
     'venue_type',
     'invite_mode',
@@ -19,12 +18,19 @@ function getSteps(inviteMode) {
   return steps;
 }
 
+function minutesToHHMM(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 export default function EventSetupForm({ onCreated }) {
   const [formData, setFormData] = useState({
     name: '',
     organizerEmail: '',
     dateRange: { start: '', end: '' },
-    partOfDay: 'all',
+    timeRangeStart: 480,
+    timeRangeEnd: 1320,
     deadline: '',
     venueType: '',
     inviteMode: 'email_invites',
@@ -85,7 +91,8 @@ export default function EventSetupForm({ onCreated }) {
             : [],
           date_range_start: formData.dateRange.start,
           date_range_end: formData.dateRange.end,
-          part_of_day: formData.partOfDay,
+          time_range_start: formData.timeRangeStart,
+          time_range_end: formData.timeRangeEnd,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           venue_type: formData.venueType || undefined,
           deadline: formData.deadline,
@@ -162,22 +169,16 @@ export default function EventSetupForm({ onCreated }) {
           </>
         );
 
-      case 'part_of_day':
+      case 'time_range':
         return (
           <>
             <h2>What time of day?</h2>
-            {PART_OF_DAY_OPTIONS.map(opt => (
-              <label key={opt}>
-                <input
-                  type="radio"
-                  name="part_of_day"
-                  value={opt}
-                  checked={formData.partOfDay === opt}
-                  onChange={() => update('partOfDay', opt)}
-                />
-                {opt}
-              </label>
-            ))}
+            <TimeRangeSelector
+              startValue={formData.timeRangeStart}
+              endValue={formData.timeRangeEnd}
+              onStartChange={v => update('timeRangeStart', v)}
+              onEndChange={v => update('timeRangeEnd', v)}
+            />
           </>
         );
 
@@ -271,7 +272,7 @@ export default function EventSetupForm({ onCreated }) {
               <dt>Dates</dt>
               <dd>{formData.dateRange.start} – {formData.dateRange.end}</dd>
               <dt>Time of day</dt>
-              <dd>{formData.partOfDay}</dd>
+              <dd>{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)}</dd>
               <dt>Deadline</dt>
               <dd>{formData.deadline}</dd>
               {formData.venueType && (

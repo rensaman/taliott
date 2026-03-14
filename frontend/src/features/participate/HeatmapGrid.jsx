@@ -3,14 +3,14 @@
  * Color intensity: white (0 yes) → green (all yes).
  */
 
-function buildDayHourMap(slots) {
+function buildDayTimeMap(slots) {
   const map = new Map();
   for (const slot of slots) {
     const d = new Date(slot.starts_at);
     const dayKey = d.toLocaleDateString('en-CA');
-    const hour = d.getHours();
+    const timeKey = d.getHours() * 60 + d.getMinutes();
     if (!map.has(dayKey)) map.set(dayKey, new Map());
-    map.get(dayKey).set(hour, slot.id);
+    map.get(dayKey).set(timeKey, slot.id);
   }
   return map;
 }
@@ -28,9 +28,12 @@ export default function HeatmapGrid({ slots, heatmap }) {
   const { total_participants: total, slots: heatmapSlots } = heatmap;
   const yesMap = new Map(heatmapSlots.map(s => [s.slot_id, s.yes_count]));
 
-  const dayMap = buildDayHourMap(slots);
+  const dayMap = buildDayTimeMap(slots);
   const days = [...dayMap.keys()].sort();
-  const hours = [...new Set(slots.map(s => new Date(s.starts_at).getHours()))].sort((a, b) => a - b);
+  const timeKeys = [...new Set(slots.map(s => {
+    const d = new Date(s.starts_at);
+    return d.getHours() * 60 + d.getMinutes();
+  }))].sort((a, b) => a - b);
 
   return (
     <section aria-label="Group availability heatmap">
@@ -49,11 +52,15 @@ export default function HeatmapGrid({ slots, heatmap }) {
           </tr>
         </thead>
         <tbody>
-          {hours.map(hour => (
-            <tr key={hour}>
-              <th scope="row">{String(hour).padStart(2, '0')}:00</th>
+          {timeKeys.map(tk => {
+            const h = Math.floor(tk / 60);
+            const m = tk % 60;
+            const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            return (
+            <tr key={tk}>
+              <th scope="row">{label}</th>
               {days.map(day => {
-                const slotId = dayMap.get(day)?.get(hour);
+                const slotId = dayMap.get(day)?.get(tk);
                 if (!slotId) return <td key={day} />;
                 const yesCount = yesMap.get(slotId) ?? 0;
                 return (
@@ -68,7 +75,8 @@ export default function HeatmapGrid({ slots, heatmap }) {
                 );
               })}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </section>
