@@ -6,7 +6,7 @@
  * so the caller can assert or interact with that step.
  *
  * stopAt values: 'organizer_email' | 'date_range' | 'time_range' | 'deadline'
- *                | 'venue_type' | 'invite_mode' | 'participant_emails'
+ *                | 'invite_mode' | 'participant_emails'
  * Omit stopAt (or pass null) to reach the review step.
  */
 export async function fillWizard(page, {
@@ -17,7 +17,6 @@ export async function fillWizard(page, {
   timeRangeStart = 480,
   timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
-  venueType = '',
   inviteMode = 'email_invites',
   participantEmails = '',
   stopAt = null,
@@ -44,26 +43,19 @@ export async function fillWizard(page, {
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'deadline') return;
 
-  // Step 5: deadline → venue_type
+  // Step 5: deadline → invite_mode
   await page.getByLabel(/voting deadline/i).fill(deadline);
-  await page.getByRole('button', { name: /continue/i }).click();
-  if (stopAt === 'venue_type') return;
-
-  // Step 6: venue_type → invite_mode
-  if (venueType) {
-    await page.getByLabel(/venue type/i).fill(venueType);
-  }
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'invite_mode') return;
 
-  // Step 7: invite_mode → participant_emails or review
+  // Step 6: invite_mode → participant_emails or review
   if (inviteMode === 'shared_link') {
     await page.getByRole('radio', { name: /share a join link/i }).check();
   }
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'participant_emails') return;
 
-  // Step 8: participant_emails (email_invites only) → review
+  // Step 7: participant_emails (email_invites only) → review
   if (inviteMode === 'email_invites') {
     if (participantEmails) {
       await page.getByRole('textbox', { name: /participant emails/i }).fill(participantEmails);

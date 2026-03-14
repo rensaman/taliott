@@ -71,7 +71,7 @@ test('pending participant has no slot availability list shown', async ({ page, r
 // ---------------------------------------------------------------------------
 
 test('venue cards have radio buttons and OSM links for venue names', async ({ page, request }) => {
-  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const body = await createEvent(request);
   const pid = body.participants[0].id;
   await request.patch(`/api/participate/${pid}/location`, {
     data: { latitude: 51.5074, longitude: -0.1278 },
@@ -93,6 +93,10 @@ test('venue cards have radio buttons and OSM links for venue names', async ({ pa
 
   await page.goto(`/admin/${body.admin_token}`);
 
+  // Trigger venue search via the filter
+  await page.getByLabel(/venue type/i).fill('restaurant');
+  await page.getByRole('button', { name: /search/i }).click();
+
   const cards = page.getByTestId('venue-card');
   await expect(cards).toHaveCount(2);
 
@@ -107,7 +111,7 @@ test('venue cards have radio buttons and OSM links for venue names', async ({ pa
 });
 
 test('selecting a venue radio updates the FinalizePanel selected venue display', async ({ page, request }) => {
-  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const body = await createEvent(request);
   const pid = body.participants[0].id;
   await request.patch(`/api/participate/${pid}/location`, {
     data: { latitude: 51.5074, longitude: -0.1278 },
@@ -126,6 +130,10 @@ test('selecting a venue radio updates the FinalizePanel selected venue display',
   );
 
   await page.goto(`/admin/${body.admin_token}`);
+
+  // Trigger venue search via the filter
+  await page.getByLabel(/venue type/i).fill('restaurant');
+  await page.getByRole('button', { name: /search/i }).click();
 
   await expect(page.getByTestId('venue-card')).toBeVisible();
 
@@ -144,7 +152,7 @@ test('selecting a venue radio updates the FinalizePanel selected venue display',
 // ---------------------------------------------------------------------------
 
 test('FinalizePanel has no venue dropdown — finalize works with slot only', async ({ page, request }) => {
-  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const body = await createEvent(request);
   const pid = body.participants[0].id;
   await request.patch(`/api/participate/${pid}/location`, {
     data: { latitude: 51.5074, longitude: -0.1278 },
@@ -163,6 +171,11 @@ test('FinalizePanel has no venue dropdown — finalize works with slot only', as
   );
 
   await page.goto(`/admin/${body.admin_token}`);
+
+  // Trigger venue search via the filter
+  await page.getByLabel(/venue type/i).fill('restaurant');
+  await page.getByRole('button', { name: /search/i }).click();
+
   await expect(page.getByTestId('venue-card')).toBeVisible();
 
   // There is no venue combobox/dropdown inside FinalizePanel

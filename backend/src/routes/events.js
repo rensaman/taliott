@@ -31,7 +31,6 @@ router.post('/', async (req, res) => {
     time_range_start = 480,
     time_range_end = 1320,
     timezone,
-    venue_type,
     deadline,
   } = req.body;
 
@@ -114,7 +113,6 @@ router.post('/', async (req, res) => {
         timeRangeStart: time_range_start,
         timeRangeEnd: time_range_end,
         timezone,
-        venueType: venue_type ?? null,
         deadline: new Date(deadline),
         status: 'open',
         slots: { create: slotData },

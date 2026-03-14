@@ -8,7 +8,6 @@ function getSteps(inviteMode) {
     'date_range',
     'time_range',
     'deadline',
-    'venue_type',
     'invite_mode',
   ];
   if (inviteMode === 'email_invites') {
@@ -32,7 +31,6 @@ export default function EventSetupForm({ onCreated }) {
     timeRangeStart: 480,
     timeRangeEnd: 1320,
     deadline: '',
-    venueType: '',
     inviteMode: 'email_invites',
     participantEmails: '',
   });
@@ -94,7 +92,6 @@ export default function EventSetupForm({ onCreated }) {
           time_range_start: formData.timeRangeStart,
           time_range_end: formData.timeRangeEnd,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          venue_type: formData.venueType || undefined,
           deadline: formData.deadline,
         }),
       });
@@ -198,24 +195,6 @@ export default function EventSetupForm({ onCreated }) {
           </>
         );
 
-      case 'venue_type':
-        return (
-          <>
-            <h2>What kind of venue?</h2>
-            <p>Optional — leave blank to skip</p>
-            <label>
-              Venue type
-              <input
-                type="text"
-                value={formData.venueType}
-                onChange={e => update('venueType', e.target.value)}
-                autoFocus
-                placeholder="e.g. bar, restaurant"
-              />
-            </label>
-          </>
-        );
-
       case 'invite_mode':
         return (
           <>
@@ -275,12 +254,6 @@ export default function EventSetupForm({ onCreated }) {
               <dd>{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)}</dd>
               <dt>Deadline</dt>
               <dd>{formData.deadline}</dd>
-              {formData.venueType && (
-                <>
-                  <dt>Venue</dt>
-                  <dd>{formData.venueType}</dd>
-                </>
-              )}
               <dt>Invite mode</dt>
               <dd>{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</dd>
             </dl>

@@ -13,7 +13,6 @@ function navigateToReview({
   timeRangeStart = 480,
   timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
-  venueType = '',
   inviteMode = 'email_invites',
   participantEmails = '',
   stopAt = null,
@@ -48,15 +47,8 @@ function navigateToReview({
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'deadline') return;
 
-  // Step 5 → venue_type
+  // Step 5 → invite_mode
   fireEvent.change(screen.getByLabelText(/voting deadline/i), { target: { value: deadline } });
-  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'venue_type') return;
-
-  // Step 6 → invite_mode
-  if (venueType) {
-    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: venueType } });
-  }
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'invite_mode') return;
 
@@ -221,7 +213,6 @@ describe('EventSetupForm', () => {
       dateEnd: '2025-06-03',
       timeRangeStart: 480,
       timeRangeEnd: 1320,
-      venueType: 'bar',
     });
     expect(screen.getByText('Summer meetup')).toBeInTheDocument();
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
@@ -229,7 +220,6 @@ describe('EventSetupForm', () => {
     expect(screen.getByText(/2025-06-03/)).toBeInTheDocument();
     expect(screen.getByText(/08:00/)).toBeInTheDocument();
     expect(screen.getByText(/22:00/)).toBeInTheDocument();
-    expect(screen.getByText('bar')).toBeInTheDocument();
   });
 
   // --- Submission ---
@@ -257,18 +247,6 @@ describe('EventSetupForm', () => {
     expect(body.time_range_end).toBe(720);
     expect(body.deadline).toBe('2025-05-25T12:00');
     expect(body.invite_mode).toBe('email_invites');
-  });
-
-  it('includes venue_type in the submitted payload when set', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
-
-    render(<EventSetupForm />);
-    navigateToReview({ venueType: 'restaurant' });
-    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
-
-    await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
-    const body = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(body.venue_type).toBe('restaurant');
   });
 
   it('parses participant emails from the textarea (one per line)', async () => {

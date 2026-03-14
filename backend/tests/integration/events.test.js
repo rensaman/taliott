@@ -18,7 +18,6 @@ const BASE_BODY = {
   time_range_start: 480,
   time_range_end: 1320,
   timezone: 'UTC',
-  venue_type: 'bar',
   deadline: '2025-05-25T12:00:00.000Z',
 };
 

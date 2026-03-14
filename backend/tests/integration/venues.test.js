@@ -20,7 +20,6 @@ const BASE_EVENT = {
   time_range_start: 480, time_range_end: 720,
   timezone: 'UTC',
   deadline: FUTURE_DEADLINE,
-  venue_type: 'restaurant',
 };
 
 const MOCK_OVERPASS_RESPONSE = {
@@ -37,8 +36,6 @@ afterAll(async () => {
 
 async function createEvent(overrides = {}) {
   const body = { ...BASE_EVENT, ...overrides };
-  // Explicitly delete venue_type key when override sets it to null/undefined
-  if ('venue_type' in overrides && !overrides.venue_type) delete body.venue_type;
   const res = await request(app).post('/api/events').send(body);
   expect(res.status).toBe(201);
   createdEventIds.push(res.body.event_id);
@@ -65,8 +62,8 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 400 when event has no venue type', async () => {
-    const { admin_token } = await createEvent({ venue_type: null });
+  it('returns 400 when no venue type is provided', async () => {
+    const { admin_token } = await createEvent();
     const res = await request(app).get(`/api/events/${admin_token}/venues`);
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/venue type/i);
@@ -74,7 +71,7 @@ describe('GET /api/events/:adminToken/venues', () => {
 
   it('returns 400 when no participants have a location (no centroid)', async () => {
     const { admin_token } = await createEvent();
-    const res = await request(app).get(`/api/events/${admin_token}/venues`);
+    const res = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/location/i);
   });
@@ -83,7 +80,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     const { admin_token, participants } = await createEvent();
     await giveLocation(participants[0].id);
 
-    const res = await request(app).get(`/api/events/${admin_token}/venues`);
+    const res = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res.status).toBe(200);
     expect(res.body.venues).toBeInstanceOf(Array);
     expect(res.body.venues).toHaveLength(2);
@@ -104,7 +101,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     const { admin_token, participants } = await createEvent();
     await giveLocation(participants[0].id);
 
-    const res = await request(app).get(`/api/events/${admin_token}/venues`);
+    const res = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res.status).toBe(200);
     const distances = res.body.venues.map(v => v.distanceM);
     for (let i = 1; i < distances.length; i++) {
@@ -116,13 +113,13 @@ describe('GET /api/events/:adminToken/venues', () => {
     const { admin_token, participants } = await createEvent();
     await giveLocation(participants[0].id);
 
-    const res1 = await request(app).get(`/api/events/${admin_token}/venues`);
+    const res1 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res1.status).toBe(200);
 
     // Replace mock with one that throws — a cache miss would fail the test
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Should not call external API')));
 
-    const res2 = await request(app).get(`/api/events/${admin_token}/venues`);
+    const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res2.status).toBe(200);
     expect(res2.body.venues).toEqual(res1.body.venues);
   });
@@ -138,10 +135,10 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(callBody).toContain('amenity=bar');
   });
 
-  it('includes venue_type in the admin event response', async () => {
+  it('includes venue_type as null in the admin event response when not set', async () => {
     const { admin_token } = await createEvent();
     const res = await request(app).get(`/api/events/${admin_token}`);
     expect(res.status).toBe(200);
-    expect(res.body.venue_type).toBe('restaurant');
+    expect(res.body.venue_type).toBeNull();
   });
 });

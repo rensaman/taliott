@@ -82,7 +82,7 @@ test('admin view shows no coverage counter when no participants have locations',
 });
 
 test('venue list section is visible on the admin dashboard', async ({ page, request }) => {
-  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const body = await createEvent(request);
   const pid = body.participants[0].id;
 
   // Give a participant a location so centroid is available
@@ -95,12 +95,12 @@ test('venue list section is visible on the admin dashboard', async ({ page, requ
   await expect(page.getByTestId('venue-list-section')).toBeVisible();
   await expect(page.getByRole('heading', { name: /venue recommendations/i })).toBeVisible();
   await expect(page.getByTestId('venue-type-filter')).toBeVisible();
-  // Filter input is pre-populated with the event's venue_type
-  await expect(page.getByLabel(/venue type/i)).toHaveValue('restaurant');
+  // Filter input starts empty — venue type is entered during finalization
+  await expect(page.getByLabel(/venue type/i)).toHaveValue('');
 });
 
 test('changing venue type filter triggers a new venue search', async ({ page, request }) => {
-  const body = await createEvent(request, { venue_type: 'restaurant' });
+  const body = await createEvent(request);
   const pid = body.participants[0].id;
   await request.patch(`/api/participate/${pid}/location`, {
     data: { latitude: 51.5074, longitude: -0.1278 },
