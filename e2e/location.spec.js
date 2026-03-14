@@ -27,6 +27,7 @@ test('participant sees address search on the location step', async ({ page }) =>
   await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
   await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
+  await page.getByRole('button', { name: /next/i }).click(); // step 3 → 4
 
   await expect(page.getByLabel(/search address/i)).toBeVisible();
 });
@@ -58,6 +59,7 @@ test('participant types address, selects result, and coordinates are saved', asy
   await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
   await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
+  await page.getByRole('button', { name: /next/i }).click(); // step 3 → 4
 
   const input = page.getByLabel(/search address/i);
   await input.fill('London');

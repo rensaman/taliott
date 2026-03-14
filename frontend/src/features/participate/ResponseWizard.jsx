@@ -121,12 +121,19 @@ export default function ResponseWizard({
       )}
 
       {step === 3 && (
-        <section aria-label="Your location">
+        <section aria-label="Your travel mode">
           <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
+          <button onClick={() => navigateTo(2)}>Back</button>
+          <button onClick={() => navigateTo(4)}>Next</button>
+        </section>
+      )}
+
+      {step === 4 && (
+        <section aria-label="Your location">
           <AddressSearchInput onSelect={saveLocation} />
           {location && <p data-testid="selected-address">{location.label}</p>}
           {locationError && <p role="alert">{locationError}</p>}
-          <button onClick={() => navigateTo(2)}>Back</button>
+          <button onClick={() => navigateTo(3)}>Back</button>
           <button onClick={handleSubmit} data-testid="submit-btn">Submit</button>
           {submitError && <p role="alert">{submitError}</p>}
         </section>
