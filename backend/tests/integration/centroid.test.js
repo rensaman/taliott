@@ -125,6 +125,152 @@ describe('centroid — Euclidean fallback (no ORS_API_KEY)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Travel mode propagation — verifies the travelMode field is read from DB
+// ---------------------------------------------------------------------------
+describe('centroid — travel mode propagation', () => {
+  let savedKey;
+  beforeEach(async () => {
+    savedKey = process.env.ORS_API_KEY;
+    process.env.ORS_API_KEY = 'test-ors-key';
+    await prisma.routeCache.deleteMany({});
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    if (savedKey === undefined) delete process.env.ORS_API_KEY;
+    else process.env.ORS_API_KEY = savedKey;
+  });
+
+  it('GET /api/events/:adminToken uses per-participant travel mode (mixed driving + walking)', async () => {
+    // P0 = driving, P1 = walking — cache must be populated with both ORS profiles
+    const orsMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ durations: [[300]] }),
+    });
+    vi.stubGlobal('fetch', orsMock);
+
+    const res = await request(app).post('/api/events').send({
+      ...BASE_EVENT,
+      organizer_email: 'centroid-mixed@example.com',
+      participant_emails: ['p2-mixed@example.com'],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    const { admin_token, participants } = res.body;
+
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/travel-mode`)
+      .send({ travel_mode: 'driving' });
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/travel-mode`)
+      .send({ travel_mode: 'walking' });
+
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/location`)
+      .send(LOCATIONS[0]);
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/location`)
+      .send(LOCATIONS[1]);
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    const adminRes = await request(app).get(`/api/events/${admin_token}`);
+    expect(adminRes.status).toBe(200);
+    expect(adminRes.body.centroid).not.toBeNull();
+
+    const cached = await prisma.routeCache.findMany({});
+    const modes = cached.map(e => e.mode);
+    expect(modes).toContain('driving-car');
+    expect(modes).toContain('foot-walking');
+  });
+
+  it('GET /api/participate/:id centroid uses participant travel modes from DB', async () => {
+    // This tests the path that was previously broken (select missing travelMode).
+    // Set both participants to driving; verify driving-car entries appear in RouteCache.
+    const orsMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ durations: [[400], [400]] }),
+    });
+    vi.stubGlobal('fetch', orsMock);
+
+    const res = await request(app).post('/api/events').send({
+      ...BASE_EVENT,
+      organizer_email: 'centroid-participate@example.com',
+      participant_emails: ['p2-participate@example.com'],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    const { participants } = res.body;
+
+    for (const p of participants) {
+      await request(app)
+        .patch(`/api/participate/${p.id}/travel-mode`)
+        .send({ travel_mode: 'driving' });
+    }
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/location`)
+      .send(LOCATIONS[0]);
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/location`)
+      .send(LOCATIONS[1]);
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await prisma.routeCache.deleteMany({});
+
+    const participateRes = await request(app).get(`/api/participate/${participants[0].id}`);
+    expect(participateRes.status).toBe(200);
+    expect(participateRes.body.centroid).not.toBeNull();
+
+    // If travelMode was missing (defaulting to transit), ORS would not be called.
+    // With the fix, driving mode routes through ORS → driving-car cache entries.
+    const cached = await prisma.routeCache.findMany({});
+    expect(cached.some(e => e.mode === 'driving-car')).toBe(true);
+  });
+
+  it('SSE broadcast (PATCH /location) uses participant travel modes from DB', async () => {
+    // Tests the SSE broadcast path that was also missing travelMode in its select.
+    const orsMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ durations: [[500], [500]] }),
+    });
+    vi.stubGlobal('fetch', orsMock);
+
+    const res = await request(app).post('/api/events').send({
+      ...BASE_EVENT,
+      organizer_email: 'centroid-sse@example.com',
+      participant_emails: ['p2-sse@example.com'],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    const { participants } = res.body;
+
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/travel-mode`)
+      .send({ travel_mode: 'cycling' });
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/travel-mode`)
+      .send({ travel_mode: 'cycling' });
+
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/location`)
+      .send(LOCATIONS[0]);
+
+    await prisma.routeCache.deleteMany({});
+
+    // This PATCH triggers the SSE broadcast path
+    await request(app)
+      .patch(`/api/participate/${participants[1].id}/location`)
+      .send(LOCATIONS[1]);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // If travelMode was missing, broadcast would default to transit (no ORS call).
+    // With the fix, cycling routes through ORS → cycling-regular cache entry.
+    const cached = await prisma.routeCache.findMany({});
+    expect(cached.some(e => e.mode === 'cycling-regular')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // ORS path + RouteCache
 // ---------------------------------------------------------------------------
 describe('centroid — ORS travel-time weights + RouteCache', () => {

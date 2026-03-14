@@ -36,7 +36,7 @@ router.get('/:participantId', async (req, res) => {
     computeHeatmap(getPrisma(), participant.event.id),
     getPrisma().participant.findMany({
       where: { eventId: participant.event.id },
-      select: { latitude: true, longitude: true },
+      select: { latitude: true, longitude: true, travelMode: true },
     }),
   ]);
   const centroid = await computeCentroid(allParticipants, { prisma: getPrisma() });
@@ -245,7 +245,7 @@ router.patch('/:participantId/location', async (req, res) => {
   // Broadcast centroid update to all subscribers of this event
   getPrisma().participant.findMany({
     where: { eventId: participant.event.id },
-    select: { latitude: true, longitude: true },
+    select: { latitude: true, longitude: true, travelMode: true },
   })
     .then(async participants => {
       const centroid = await computeCentroid(participants, { prisma: getPrisma() });
