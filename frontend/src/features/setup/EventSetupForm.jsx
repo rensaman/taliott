@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
 import TimeRangeSelector from './PartOfDaySelector.jsx';
 
-function getSteps(inviteMode) {
-  const steps = [
-    'name',
-    'organizer_email',
-    'date_range',
-    'time_range',
-    'deadline',
-    'invite_mode',
-  ];
-  if (inviteMode === 'email_invites') {
-    steps.push('participant_emails');
-  }
-  steps.push('review');
-  return steps;
-}
+const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_mode', 'review'];
 
 function minutesToHHMM(minutes) {
   const h = Math.floor(minutes / 60);
@@ -27,20 +13,22 @@ export default function EventSetupForm({ onCreated }) {
   const [formData, setFormData] = useState({
     name: '',
     organizerEmail: '',
+    isDateTimeFixed: false,
+    fixedDate: '',
+    fixedTime: '',
     dateRange: { start: '', end: '' },
     timeRangeStart: 480,
     timeRangeEnd: 1320,
     deadline: '',
-    inviteMode: 'email_invites',
+    inviteMode: 'shared_link',
     participantEmails: '',
   });
   const [step, setStep] = useState(0);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const steps = getSteps(formData.inviteMode);
-  const currentStep = steps[step];
-  const totalSteps = steps.length;
+  const currentStep = STEPS[step];
+  const totalSteps = STEPS.length;
 
   function update(key, value) {
     setFormData(d => ({ ...d, [key]: value }));
@@ -50,9 +38,12 @@ export default function EventSetupForm({ onCreated }) {
     switch (currentStep) {
       case 'name': return formData.name.trim().length > 0;
       case 'organizer_email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.organizerEmail);
-      case 'date_range':
-        return formData.dateRange.start && formData.dateRange.end &&
-          formData.dateRange.end >= formData.dateRange.start;
+      case 'date_and_time':
+        if (formData.isDateTimeFixed) {
+          return formData.fixedDate.length > 0 && formData.fixedTime.length > 0;
+        }
+        return !!(formData.dateRange.start && formData.dateRange.end &&
+          formData.dateRange.end >= formData.dateRange.start);
       case 'deadline': return formData.deadline.length > 0;
       case 'review': return !submitting;
       default: return true;
@@ -76,6 +67,22 @@ export default function EventSetupForm({ onCreated }) {
   async function handleSubmit() {
     setError(null);
     setSubmitting(true);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    let dateRangeStart, dateRangeEnd, timeRangeStart, timeRangeEnd;
+    if (formData.isDateTimeFixed) {
+      dateRangeStart = formData.fixedDate;
+      dateRangeEnd = formData.fixedDate;
+      const [hours, mins] = formData.fixedTime.split(':').map(Number);
+      timeRangeStart = hours * 60 + mins;
+      timeRangeEnd = timeRangeStart + 30;
+    } else {
+      dateRangeStart = formData.dateRange.start;
+      dateRangeEnd = formData.dateRange.end;
+      timeRangeStart = formData.timeRangeStart;
+      timeRangeEnd = formData.timeRangeEnd;
+    }
+
     try {
       const res = await fetch('/api/events', {
         method: 'POST',
@@ -87,11 +94,11 @@ export default function EventSetupForm({ onCreated }) {
           participant_emails: formData.inviteMode === 'email_invites'
             ? formData.participantEmails.split('\n').map(s => s.trim()).filter(Boolean)
             : [],
-          date_range_start: formData.dateRange.start,
-          date_range_end: formData.dateRange.end,
-          time_range_start: formData.timeRangeStart,
-          time_range_end: formData.timeRangeEnd,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          date_range_start: dateRangeStart,
+          date_range_end: dateRangeEnd,
+          time_range_start: timeRangeStart,
+          time_range_end: timeRangeEnd,
+          timezone,
           deadline: formData.deadline,
         }),
       });
@@ -107,6 +114,8 @@ export default function EventSetupForm({ onCreated }) {
       setSubmitting(false);
     }
   }
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   function renderStepContent() {
     switch (currentStep) {
@@ -142,40 +151,83 @@ export default function EventSetupForm({ onCreated }) {
           </>
         );
 
-      case 'date_range':
+      case 'date_and_time':
         return (
           <>
-            <h2>When could this happen?</h2>
+            <h2>When is it happening?</h2>
             <label>
-              From
               <input
-                type="date"
-                value={formData.dateRange.start}
-                onChange={e => update('dateRange', { ...formData.dateRange, start: e.target.value })}
+                type="radio"
+                name="dt_pref"
+                value="flexible"
+                checked={!formData.isDateTimeFixed}
+                onChange={() => update('isDateTimeFixed', false)}
               />
+              We need to find a time that works
             </label>
             <label>
-              To
               <input
-                type="date"
-                value={formData.dateRange.end}
-                min={formData.dateRange.start || undefined}
-                onChange={e => update('dateRange', { ...formData.dateRange, end: e.target.value })}
+                type="radio"
+                name="dt_pref"
+                value="fixed"
+                checked={formData.isDateTimeFixed}
+                onChange={() => update('isDateTimeFixed', true)}
               />
+              The date and time are already set
             </label>
-          </>
-        );
 
-      case 'time_range':
-        return (
-          <>
-            <h2>What time of day?</h2>
-            <TimeRangeSelector
-              startValue={formData.timeRangeStart}
-              endValue={formData.timeRangeEnd}
-              onStartChange={v => update('timeRangeStart', v)}
-              onEndChange={v => update('timeRangeEnd', v)}
-            />
+            {formData.isDateTimeFixed ? (
+              <>
+                <label>
+                  Date
+                  <input
+                    type="date"
+                    value={formData.fixedDate}
+                    onChange={e => update('fixedDate', e.target.value)}
+                  />
+                </label>
+                <label>
+                  Start time ({timezone})
+                  <input
+                    type="time"
+                    value={formData.fixedTime}
+                    onChange={e => update('fixedTime', e.target.value)}
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <fieldset>
+                  <legend>Date range</legend>
+                  <label>
+                    From
+                    <input
+                      type="date"
+                      value={formData.dateRange.start}
+                      onChange={e => update('dateRange', { ...formData.dateRange, start: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    To
+                    <input
+                      type="date"
+                      value={formData.dateRange.end}
+                      min={formData.dateRange.start || undefined}
+                      onChange={e => update('dateRange', { ...formData.dateRange, end: e.target.value })}
+                    />
+                  </label>
+                </fieldset>
+                <fieldset>
+                  <legend>Start time ({timezone})</legend>
+                  <TimeRangeSelector
+                    startValue={formData.timeRangeStart}
+                    endValue={formData.timeRangeEnd}
+                    onStartChange={v => update('timeRangeStart', v)}
+                    onEndChange={v => update('timeRangeEnd', v)}
+                  />
+                </fieldset>
+              </>
+            )}
           </>
         );
 
@@ -203,43 +255,40 @@ export default function EventSetupForm({ onCreated }) {
               <input
                 type="radio"
                 name="invite_mode"
-                value="email_invites"
-                checked={formData.inviteMode === 'email_invites'}
-                onChange={() => update('inviteMode', 'email_invites')}
-              />
-              Send email invites
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="invite_mode"
                 value="shared_link"
                 checked={formData.inviteMode === 'shared_link'}
                 onChange={() => update('inviteMode', 'shared_link')}
               />
               Share a join link
             </label>
-          </>
-        );
-
-      case 'participant_emails':
-        return (
-          <>
-            <h2>Who&apos;s invited?</h2>
             <label>
-              Participant emails
-              <small> (one per line)</small>
-              <textarea
-                value={formData.participantEmails}
-                onChange={e => update('participantEmails', e.target.value)}
-                autoFocus
-                placeholder={'jamie@example.com\nsam@example.com'}
+              <input
+                type="radio"
+                name="invite_mode"
+                value="email_invites"
+                checked={formData.inviteMode === 'email_invites'}
+                onChange={() => update('inviteMode', 'email_invites')}
               />
+              Send email invites
             </label>
+            {formData.inviteMode === 'email_invites' && (
+              <label>
+                Participant emails
+                <small> (one per line)</small>
+                <textarea
+                  value={formData.participantEmails}
+                  onChange={e => update('participantEmails', e.target.value)}
+                  placeholder={'jamie@example.com\nsam@example.com'}
+                />
+              </label>
+            )}
           </>
         );
 
-      case 'review':
+      case 'review': {
+        const emails = formData.inviteMode === 'email_invites'
+          ? formData.participantEmails.split('\n').map(s => s.trim()).filter(Boolean)
+          : [];
         return (
           <>
             <h2>Ready to create your event?</h2>
@@ -248,14 +297,33 @@ export default function EventSetupForm({ onCreated }) {
               <dd>{formData.name}</dd>
               <dt>Organizer</dt>
               <dd>{formData.organizerEmail}</dd>
-              <dt>Dates</dt>
-              <dd>{formData.dateRange.start} – {formData.dateRange.end}</dd>
-              <dt>Time of day</dt>
-              <dd>{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)}</dd>
+              {formData.isDateTimeFixed ? (
+                <>
+                  <dt>Date &amp; time</dt>
+                  <dd>{formData.fixedDate} at {formData.fixedTime} ({timezone})</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Dates</dt>
+                  <dd>{formData.dateRange.start} – {formData.dateRange.end}</dd>
+                  <dt>Start time</dt>
+                  <dd>{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)} ({timezone})</dd>
+                </>
+              )}
               <dt>Deadline</dt>
               <dd>{formData.deadline}</dd>
               <dt>Invite mode</dt>
               <dd>{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</dd>
+              {emails.length > 0 && (
+                <>
+                  <dt>Invitees</dt>
+                  <dd>
+                    <ul>
+                      {emails.map(email => <li key={email}>{email}</li>)}
+                    </ul>
+                  </dd>
+                </>
+              )}
             </dl>
             <p>
               By creating this event you confirm that any participant emails you have provided were
@@ -265,6 +333,7 @@ export default function EventSetupForm({ onCreated }) {
             </p>
           </>
         );
+      }
 
       default:
         return null;

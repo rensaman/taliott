@@ -76,7 +76,6 @@ export default function App() {
     return (
       <main>
         <h1>{confirmation.name}</h1>
-        <p>{confirmation.slots?.length ?? 0} slots generated</p>
         <p>Your event was created. Save your admin link to manage it:</p>
         <a href={adminUrl} data-testid="admin-token">{confirmation.admin_token}</a>
         {joinUrl ? (
@@ -104,7 +103,6 @@ export default function App() {
       <main>
         <h1>taliott</h1>
         <EventSetupForm onCreated={setConfirmation} />
-        <p><a href="/resend">Lost your link? Recover it here</a></p>
       </main>
       <LegalFooter />
     </>

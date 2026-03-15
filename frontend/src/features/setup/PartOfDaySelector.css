@@ -1,0 +1,92 @@
+.time-range-picker {
+  margin: 0.5rem 0;
+}
+
+.time-range-track-container {
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.time-range-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.time-range-fill {
+  position: absolute;
+  height: 6px;
+  background: #111;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.time-range-input {
+  position: absolute;
+  width: 100%;
+  height: 40px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+
+.time-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #111;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.time-range-input::-moz-range-thumb {
+  pointer-events: all;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #111;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.time-range-input::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.time-range-input::-moz-range-track {
+  background: transparent;
+}
+
+.time-range-axis {
+  position: relative;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.time-range-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: #999;
+}
+
+.time-range-values {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #555;
+}

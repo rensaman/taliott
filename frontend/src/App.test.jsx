@@ -65,7 +65,6 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
     fireEvent.click(screen.getByRole('button', { name: 'create' }));
     expect(screen.getByRole('heading', { name: 'My Event' })).toBeInTheDocument();
-    expect(screen.getByText('3 slots generated')).toBeInTheDocument();
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
     expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
     expect(screen.getByText(/2/)).toBeInTheDocument();

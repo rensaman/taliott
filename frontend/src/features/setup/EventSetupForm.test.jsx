@@ -4,16 +4,18 @@ import EventSetupForm from './EventSetupForm.jsx';
 
 // Navigate through the wizard up to (and including) the step named by `stopAt`,
 // or all the way to the review step if `stopAt` is omitted.
-// Returns without clicking "Create Event" so callers can assert state or submit.
 function navigateToReview({
   name = 'Summer meetup',
   organizerEmail = 'alex@example.com',
+  isFixed = false,
+  fixedDate = '2025-06-01',
+  fixedTime = '10:00',
   dateStart = '2025-06-01',
   dateEnd = '2025-06-03',
   timeRangeStart = 480,
   timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
-  inviteMode = 'email_invites',
+  inviteMode = 'shared_link',
   participantEmails = '',
   stopAt = null,
 } = {}) {
@@ -24,52 +26,47 @@ function navigateToReview({
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'organizer_email') return;
 
-  // Step 2 → date_range
+  // Step 2 → date_and_time
   fireEvent.change(screen.getByRole('textbox', { name: /your email/i }), {
     target: { value: organizerEmail },
   });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'date_range') return;
+  if (stopAt === 'date_and_time') return;
 
-  // Step 3 → time_range
-  fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: dateStart } });
-  fireEvent.change(screen.getByLabelText(/^to$/i), { target: { value: dateEnd } });
-  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'time_range') return;
-
-  // Step 4 → deadline
-  fireEvent.change(screen.getByRole('combobox', { name: /from time/i }), {
-    target: { value: String(timeRangeStart) },
-  });
-  fireEvent.change(screen.getByRole('combobox', { name: /to time/i }), {
-    target: { value: String(timeRangeEnd) },
-  });
+  // Step 3: fill date_and_time → deadline
+  if (isFixed) {
+    fireEvent.click(screen.getByRole('radio', { name: /already set/i }));
+    fireEvent.change(screen.getByLabelText(/^date$/i), { target: { value: fixedDate } });
+    fireEvent.change(screen.getByLabelText(/start time/i), { target: { value: fixedTime } });
+  } else {
+    fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: dateStart } });
+    fireEvent.change(screen.getByLabelText(/^to$/i), { target: { value: dateEnd } });
+    fireEvent.change(screen.getByRole('slider', { name: /earliest start/i }), {
+      target: { value: String(timeRangeStart) },
+    });
+    fireEvent.change(screen.getByRole('slider', { name: /latest start/i }), {
+      target: { value: String(timeRangeEnd) },
+    });
+  }
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'deadline') return;
 
-  // Step 5 → invite_mode
+  // Step 4 → invite_mode
   fireEvent.change(screen.getByLabelText(/voting deadline/i), { target: { value: deadline } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'invite_mode') return;
 
-  // Step 7 → participant_emails or review
-  if (inviteMode === 'shared_link') {
-    fireEvent.click(screen.getByRole('radio', { name: /share a join link/i }));
-  }
-  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'participant_emails') return;
-
-  // Step 8 (email_invites only) → review
+  // Step 5 → review
   if (inviteMode === 'email_invites') {
+    fireEvent.click(screen.getByRole('radio', { name: /send email invites/i }));
     if (participantEmails) {
       fireEvent.change(screen.getByRole('textbox', { name: /participant emails/i }), {
         target: { value: participantEmails },
       });
     }
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   }
-
-  // Now on review step
+  // shared_link is default — no action needed
+  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 }
 
 describe('EventSetupForm', () => {
@@ -124,9 +121,9 @@ describe('EventSetupForm', () => {
     expect(screen.getByRole('button', { name: /continue/i })).toBeEnabled();
   });
 
-  it('Continue is disabled on the date range step until both dates are entered', () => {
+  it('Continue is disabled on the date_and_time step until both dates are entered', () => {
     render(<EventSetupForm />);
-    navigateToReview({ stopAt: 'date_range' });
+    navigateToReview({ stopAt: 'date_and_time' });
     expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
     fireEvent.change(screen.getByLabelText(/^from$/i), { target: { value: '2025-06-01' } });
     expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
@@ -164,27 +161,59 @@ describe('EventSetupForm', () => {
     expect(screen.getByRole('heading', { name: /what.s the event called/i })).toBeInTheDocument();
   });
 
-  it('defaults time range to 08:00–22:00', () => {
+  it('date_and_time step shows both preference radios and date/time inputs', () => {
     render(<EventSetupForm />);
-    navigateToReview({ stopAt: 'time_range' });
-    expect(screen.getByRole('combobox', { name: /from time/i }).value).toBe('480');
-    expect(screen.getByRole('combobox', { name: /to time/i }).value).toBe('1320');
+    navigateToReview({ stopAt: 'date_and_time' });
+    expect(screen.getByRole('radio', { name: /time that works/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /already set/i })).toBeInTheDocument();
+    // flexible mode is default — date range and sliders are visible
+    expect(screen.getByLabelText(/^from$/i)).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: /earliest start/i })).toBeInTheDocument();
   });
 
-  it('shows participant emails step when invite mode is email_invites', () => {
+  it('defaults time range to 08:00–22:00', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ stopAt: 'date_and_time' });
+    expect(screen.getByRole('slider', { name: /earliest start/i }).value).toBe('480');
+    expect(screen.getByRole('slider', { name: /latest start/i }).value).toBe('1320');
+  });
+
+  it('switching to fixed mode hides the date range and sliders', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ stopAt: 'date_and_time' });
+    fireEvent.click(screen.getByRole('radio', { name: /already set/i }));
+    expect(screen.queryByRole('slider', { name: /earliest start/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/start time/i)).toBeInTheDocument();
+  });
+
+  it('defaults to shared_link invite mode', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'invite_mode' });
-    // email_invites is the default — just advance
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    expect(screen.getByRole('radio', { name: /share a join link/i })).toBeChecked();
+  });
+
+  it('shared_link is listed before email invites', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ stopAt: 'invite_mode' });
+    const radios = screen.getAllByRole('radio');
+    expect(radios[0]).toHaveAttribute('value', 'shared_link');
+    expect(radios[1]).toHaveAttribute('value', 'email_invites');
+  });
+
+  it('shows participant email textarea when email_invites is selected', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ stopAt: 'invite_mode' });
+    expect(screen.queryByRole('textbox', { name: /participant emails/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /send email invites/i }));
     expect(screen.getByRole('textbox', { name: /participant emails/i })).toBeInTheDocument();
   });
 
-  it('skips participant emails step when invite mode is shared_link', () => {
+  it('hides participant email textarea when shared_link is selected', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'invite_mode' });
+    fireEvent.click(screen.getByRole('radio', { name: /send email invites/i }));
     fireEvent.click(screen.getByRole('radio', { name: /share a join link/i }));
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-    expect(screen.getByRole('heading', { name: /ready to create/i })).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /participant emails/i })).not.toBeInTheDocument();
   });
 
   // --- Review step ---
@@ -222,6 +251,16 @@ describe('EventSetupForm', () => {
     expect(screen.getByText(/22:00/)).toBeInTheDocument();
   });
 
+  it('review step shows invitee emails when email_invites mode is used', () => {
+    render(<EventSetupForm />);
+    navigateToReview({
+      inviteMode: 'email_invites',
+      participantEmails: 'jamie@example.com\nsam@example.com',
+    });
+    expect(screen.getByText('jamie@example.com')).toBeInTheDocument();
+    expect(screen.getByText('sam@example.com')).toBeInTheDocument();
+  });
+
   // --- Submission ---
 
   it('submits the form with correct payload', async () => {
@@ -231,7 +270,7 @@ describe('EventSetupForm', () => {
     });
 
     render(<EventSetupForm onCreated={() => {}} />);
-    navigateToReview({ timeRangeStart: 480, timeRangeEnd: 720 });
+    navigateToReview({ inviteMode: 'email_invites', timeRangeStart: 480, timeRangeEnd: 720 });
     fireEvent.click(screen.getByRole('button', { name: /create event/i }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
@@ -253,7 +292,10 @@ describe('EventSetupForm', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
 
     render(<EventSetupForm />);
-    navigateToReview({ participantEmails: 'jamie@example.com\nsam@example.com\n' });
+    navigateToReview({
+      inviteMode: 'email_invites',
+      participantEmails: 'jamie@example.com\nsam@example.com\n',
+    });
     fireEvent.click(screen.getByRole('button', { name: /create event/i }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce());

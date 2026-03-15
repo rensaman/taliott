@@ -5,19 +5,21 @@
  * navigation stops after arriving on that step (without advancing past it),
  * so the caller can assert or interact with that step.
  *
- * stopAt values: 'organizer_email' | 'date_range' | 'time_range' | 'deadline'
- *                | 'invite_mode' | 'participant_emails'
+ * stopAt values: 'organizer_email' | 'date_and_time' | 'deadline' | 'invite_mode'
  * Omit stopAt (or pass null) to reach the review step.
  */
 export async function fillWizard(page, {
   name = 'Summer meetup',
   organizerEmail = 'alex@example.com',
+  isFixed = false,
+  fixedDate = '2025-06-01',
+  fixedTime = '10:00',
   dateStart = '2025-06-01',
   dateEnd = '2025-06-03',
   timeRangeStart = 480,
   timeRangeEnd = 1320,
   deadline = '2025-05-25T12:00',
-  inviteMode = 'email_invites',
+  inviteMode = 'shared_link',
   participantEmails = '',
   stopAt = null,
 } = {}) {
@@ -29,42 +31,55 @@ export async function fillWizard(page, {
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'organizer_email') return;
 
-  // Step 2: organizer_email → date_range
+  // Step 2: organizer_email → date_and_time
   await page.getByRole('textbox', { name: /your email/i }).fill(organizerEmail);
   await page.getByRole('button', { name: /continue/i }).click();
-  if (stopAt === 'date_range') return;
+  if (stopAt === 'date_and_time') return;
 
-  // Step 3: date_range → time_range
-  await page.getByLabel(/from/i).fill(dateStart);
-  await page.getByLabel(/to/i).fill(dateEnd);
-  await page.getByRole('button', { name: /continue/i }).click();
-  if (stopAt === 'time_range') return;
-
-  // Step 4: time_range → deadline
-  await page.getByLabel(/from time/i).selectOption(String(timeRangeStart));
-  await page.getByLabel(/to time/i).selectOption(String(timeRangeEnd));
+  // Step 3: date_and_time → deadline
+  if (isFixed) {
+    await page.getByRole('radio', { name: /already set/i }).click();
+    await page.getByLabel(/^date$/i).fill(fixedDate);
+    await page.getByLabel(/start time/i).fill(fixedTime);
+  } else {
+    await page.getByLabel(/^from$/i).fill(dateStart);
+    await page.getByLabel(/^to$/i).fill(dateEnd);
+    await setSlider(page, 'Earliest start', timeRangeStart);
+    await setSlider(page, 'Latest start', timeRangeEnd);
+  }
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'deadline') return;
 
-  // Step 5: deadline → invite_mode
+  // Step 4: deadline → invite_mode
   await page.getByLabel(/voting deadline/i).fill(deadline);
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'invite_mode') return;
 
-  // Step 6: invite_mode → participant_emails or review
-  if (inviteMode === 'shared_link') {
-    await page.getByRole('radio', { name: /share a join link/i }).check();
-  }
-  await page.getByRole('button', { name: /continue/i }).click();
-  if (stopAt === 'participant_emails') return;
-
-  // Step 7: participant_emails (email_invites only) → review
+  // Step 5: invite_mode → review
   if (inviteMode === 'email_invites') {
+    await page.getByRole('radio', { name: /send email invites/i }).click();
     if (participantEmails) {
       await page.getByRole('textbox', { name: /participant emails/i }).fill(participantEmails);
     }
-    await page.getByRole('button', { name: /continue/i }).click();
   }
+  // shared_link is the default — no action needed
+  await page.getByRole('button', { name: /continue/i }).click();
 
   // Caller is now on the review step
+}
+
+/**
+ * Sets the value of a range slider input using React's synthetic event system.
+ * page.fill() doesn't work for range inputs, so we use the native value setter
+ * and dispatch a change event that React picks up.
+ */
+async function setSlider(page, label, value) {
+  const slider = page.getByRole('slider', { name: label });
+  await slider.evaluate((el, val) => {
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, 'value'
+    ).set;
+    nativeSetter.call(el, String(val));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
 }

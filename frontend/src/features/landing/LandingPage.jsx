@@ -12,21 +12,21 @@ export default function LandingPage({ onStart }) {
         </h1>
 
         <p className="landing-sub">
-          Everyone votes on their availability and location.
-          You pick the best time and a fair spot for all.
+          Everyone shares where they&apos;re coming from.
+          You pick the spot that&apos;s fair for all — and a time that works.
         </p>
 
         <div className="landing-steps">
           <div className="landing-step">
-            <span className="step-icon">📅</span>
-            <span className="step-label">Set a date range</span>
+            <span className="step-icon">📍</span>
+            <span className="step-label">Everyone shares their location</span>
           </div>
           <div className="landing-step">
             <span className="step-icon">🗳️</span>
-            <span className="step-label">Everyone votes</span>
+            <span className="step-label">Vote on dates &amp; times</span>
           </div>
           <div className="landing-step">
-            <span className="step-icon">📍</span>
+            <span className="step-icon">✅</span>
             <span className="step-label">Pick the fairest spot</span>
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function LandingPage({ onStart }) {
         </button>
 
         <p className="landing-recover">
-          Already have an event? <a href="/resend">Recover your link</a>
+          Already have an event? <a href="/resend">Find your link</a>
         </p>
       </div>
 
