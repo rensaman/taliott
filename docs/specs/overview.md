@@ -78,6 +78,7 @@ Participant
   latitude        float?
   longitude       float?
   address_label   string?
+  travel_mode     enum(walking|cycling|driving|transit)  # default: transit
   responded_at    datetime?
 
 Slot                                     # generated from Event date range; times stored in UTC
@@ -102,6 +103,8 @@ Venue                                    # fetched from external API, cached
   longitude       float
   rating          float?
   distance_m      int?
+  website         string?
+  address         string?
 ```
 
 ---
@@ -112,14 +115,22 @@ Venue                                    # fetched from external API, cached
 |--------|------|------|-------------|
 | POST | /api/events | none | Create event; returns admin_token + participant tokens |
 | GET | /api/events/:adminToken | admin token | Organizer dashboard data |
+| DELETE | /api/events/:adminToken | admin token | Delete event and all associated data |
+| GET | /api/events/:adminToken/stream | admin token | SSE stream for real-time updates (heatmap, centroid) |
 | POST | /api/events/:adminToken/finalize | admin token | Lock event, trigger notifications |
-| GET | /api/participate/:participantId | participant token | Load participant view |
-| PATCH | /api/participate/:participantId/location | participant token | Save geocoded location |
-| PATCH | /api/participate/:participantId/availability | participant token | Batch-save availability states |
 | GET | /api/events/:adminToken/venues | admin token | Fetch venue recommendations |
+| GET | /api/participate/:participantId | participant token | Load participant view |
+| PATCH | /api/participate/:participantId/name | participant token | Save participant name |
+| PATCH | /api/participate/:participantId/location | participant token | Save geocoded location |
+| PATCH | /api/participate/:participantId/travel-mode | participant token | Save travel mode; triggers centroid recalculation broadcast |
+| PATCH | /api/participate/:participantId/availability | participant token | Batch-save availability states |
+| PATCH | /api/participate/:participantId/confirm | participant token | Mark response as submitted (sets responded_at) |
+| GET | /api/participate/:participantId/export | participant token | Export participant data |
+| DELETE | /api/participate/:participantId | participant token | Anonymize participant record |
 | GET | /api/geocode?q= | none | Proxy geocoding search |
 | GET | /api/join/:joinToken | none | Validate join token; return event name + deadline |
 | POST | /api/join/:joinToken | none | Self-register with email (+ optional name); returns participant_id |
+| POST | /api/resend-link | none | Rate-limited link recovery; re-sends admin/participant link by email |
 
 ---
 
@@ -440,7 +451,7 @@ As a Participant I want to give my response through a guided wizard so that each
 First visit (or "Update response"):
   Step 1 — Name       → pre-filled if already set; saved when navigating away from step
   Step 2 — Availability grid (auto-saved on interaction, unchanged from US 2.2)
-  Step 3 — Location   → address fuzzy search only, no map; skippable
+  Step 3 — Location & Travel Mode → address fuzzy search only, no map; travel mode selector (walking/cycling/driving/transit); both skippable
   "Submit" on step 3  → calls /confirm → navigate to Summary view
 
 Returning visit (responded_at is set):
@@ -511,26 +522,29 @@ Returning visit (responded_at is set):
 #### US 2.3 — Real-Time Group Insight
 
 **Story**
-As a Participant I want to see the group heatmap and fair center update live as others respond.
+As an Organizer I want to see the group heatmap and fair center update live as participants respond.
+
+> **Note:** Following the US 2.4 wizard redesign, the real-time heatmap and centroid map are **admin-only** features. They have been removed from the participant view. The SSE stream is on `GET /api/events/:adminToken/stream`, not on participant routes.
 
 **Acceptance Criteria**
 - [x] Availability heatmap color intensity reflects the count of "yes" responses per slot
-- [x] "Estimated Meetup Area" map marker recalculates when any participant updates their location
-- [x] Updates propagate to all open participant views without a page refresh (WebSocket or SSE)
+- [x] "Estimated Meetup Area" map marker recalculates when any participant updates their location or travel mode
+- [x] Updates propagate to the open admin view without a page refresh (SSE)
 
-**Entities touched:** `Availability`, `Participant` (lat/lng), computed centroid
+**Entities touched:** `Availability`, `Participant` (lat/lng, travel_mode), computed centroid
 
-**API:** WebSocket or SSE endpoint for event-scoped updates; server pushes on Availability/Participant change
+**API:** `GET /api/events/:adminToken/stream` — SSE stream; server pushes heatmap and centroid updates on Availability/Participant change
 
-**UI components:** `HeatmapGrid`, `GroupMap`, `CentroidMarker`
+**UI components:** `HeatmapGrid`, `GroupMap`, `CentroidMarker` (admin view only)
 
 **Test cases**
 - Unit: heatmap color mapper returns correct intensity for given yes-count / total-participant ratio
 - Unit: centroid calculation averages all active coordinate pairs
 - Integration: updating availability triggers a broadcast to subscribed clients ✓
 - Integration: updating a participant location triggers centroid recalculation broadcast ✓
-- E2E: two participants open simultaneously → one changes slot → other sees heatmap update without refresh ✓
-- E2E: one participant sets location → other sees centroid update without refresh ✓
+- Integration: updating a participant travel mode triggers centroid recalculation broadcast ✓
+- E2E: two participants open simultaneously → one changes slot → organizer sees heatmap update without refresh ✓
+- E2E: one participant sets location → organizer sees centroid update without refresh ✓
 
 ---
 
@@ -593,9 +607,9 @@ As an Organizer I want to see the mathematically fairest meeting point so that n
 - 1 API call per iteration → max 5 calls per centroid computation
 - Cache warms quickly; subsequent computations for same participants cost 0 calls
 
-**Phase 2 (not yet implemented):** Per-participant travel mode (walking / cycling / driving / transit via Navitia)
+**Phase 2 (implemented):** Per-participant travel mode (walking / cycling / driving / transit). Participant selects their preferred mode in the wizard (Step 3, merged with location). Centroid recalculates and broadcasts on mode change.
 
-**Entities touched:** `Participant` (lat/lng), `RouteCache` (fromLat, fromLng, toLat, toLng, mode, durationSec), computed centroid (not persisted)
+**Entities touched:** `Participant` (lat/lng, travel_mode), `RouteCache` (fromLat, fromLng, toLat, toLng, mode, durationSec), computed centroid (not persisted)
 
 **API:** Centroid computed server-side (async); exposed via `GET /api/events/:adminToken` and `GET /api/participate/:participantId`
 
