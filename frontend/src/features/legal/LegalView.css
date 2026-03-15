@@ -1,0 +1,84 @@
+.legal-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.legal-header {
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.legal-body {
+  flex: 1;
+  padding: 2rem 1.25rem 3rem;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.legal-body h1 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  margin-bottom: 0.5rem;
+}
+
+.legal-body h2 {
+  font-size: 1.05rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.legal-body h3 {
+  font-size: 0.9rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.legal-body p,
+.legal-body ul {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin-bottom: 0.75rem;
+}
+
+.legal-body ul {
+  padding-left: 1.25rem;
+}
+
+.legal-body li {
+  margin-bottom: 0.4rem;
+}
+
+.legal-body a {
+  color: var(--ink);
+}
+
+.legal-body em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.82rem;
+}
+
+.legal-footer {
+  border-top: 1px solid var(--rule);
+  padding: 0.75rem 1.25rem;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.72rem;
+}
+
+.legal-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.legal-footer a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
