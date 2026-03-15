@@ -56,6 +56,17 @@ test('participant types address, selects result, and coordinates are saved', asy
   const { participants } = await createEvent(page);
   const pid = participants[0].id;
 
+  // Stub the geocode proxy so the test never hits real Nominatim
+  await page.route('**/api/geocode*', route =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { lat: 51.5074, lng: -0.1278, label: 'London, England' },
+      ]),
+    })
+  );
+
   await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /next/i }).click(); // step 1 → 2
   await page.getByRole('button', { name: /next/i }).click(); // step 2 → 3
@@ -64,11 +75,15 @@ test('participant types address, selects result, and coordinates are saved', asy
   const input = page.getByLabel(/search address/i);
   await input.fill('London');
 
-  // Wait for debounce + geocode results to appear
+  // Wait for debounce + (mocked) geocode results to appear
   await expect(page.getByRole('listbox')).toBeVisible({ timeout: 5000 });
 
-  // Select the first result
+  // Select the first result and wait for the location PATCH to complete
+  const locationSaved = page.waitForResponse(r =>
+    r.url().includes('/location') && r.request().method() === 'PATCH'
+  );
   await page.getByRole('listbox').locator('button').first().click();
+  await locationSaved;
 
   // Dropdown should close after selection
   await expect(page.getByRole('listbox')).not.toBeVisible();

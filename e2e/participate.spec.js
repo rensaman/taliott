@@ -90,8 +90,8 @@ test.describe.serial('email notifications via Mailpit', () => {
     await waitForEmail('notify2@example.com', { since });
 
     // Second run — already locked, no new email
-    await page.request.post('/api/admin/run-deadline-worker');
-    await page.waitForTimeout(800);
+    const second = await page.request.post('/api/admin/run-deadline-worker');
+    await second.json(); // wait for the response body before counting
 
     const data = await (await fetch('http://localhost:8025/api/v1/messages')).json();
     const count = data.messages?.filter(m =>

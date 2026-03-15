@@ -6,14 +6,18 @@ import { test, expect } from '@playwright/test';
 import { waitForEmail } from './mailpit.js';
 import { fillWizard } from './helpers.js';
 
+// Unique suffix per test run prevents stale emails in Mailpit from matching
+// the since filter and causing false positives or accumulated-DB interference.
+const RUN_ID = Date.now();
+
 test.describe.serial('invite emails via Mailpit', () => {
   test('organizer receives a confirmation email with admin link', async ({ page }) => {
-    const since = new Date();
+    const orgEmail = `organizer-${RUN_ID}@example.com`;
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Invite E2E Event',
-        organizer_email: 'organizer-e2e@example.com',
-        participant_emails: ['invitee1-e2e@example.com'],
+        organizer_email: orgEmail,
+        participant_emails: [`invitee1-${RUN_ID}@example.com`],
         date_range_start: '2025-08-01',
         date_range_end: '2025-08-01',
         time_range_start: 480, time_range_end: 720,
@@ -24,20 +28,8 @@ test.describe.serial('invite emails via Mailpit', () => {
     expect(res.ok()).toBeTruthy();
     const { admin_token } = await res.json();
 
-    // Poll until we find the confirmation email (subject contains "is ready")
-    const deadline = Date.now() + 5_000;
-    let confirmationEmail;
-    while (Date.now() < deadline) {
-      const listRes = await fetch('http://localhost:8025/api/v1/messages');
-      const data = await listRes.json();
-      confirmationEmail = data.messages?.find(m =>
-        m.To?.some(t => t.Address === 'organizer-e2e@example.com') &&
-        m.Subject?.includes('is ready') &&
-        new Date(m.Created) >= since
-      );
-      if (confirmationEmail) break;
-      await page.waitForTimeout(300);
-    }
+    // Unique email — no since filter needed
+    const confirmationEmail = await waitForEmail(orgEmail, { timeout: 8000, subject: 'is ready' });
     expect(confirmationEmail).toBeDefined();
 
     const msgRes = await fetch(`http://localhost:8025/api/v1/message/${confirmationEmail.ID}`);
@@ -46,12 +38,13 @@ test.describe.serial('invite emails via Mailpit', () => {
   });
 
   test('each invitee receives an email containing their participation link', async ({ page }) => {
-    const since = new Date();
+    const guest1Email = `guest1-${RUN_ID}@example.com`;
+    const guest2Email = `guest2-${RUN_ID}@example.com`;
     const res = await page.request.post('/api/events', {
       data: {
         name: 'Multi Invite E2E',
-        organizer_email: 'host-e2e@example.com',
-        participant_emails: ['guest1-e2e@example.com', 'guest2-e2e@example.com'],
+        organizer_email: `host-${RUN_ID}@example.com`,
+        participant_emails: [guest1Email, guest2Email],
         date_range_start: '2025-08-02',
         date_range_end: '2025-08-02',
         time_range_start: 480, time_range_end: 720,
@@ -62,20 +55,16 @@ test.describe.serial('invite emails via Mailpit', () => {
     expect(res.ok()).toBeTruthy();
     const { participants } = await res.json();
 
-    const guest1 = participants.find(p => p.email === 'guest1-e2e@example.com');
-    const guest2 = participants.find(p => p.email === 'guest2-e2e@example.com');
+    const guest1 = participants.find(p => p.email === guest1Email);
+    const guest2 = participants.find(p => p.email === guest2Email);
 
-    const email1 = await waitForEmail('guest1-e2e@example.com', { timeout: 10_000, since });
-    const email2 = await waitForEmail('guest2-e2e@example.com', { timeout: 10_000, since });
-
-    // Verify each email links to the correct participant path
-    const body1 = email1.Snippet ?? '';
-    const body2 = email2.Snippet ?? '';
+    // Unique emails — no since filter needed
+    const email1 = await waitForEmail(guest1Email, { timeout: 10_000 });
+    const email2 = await waitForEmail(guest2Email, { timeout: 10_000 });
 
     expect(email1.Subject).toContain('Multi Invite E2E');
     expect(email2.Subject).toContain('Multi Invite E2E');
 
-    // Fetch full message body to check participate link
     const msgRes1 = await fetch(`http://localhost:8025/api/v1/message/${email1.ID}`);
     const msg1 = await msgRes1.json();
     expect(msg1.Text).toContain(`/participate/${guest1.id}`);
@@ -89,7 +78,7 @@ test.describe.serial('invite emails via Mailpit', () => {
     await page.goto('/');
     await fillWizard(page, {
       name: 'E2E Confirmation Test',
-      organizerEmail: 'conf-e2e@example.com',
+      organizerEmail: `conf-${RUN_ID}@example.com`,
       dateStart: '2025-09-01',
       dateEnd: '2025-09-01',
       deadline: '2025-08-31T12:00',
