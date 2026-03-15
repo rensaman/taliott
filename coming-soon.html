@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taliott — Coming Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #151510;
+      --paper: #f3f0e8;
+      --rule: #cac6bc;
+      --muted: #7a7870;
+      --red: #c42b1a;
+      --font-display: 'Big Shoulders Display', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: system-ui, sans-serif;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 71px, color-mix(in srgb, var(--ink) 4%, transparent) 72px),
+        repeating-linear-gradient(90deg, transparent, transparent 71px, color-mix(in srgb, var(--ink) 4%, transparent) 72px);
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 600px) {
+      .page {
+        border-left: 1px solid var(--rule);
+        border-right: 1px solid var(--rule);
+      }
+    }
+
+    header {
+      padding: 1.25rem 1.25rem 0;
+    }
+
+    .wordmark {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink);
+    }
+
+    main {
+      padding: 2.5rem 1.25rem 2rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    @media (min-width: 600px) {
+      main {
+        padding: 3.5rem 2rem 2.5rem;
+      }
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 11vw, 5.5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .rule {
+      width: 3rem;
+      height: 3px;
+      background: var(--red);
+      margin: 1.5rem 0;
+    }
+
+    .sub {
+      font-size: 1rem;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 36ch;
+    }
+
+footer {
+      margin-top: auto;
+      padding: 1.5rem 1.25rem 1.25rem;
+      display: flex;
+      gap: 1.25rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    @media (min-width: 600px) {
+      footer {
+        padding: 1.5rem 2rem;
+      }
+    }
+
+    footer a {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="wordmark">Taliott</p>
+    </header>
+
+    <main>
+      <h1>
+        Something<br />
+        <em>good</em><br />
+        is coming.
+      </h1>
+      <div class="rule" aria-hidden="true"></div>
+      <p class="sub">
+        Group meetups without the chaos.
+        We&rsquo;re putting the finishing touches on it.
+      </p>
+    </main>
+
+    <footer>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </footer>
+  </div>
+</body>
+</html>
