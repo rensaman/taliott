@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { forwardRef } from 'react';
 
@@ -6,7 +6,20 @@ import { forwardRef } from 'react';
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }) => <div>{children}</div>,
   TileLayer: () => null,
-  Marker: forwardRef(({ children }, _ref) => <div data-testid="marker">{children}</div>),
+  Marker: forwardRef(function MockMarker({ children, eventHandlers }, ref) {
+    // Populate ref synchronously so dragend can call marker.getLatLng()
+    if (ref && typeof ref === 'object') {
+      ref.current = { getLatLng: () => ({ lat: 10, lng: 20 }) };
+    }
+    return (
+      <div data-testid="marker">
+        {eventHandlers?.dragend && (
+          <button data-testid="trigger-dragend" onClick={eventHandlers.dragend}>drag</button>
+        )}
+        {children}
+      </div>
+    );
+  }),
   useMap: () => ({ flyTo: vi.fn() }),
 }));
 vi.mock('leaflet', () => ({
@@ -51,5 +64,17 @@ describe('LocationMap', () => {
       />
     );
     expect(screen.getByTestId('marker')).toBeInTheDocument();
+  });
+
+  it('calls onLocationChange with lat/lng when draggable marker dragend fires', () => {
+    const onLocationChange = vi.fn();
+    render(
+      <LocationMap
+        location={{ lat: 51.5074, lng: -0.1278 }}
+        onLocationChange={onLocationChange}
+      />
+    );
+    fireEvent.click(screen.getByTestId('trigger-dragend'));
+    expect(onLocationChange).toHaveBeenCalledWith({ lat: 10, lng: 20 });
   });
 });

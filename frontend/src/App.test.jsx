@@ -19,6 +19,9 @@ vi.mock('./features/legal/TermsView.jsx', () => ({
 vi.mock('./features/legal/LegalFooter.jsx', () => ({
   default: () => <div data-testid="legal-footer" />,
 }));
+vi.mock('./features/resend/ResendLinkView.jsx', () => ({
+  default: () => <div data-testid="resend-view" />,
+}));
 vi.mock('./features/landing/LandingPage.jsx', () => ({
   default: ({ onStart }) => <button onClick={onStart}>Create an event</button>,
 }));
@@ -101,5 +104,23 @@ describe('App', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
     expect(screen.getByTestId('legal-footer')).toBeInTheDocument();
+  });
+
+  it('renders ResendLinkView at /resend', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/resend' });
+    render(<App />);
+    expect(screen.getByTestId('resend-view')).toBeInTheDocument();
+  });
+
+  it('clicking Copy on confirmation calls handleCopy', async () => {
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'create-link' }));
+    const copyBtn = screen.getByRole('button', { name: /copy/i });
+    fireEvent.click(copyBtn);
+    expect(navigator.clipboard.writeText).toHaveBeenCalled();
   });
 });
