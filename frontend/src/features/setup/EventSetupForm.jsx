@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import TimeRangeSelector from './PartOfDaySelector.jsx';
+import DateRangePicker from './DateRangePicker.jsx';
+import StepRoute from './StepRoute.jsx';
+import ToggleBlock from './ToggleBlock.jsx';
+import './EventSetupForm.css';
 
 const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_mode', 'review'];
+const STEP_LABELS = ['Name', 'Email', 'Dates', 'Deadline', 'Invites', 'Review'];
 
 function minutesToHHMM(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${d} ${months[m - 1]} ${y}`;
 }
 
 export default function EventSetupForm({ onCreated }) {
@@ -123,14 +135,19 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>What&apos;s the event called?</h2>
-            <input
-              type="text"
-              aria-label="Event name"
-              value={formData.name}
-              onChange={e => update('name', e.target.value)}
-              autoFocus
-              placeholder="e.g. Summer meetup"
-            />
+            <div className="field">
+              <label htmlFor="event-name" className="field-label">Event name</label>
+              <input
+                id="event-name"
+                className="wizard-input"
+                type="text"
+                aria-label="Event name"
+                value={formData.name}
+                onChange={e => update('name', e.target.value)}
+                autoFocus
+                placeholder="e.g. Summer meetup"
+              />
+            </div>
           </>
         );
 
@@ -138,16 +155,19 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>What&apos;s your email?</h2>
-            <label>
-              Your email
+            <div className="field">
+              <label htmlFor="organizer-email" className="field-label">Your email</label>
               <input
+                id="organizer-email"
+                className="wizard-input"
                 type="email"
+                aria-label="Your email"
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
                 autoFocus
                 placeholder="you@example.com"
               />
-            </label>
+            </div>
           </>
         );
 
@@ -155,70 +175,60 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>When is it happening?</h2>
-            <label>
-              <input
-                type="radio"
+            <div className="toggle-group">
+              <ToggleBlock
                 name="dt_pref"
                 value="flexible"
                 checked={!formData.isDateTimeFixed}
                 onChange={() => update('isDateTimeFixed', false)}
+                title="We need to find a time that works"
+                description="Participants vote on their availability"
               />
-              We need to find a time that works
-            </label>
-            <label>
-              <input
-                type="radio"
+              <ToggleBlock
                 name="dt_pref"
                 value="fixed"
                 checked={formData.isDateTimeFixed}
                 onChange={() => update('isDateTimeFixed', true)}
+                title="The date and time are already set"
+                description="You just need location and RSVPs"
               />
-              The date and time are already set
-            </label>
+            </div>
 
             {formData.isDateTimeFixed ? (
               <>
-                <label>
-                  Date
+                <div className="field">
+                  <label htmlFor="fixed-date" className="field-label">Date</label>
                   <input
+                    id="fixed-date"
+                    className="wizard-input"
                     type="date"
                     value={formData.fixedDate}
                     onChange={e => update('fixedDate', e.target.value)}
                   />
-                </label>
-                <label>
-                  Start time ({timezone})
+                </div>
+                <div className="field">
+                  <label htmlFor="fixed-time" className="field-label">Start time ({timezone})</label>
                   <input
+                    id="fixed-time"
+                    className="wizard-input"
                     type="time"
+                    aria-label="Start time"
                     value={formData.fixedTime}
                     onChange={e => update('fixedTime', e.target.value)}
                   />
-                </label>
+                </div>
               </>
             ) : (
               <>
-                <fieldset>
+                <fieldset className="wizard-fieldset">
                   <legend>Date range</legend>
-                  <label>
-                    From
-                    <input
-                      type="date"
-                      value={formData.dateRange.start}
-                      onChange={e => update('dateRange', { ...formData.dateRange, start: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    To
-                    <input
-                      type="date"
-                      value={formData.dateRange.end}
-                      min={formData.dateRange.start || undefined}
-                      onChange={e => update('dateRange', { ...formData.dateRange, end: e.target.value })}
-                    />
-                  </label>
+                  <DateRangePicker
+                    value={formData.dateRange}
+                    onChange={v => update('dateRange', v)}
+                  />
                 </fieldset>
-                <fieldset>
-                  <legend>Start time ({timezone})</legend>
+                <fieldset className="wizard-fieldset">
+                  <legend>Start time window ({timezone})</legend>
                   <TimeRangeSelector
                     startValue={formData.timeRangeStart}
                     endValue={formData.timeRangeEnd}
@@ -235,15 +245,18 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>When&apos;s the voting deadline?</h2>
-            <label>
-              Voting deadline
+            <div className="field">
+              <label htmlFor="deadline" className="field-label">Voting deadline</label>
               <input
+                id="deadline"
+                className="wizard-input"
                 type="datetime-local"
+                aria-label="Voting deadline"
                 value={formData.deadline}
                 onChange={e => update('deadline', e.target.value)}
                 autoFocus
               />
-            </label>
+            </div>
           </>
         );
 
@@ -251,36 +264,38 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>How do you want to invite people?</h2>
-            <label>
-              <input
-                type="radio"
+            <div className="toggle-group">
+              <ToggleBlock
                 name="invite_mode"
                 value="shared_link"
                 checked={formData.inviteMode === 'shared_link'}
                 onChange={() => update('inviteMode', 'shared_link')}
+                title="Share a join link"
+                description="Anyone with the link can join and vote"
               />
-              Share a join link
-            </label>
-            <label>
-              <input
-                type="radio"
+              <ToggleBlock
                 name="invite_mode"
                 value="email_invites"
                 checked={formData.inviteMode === 'email_invites'}
                 onChange={() => update('inviteMode', 'email_invites')}
+                title="Send email invites"
+                description="Invitations go directly to each person"
               />
-              Send email invites
-            </label>
+            </div>
             {formData.inviteMode === 'email_invites' && (
-              <label>
-                Participant emails
-                <small> (one per line)</small>
+              <div className="field">
+                <label htmlFor="participant-emails" className="field-label">
+                  Participant emails <span style={{ textTransform: 'none', fontWeight: 400 }}>(one per line)</span>
+                </label>
                 <textarea
+                  id="participant-emails"
+                  className="wizard-input"
+                  aria-label="Participant emails"
                   value={formData.participantEmails}
                   onChange={e => update('participantEmails', e.target.value)}
                   placeholder={'jamie@example.com\nsam@example.com'}
                 />
-              </label>
+              </div>
             )}
           </>
         );
@@ -292,40 +307,52 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>Ready to create your event?</h2>
-            <dl>
-              <dt>Name</dt>
-              <dd>{formData.name}</dd>
-              <dt>Organizer</dt>
-              <dd>{formData.organizerEmail}</dd>
+            <div className="review-ticket">
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">Name</span>
+                <span className="review-ticket-value">{formData.name}</span>
+              </div>
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">Org.</span>
+                <span className="review-ticket-value">{formData.organizerEmail}</span>
+              </div>
               {formData.isDateTimeFixed ? (
-                <>
-                  <dt>Date &amp; time</dt>
-                  <dd>{formData.fixedDate} at {formData.fixedTime} ({timezone})</dd>
-                </>
+                <div className="review-ticket-row">
+                  <span className="review-ticket-label">When</span>
+                  <span className="review-ticket-value">{formatDate(formData.fixedDate)} at {formData.fixedTime} ({timezone})</span>
+                </div>
               ) : (
                 <>
-                  <dt>Dates</dt>
-                  <dd>{formData.dateRange.start} – {formData.dateRange.end}</dd>
-                  <dt>Start time</dt>
-                  <dd>{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)} ({timezone})</dd>
+                  <div className="review-ticket-row">
+                    <span className="review-ticket-label">Dates</span>
+                    <span className="review-ticket-value">{formatDate(formData.dateRange.start)} – {formatDate(formData.dateRange.end)}</span>
+                  </div>
+                  <div className="review-ticket-row">
+                    <span className="review-ticket-label">Time</span>
+                    <span className="review-ticket-value">{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)} ({timezone})</span>
+                  </div>
                 </>
               )}
-              <dt>Deadline</dt>
-              <dd>{formData.deadline}</dd>
-              <dt>Invite mode</dt>
-              <dd>{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</dd>
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">By</span>
+                <span className="review-ticket-value">{formData.deadline}</span>
+              </div>
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">Via</span>
+                <span className="review-ticket-value">{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</span>
+              </div>
               {emails.length > 0 && (
-                <>
-                  <dt>Invitees</dt>
-                  <dd>
-                    <ul>
+                <div className="review-ticket-row">
+                  <span className="review-ticket-label">To</span>
+                  <span className="review-ticket-value">
+                    <ul className="review-ticket-email-list">
                       {emails.map(email => <li key={email}>{email}</li>)}
                     </ul>
-                  </dd>
-                </>
+                  </span>
+                </div>
               )}
-            </dl>
-            <p>
+            </div>
+            <p className="review-privacy">
               By creating this event you confirm that any participant emails you have provided were
               collected with their knowledge. Emails are used solely to send event invitations and
               notifications. See our{' '}
@@ -343,23 +370,34 @@ export default function EventSetupForm({ onCreated }) {
   const isLastStep = currentStep === 'review';
 
   return (
-    <form onSubmit={handleNext} aria-label="Event setup">
-      <p>Step {step + 1} of {totalSteps}</p>
+    <form className="wizard" onSubmit={handleNext} aria-label="Event setup">
+      <header className="wizard-header">
+        <p className="wizard-wordmark">Taliott</p>
+        <StepRoute stepLabels={STEP_LABELS} current={step} />
+      </header>
 
-      {renderStepContent()}
+      <div className="wizard-body">
+        <p style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>Step {step + 1} of {totalSteps}</p>
 
-      {error && <p role="alert">{error}</p>}
+        {renderStepContent()}
 
-      <div>
+        {error && <p className="wizard-error" role="alert">{error}</p>}
+      </div>
+
+      <footer className="wizard-footer">
         {step > 0 && (
-          <button type="button" onClick={handleBack}>← Back</button>
+          <button className="btn btn-ghost" type="button" onClick={handleBack}>← Back</button>
         )}
-        <button type="submit" disabled={!canAdvance() || submitting}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={!canAdvance() || submitting}
+        >
           {isLastStep
             ? (submitting ? 'Creating…' : 'Create Event')
             : 'Continue →'}
         </button>
-      </div>
+      </footer>
     </form>
   );
 }

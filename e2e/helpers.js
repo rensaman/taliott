@@ -42,8 +42,8 @@ export async function fillWizard(page, {
     await page.getByLabel(/^date$/i).fill(fixedDate);
     await page.getByLabel(/start time/i).fill(fixedTime);
   } else {
-    await page.getByLabel(/^from$/i).fill(dateStart);
-    await page.getByLabel(/^to$/i).fill(dateEnd);
+    await setDateInput(page, 'date-start', dateStart);
+    await setDateInput(page, 'date-end', dateEnd);
     await setSlider(page, 'Earliest start', timeRangeStart);
     await setSlider(page, 'Latest start', timeRangeEnd);
   }
@@ -82,4 +82,19 @@ async function setSlider(page, label, value) {
     nativeSetter.call(el, String(val));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }, value);
+}
+
+/**
+ * Sets a sr-only date input value (used by the calendar date range picker).
+ * The inputs are visually hidden so page.fill() won't work; use evaluate instead.
+ */
+async function setDateInput(page, testId, value) {
+  await page.evaluate(({ id, val }) => {
+    const el = document.querySelector(`[data-testid="${id}"]`);
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, 'value'
+    ).set;
+    nativeSetter.call(el, val);
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, { id: testId, val: value });
 }

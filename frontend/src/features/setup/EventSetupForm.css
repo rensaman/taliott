@@ -1,0 +1,241 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.wizard-header {
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.wizard-wordmark {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.75rem 1.25rem 0;
+  color: var(--ink);
+}
+
+.wizard-body {
+  flex: 1;
+  padding: 2rem 1.25rem 1.5rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wizard-body h2 {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  margin-bottom: 1.5rem;
+}
+
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Field styles */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.field label,
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="datetime-local"],
+.field textarea,
+input.wizard-input,
+textarea.wizard-input {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+  outline: none;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.12s;
+}
+
+.field input:focus,
+.field textarea:focus,
+input.wizard-input:focus,
+textarea.wizard-input:focus {
+  border-color: var(--ink);
+}
+
+.field textarea,
+textarea.wizard-input {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+/* Date row */
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Toggle block group */
+.toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Fieldset for time range */
+.wizard-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 1.25rem 0;
+}
+
+.wizard-fieldset legend {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Review ticket */
+.review-ticket {
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 1.25rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.review-ticket-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0.35rem 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+
+.review-ticket-row:last-child {
+  border-bottom: none;
+}
+
+.review-ticket-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  padding-top: 0.1rem;
+}
+
+.review-ticket-value {
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.review-ticket-email-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.review-privacy {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.review-privacy a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.65rem 1.25rem;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: 1;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--rule);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* Error */
+.wizard-error {
+  font-size: 0.875rem;
+  color: var(--red);
+  border-left: 3px solid var(--red);
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+}

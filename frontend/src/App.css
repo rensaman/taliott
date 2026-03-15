@@ -1,0 +1,142 @@
+.confirmation {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.confirmation-header {
+  padding: 1.25rem 1.25rem 0;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 1rem;
+}
+
+.confirmation-wordmark {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+
+.confirmation-body {
+  padding: 2rem 1.25rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.confirmation-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  margin-bottom: 0.5rem;
+}
+
+.confirmation-name {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 2rem;
+}
+
+.confirmation-ticket {
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px dashed var(--rule);
+  padding: 1.25rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-section {
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-section-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.confirmation-admin-link {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--ink);
+  word-break: break-all;
+  background: var(--field-bg);
+  padding: 0.6rem 0.75rem;
+  text-decoration: none;
+  border-left: 3px solid var(--red);
+}
+
+.confirmation-admin-link:hover {
+  background: var(--rule);
+}
+
+.confirmation-join-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.confirmation-join-url {
+  font-size: 0.8rem;
+  color: var(--ink);
+  word-break: break-all;
+  background: var(--field-bg);
+  padding: 0.6rem 0.75rem;
+  flex: 1;
+  border-left: 3px solid var(--ink);
+}
+
+.confirmation-copy-btn {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+  border-radius: 0;
+  appearance: none;
+}
+
+.confirmation-copy-btn:hover {
+  background: var(--red);
+}
+
+.confirmation-email-notice {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.confirmation-email-notice strong {
+  color: var(--ink);
+}
+
+@media (min-width: 600px) {
+  .confirmation-body {
+    padding: 2.5rem 2rem;
+  }
+
+  .confirmation-header {
+    padding: 1.25rem 2rem 1rem;
+  }
+}

@@ -8,6 +8,84 @@ import PrivacyPolicyView from './features/legal/PrivacyPolicyView.jsx';
 import TermsView from './features/legal/TermsView.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
 import LandingPage from './features/landing/LandingPage.jsx';
+import './App.css';
+
+function copyToClipboard(text) {
+  // navigator.clipboard requires HTTPS and may not be available on iOS Safari WKWebView
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text).catch(() => execCommandCopy(text));
+  }
+  return Promise.resolve(execCommandCopy(text));
+}
+
+function execCommandCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  // Must be visible (non-zero size) and in the viewport for iOS to allow selection
+  el.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px';
+  document.body.appendChild(el);
+  el.focus();
+  el.setSelectionRange(0, el.value.length);
+  document.execCommand('copy');
+  document.body.removeChild(el);
+}
+
+function ConfirmationView({ confirmation }) {
+  const [copied, setCopied] = useState(false);
+  const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
+  const joinUrl = confirmation.join_url
+    ? `${window.location.origin}${confirmation.join_url}`
+    : null;
+
+  function handleCopy() {
+    copyToClipboard(joinUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="confirmation">
+      <header className="confirmation-header">
+        <p className="confirmation-wordmark">Taliott</p>
+      </header>
+      <main className="confirmation-body">
+        <p className="confirmation-eyebrow">Event created</p>
+        <h1 className="confirmation-name">{confirmation.name}</h1>
+
+        <div className="confirmation-section">
+          <p className="confirmation-section-label">Your admin link — save this</p>
+          <a
+            href={adminUrl}
+            className="confirmation-admin-link"
+            data-testid="admin-token"
+          >
+            {confirmation.admin_token}
+          </a>
+        </div>
+
+        {joinUrl ? (
+          <div className="confirmation-section">
+            <p className="confirmation-section-label">Share with participants</p>
+            <div className="confirmation-join-row">
+              <span className="confirmation-join-url" data-testid="join-url">{joinUrl}</span>
+              <button className="confirmation-copy-btn" onClick={handleCopy}>
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="confirmation-section">
+            <p className="confirmation-email-notice">
+              Invite emails have been sent to{' '}
+              <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
@@ -69,29 +147,7 @@ export default function App() {
   }
 
   if (confirmation) {
-    const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
-    const joinUrl = confirmation.join_url
-      ? `${window.location.origin}${confirmation.join_url}`
-      : null;
-    return (
-      <main>
-        <h1>{confirmation.name}</h1>
-        <p>Your event was created. Save your admin link to manage it:</p>
-        <a href={adminUrl} data-testid="admin-token">{confirmation.admin_token}</a>
-        {joinUrl ? (
-          <p>
-            Share this link with participants:{' '}
-            <span data-testid="join-url">{joinUrl}</span>{' '}
-            <button onClick={() => navigator.clipboard.writeText(joinUrl)}>Copy link</button>
-          </p>
-        ) : (
-          <p>
-            Invite emails have been sent to{' '}
-            <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).
-          </p>
-        )}
-      </main>
-    );
+    return <ConfirmationView confirmation={confirmation} />;
   }
 
   if (!showForm) {
@@ -100,10 +156,7 @@ export default function App() {
 
   return (
     <>
-      <main>
-        <h1>taliott</h1>
-        <EventSetupForm onCreated={setConfirmation} />
-      </main>
+      <EventSetupForm onCreated={setConfirmation} />
       <LegalFooter />
     </>
   );

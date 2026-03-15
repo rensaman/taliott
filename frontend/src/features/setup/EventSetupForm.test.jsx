@@ -245,8 +245,8 @@ describe('EventSetupForm', () => {
     });
     expect(screen.getByText('Summer meetup')).toBeInTheDocument();
     expect(screen.getByText('alex@example.com')).toBeInTheDocument();
-    expect(screen.getByText(/2025-06-01/)).toBeInTheDocument();
-    expect(screen.getByText(/2025-06-03/)).toBeInTheDocument();
+    expect(screen.getByText(/1 Jun 2025/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 Jun 2025/i)).toBeInTheDocument();
     expect(screen.getByText(/08:00/)).toBeInTheDocument();
     expect(screen.getByText(/22:00/)).toBeInTheDocument();
   });

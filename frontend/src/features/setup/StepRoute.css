@@ -1,0 +1,87 @@
+.step-route {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 1rem 1.25rem 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.step-route::-webkit-scrollbar {
+  display: none;
+}
+
+.step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.step-node-number {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.step-node--upcoming .step-node-number {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--rule);
+}
+
+.step-node--active .step-node-number {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1.5px solid var(--ink);
+}
+
+.step-node--done .step-node-number {
+  background: var(--red);
+  color: var(--paper);
+  border: 1.5px solid var(--red);
+  font-size: 0.7rem;
+}
+
+.step-node-label {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  white-space: nowrap;
+  display: none;
+}
+
+.step-node--active .step-node-label {
+  color: var(--ink);
+  display: block;
+}
+
+@media (min-width: 480px) {
+  .step-node-label {
+    display: block;
+  }
+}
+
+.step-connector {
+  flex: 1;
+  height: 1.5px;
+  background: var(--rule);
+  margin-top: 0.875rem;
+  min-width: 0.75rem;
+}
+
+.step-connector--done {
+  background: var(--red);
+}

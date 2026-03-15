@@ -1,0 +1,43 @@
+:root {
+  --ink: #151510;
+  --paper: #f3f0e8;
+  --rule: #cac6bc;
+  --muted: #7a7870;
+  --red: #c42b1a;
+  --field-bg: #eceae2;
+  --font-display: 'Big Shoulders Display', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  color: var(--ink);
+  min-height: 100dvh;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 71px, color-mix(in srgb, var(--ink) 4%, transparent) 72px),
+    repeating-linear-gradient(90deg, transparent, transparent 71px, color-mix(in srgb, var(--ink) 4%, transparent) 72px);
+}
+
+a {
+  color: var(--ink);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
