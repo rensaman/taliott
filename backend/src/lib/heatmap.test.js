@@ -1,27 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { computeHeatmap } from './heatmap.js';
 
-function makePrisma({ participants = [], slots = [], availability = [] } = {}) {
+function makePrisma({ participantCount = 0, slots = [], groupByResult = [] } = {}) {
   return {
     participant: {
-      count: () => Promise.resolve(participants.length),
+      count: vi.fn().mockResolvedValue(participantCount),
     },
     slot: {
-      findMany: () => Promise.resolve(slots),
+      findMany: vi.fn().mockResolvedValue(slots),
     },
     availability: {
-      groupBy: () => {
-        const counts = {};
-        for (const a of availability) {
-          if (a.state === 'yes') counts[a.slotId] = (counts[a.slotId] ?? 0) + 1;
-        }
-        return Promise.resolve(
-          Object.entries(counts).map(([slotId, count]) => ({
-            slotId,
-            _count: { slotId: count },
-          }))
-        );
-      },
+      groupBy: vi.fn().mockResolvedValue(groupByResult),
     },
   };
 }
@@ -29,9 +18,9 @@ function makePrisma({ participants = [], slots = [], availability = [] } = {}) {
 describe('computeHeatmap', () => {
   it('returns zero yes_count for all slots when no availability', async () => {
     const prisma = makePrisma({
-      participants: [{ id: 'p-1' }, { id: 'p-2' }],
+      participantCount: 2,
       slots: [{ id: 's-1' }, { id: 's-2' }],
-      availability: [],
+      groupByResult: [],
     });
     const result = await computeHeatmap(prisma, 'event-1');
     expect(result.total_participants).toBe(2);
@@ -41,15 +30,26 @@ describe('computeHeatmap', () => {
     ]);
   });
 
-  it('counts only "yes" states per slot', async () => {
+  it('queries availability with state: "yes" filter', async () => {
     const prisma = makePrisma({
-      participants: [{ id: 'p-1' }, { id: 'p-2' }, { id: 'p-3' }],
+      participantCount: 1,
+      slots: [{ id: 's-1' }],
+      groupByResult: [],
+    });
+    await computeHeatmap(prisma, 'event-1');
+    expect(prisma.availability.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ state: 'yes' }),
+      })
+    );
+  });
+
+  it('maps yes counts from groupBy result onto the correct slots', async () => {
+    const prisma = makePrisma({
+      participantCount: 3,
       slots: [{ id: 's-1' }, { id: 's-2' }],
-      availability: [
-        { slotId: 's-1', state: 'yes' },
-        { slotId: 's-1', state: 'yes' },
-        { slotId: 's-1', state: 'maybe' },
-        { slotId: 's-2', state: 'no' },
+      groupByResult: [
+        { slotId: 's-1', _count: { slotId: 2 } },
       ],
     });
     const result = await computeHeatmap(prisma, 'event-1');
@@ -59,7 +59,7 @@ describe('computeHeatmap', () => {
   });
 
   it('returns empty slots array when event has no slots', async () => {
-    const prisma = makePrisma({ participants: [], slots: [], availability: [] });
+    const prisma = makePrisma({ participantCount: 0, slots: [], groupByResult: [] });
     const result = await computeHeatmap(prisma, 'event-1');
     expect(result.total_participants).toBe(0);
     expect(result.slots).toEqual([]);

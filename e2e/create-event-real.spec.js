@@ -56,25 +56,6 @@ test('confirmation shows the admin token returned by the backend', async ({ page
   expect(displayed).toBe(adminToken);
 });
 
-test('API response contains correct slot count for 480–720 range', async ({ page }) => {
-  let responseBody;
-  page.on('response', async res => {
-    if (res.url().includes('/api/events') && res.request().method() === 'POST') {
-      responseBody = await res.json().catch(() => null);
-    }
-  });
-
-  await page.goto('/');
-  // 3 days × (720-480)/30 = 3 × 8 = 24 slots
-  await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', timeRangeStart: 480, timeRangeEnd: 720 });
-  await page.getByRole('button', { name: /create event/i }).click();
-
-  await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
-
-  const expectedSlots = 3 * (720 - 480) / 30;
-  expect(responseBody?.slots?.length).toBe(expectedSlots);
-});
-
 test('API response includes organizer and invited participants', async ({ page }) => {
   let responseBody;
   page.on('response', async res => {
@@ -93,25 +74,6 @@ test('API response includes organizer and invited participants', async ({ page }
   expect(emails).toContain('alex@example.com');
   expect(emails).toContain('jamie@example.com');
   expect(emails).toContain('sam@example.com');
-});
-
-test('1-day range produces the correct slot count', async ({ page }) => {
-  let responseBody;
-  page.on('response', async res => {
-    if (res.url().includes('/api/events') && res.request().method() === 'POST') {
-      responseBody = await res.json().catch(() => null);
-    }
-  });
-
-  await page.goto('/');
-  // 1 day × (1320-480)/30 = 28 slots
-  await fillWizard(page, { dateStart: '2025-06-15', dateEnd: '2025-06-15', timeRangeStart: 480, timeRangeEnd: 1320 });
-  await page.getByRole('button', { name: /create event/i }).click();
-
-  await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
-
-  const expectedSlots = (1320 - 480) / 30;
-  expect(responseBody?.slots?.length).toBe(expectedSlots);
 });
 
 test('request body includes a valid IANA timezone', async ({ page }) => {

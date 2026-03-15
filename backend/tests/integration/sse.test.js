@@ -83,7 +83,7 @@ describe('GET /api/participate/:id heatmap', () => {
     expect(res.body.heatmap.total_participants).toBeTypeOf('number');
     expect(Array.isArray(res.body.heatmap.slots)).toBe(true);
     // centroid is null when no locations are set
-    expect(res.body.centroid === null || typeof res.body.centroid === 'object').toBe(true);
+    expect(res.body.centroid).toBeNull();
   });
 
   it('heatmap yes_count reflects availability updates', async () => {

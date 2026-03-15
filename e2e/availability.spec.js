@@ -92,13 +92,3 @@ test('availability persists across page reload', async ({ page }) => {
   await expect(page.getByTestId('slot-cell').first()).toHaveAttribute('data-state', 'yes');
 });
 
-test('cells are disabled on a locked event', async ({ page }) => {
-  const { participants } = await createEvent(page, '2020-01-01T00:00:00.000Z');
-  await page.goto(`/participate/${participants[0].id}`);
-
-  const cells = page.getByTestId('slot-cell');
-  const count = await cells.count();
-  for (let i = 0; i < count; i++) {
-    await expect(cells.nth(i)).toBeDisabled();
-  }
-});

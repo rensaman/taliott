@@ -54,14 +54,14 @@ describe('GET /api/participate/:participantId', () => {
     expect(res.body.availability).toBeInstanceOf(Array);
   });
 
-  it('returns participant name in response', async () => {
+  it('returns null name for a freshly created participant', async () => {
     const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
     const pid = participants[0].id;
 
     const res = await request(app).get(`/api/participate/${pid}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.participant).toHaveProperty('name');
+    expect(res.body.participant.name).toBeNull();
   });
 
   it('returns locked:true when deadline is in the past', async () => {
@@ -347,6 +347,6 @@ describe('PATCH /api/participate/:participantId/confirm', () => {
     const second = await request(app).get(`/api/participate/${pid}`);
     const secondTs = second.body.participant.responded_at;
 
-    expect(new Date(secondTs).getTime()).toBeGreaterThanOrEqual(new Date(firstTs).getTime());
+    expect(new Date(secondTs).getTime()).toBeGreaterThan(new Date(firstTs).getTime());
   });
 });
