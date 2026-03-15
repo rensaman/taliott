@@ -52,7 +52,8 @@ test('participation view shows the correct number of time slots', async ({ page 
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /next/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
   await expect(page.getByTestId('slot-cell')).toHaveCount(slots.length);
 });

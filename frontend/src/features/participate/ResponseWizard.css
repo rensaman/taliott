@@ -1,0 +1,272 @@
+/* ── Wizard footer layout for participation flow ─────────────────────────── */
+.rw-footer {
+  flex-direction: column;
+  gap: 0;
+  padding-top: 0.75rem;
+}
+
+.rw-footer-legal {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 0.6rem;
+}
+
+.rw-footer-legal footer {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.rw-footer-legal a {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.rw-footer-legal a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.rw-footer-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* ── Selected address pill ───────────────────────────────────────────────── */
+.rw-selected-address {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--red);
+}
+
+/* ── Availability legend ─────────────────────────────────────────────────── */
+.rw-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.rw-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.65rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.rw-legend-yes   { background: #2a6e2a; color: #fff; }
+.rw-legend-maybe { background: #b37a0a; color: #fff; }
+.rw-legend-no    { background: var(--red); color: #fff; }
+
+.rw-legend-hint {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* ── Slot cells ──────────────────────────────────────────────────────────── */
+.slot-neutral,
+.slot-yes,
+.slot-maybe,
+.slot-no {
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.1s;
+  padding: 0;
+}
+
+.slot-neutral { background: var(--field-bg); color: var(--muted); }
+.slot-yes     { background: #2a6e2a; color: #fff; }
+.slot-maybe   { background: #b37a0a; color: #fff; }
+.slot-no      { background: var(--red); color: #fff; }
+
+.slot-neutral:hover:not(:disabled) { filter: brightness(0.92); }
+.slot-yes:hover:not(:disabled)     { filter: brightness(0.86); }
+.slot-maybe:hover:not(:disabled)   { filter: brightness(0.86); }
+.slot-no:hover:not(:disabled)      { filter: brightness(0.86); }
+
+.slot-neutral:disabled,
+.slot-yes:disabled,
+.slot-maybe:disabled,
+.slot-no:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ── Availability grid table ─────────────────────────────────────────────── */
+.rw-grid-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -1.25rem;
+  padding: 0 1.25rem 0.5rem;
+}
+
+.rw-grid-table {
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.rw-grid-table th[scope="col"] {
+  font-size: 0.62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0 0.15rem 0.5rem;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 2.5rem;
+}
+
+.rw-grid-table th[scope="row"] {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted);
+  padding-right: 0.4rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rw-grid-table td {
+  padding: 0.1rem;
+}
+
+/* ── Address search input ────────────────────────────────────────────────── */
+.rw-address-input {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+  outline: none;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.12s;
+}
+
+.rw-address-input:focus {
+  border-color: var(--ink);
+}
+
+.rw-address-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.rw-address-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.5;
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.rw-address-hint a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.rw-address-results {
+  border: 1px solid var(--rule);
+  border-top: none;
+  margin-top: 0;
+  background: var(--paper);
+  list-style: none;
+}
+
+.rw-address-results li button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.rw-address-results li:last-child button {
+  border-bottom: none;
+}
+
+.rw-address-results li button:hover {
+  background: var(--field-bg);
+}
+
+/* ── Data rights section (always below wizard/summary) ───────────────────── */
+.pv-data-rights {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  border-top: 1px solid var(--rule);
+}
+
+.pv-data-rights-btn {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pv-data-rights-btn:hover {
+  color: var(--ink);
+}
+
+.pv-erased {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ── Summary view layout ─────────────────────────────────────────────────── */
+.pv-main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+.pv-event-title {
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  margin-bottom: 0.5rem;
+}
+

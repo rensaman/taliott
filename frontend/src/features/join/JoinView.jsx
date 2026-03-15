@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import LegalFooter from '../legal/LegalFooter.jsx';
+import '../setup/EventSetupForm.css';
+import './JoinView.css';
 
 export default function JoinView({ joinToken }) {
   const [event, setEvent] = useState(null);
@@ -46,43 +49,77 @@ export default function JoinView({ joinToken }) {
   }
 
   if (error === 'not_found') {
-    return <main><p>This join link is invalid or has expired.</p></main>;
+    return (
+      <main className="join-shell">
+        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
+        <div className="join-body"><p>This join link is invalid or has expired.</p></div>
+      </main>
+    );
   }
   if (error) {
-    return <main><p>Something went wrong. Please try again later.</p></main>;
+    return (
+      <main className="join-shell">
+        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
+        <div className="join-body"><p>Something went wrong. Please try again later.</p></div>
+      </main>
+    );
   }
   if (!event) {
-    return <main><p>Loading…</p></main>;
+    return (
+      <main className="join-shell">
+        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
+        <div className="join-body"><p>Loading…</p></div>
+      </main>
+    );
   }
   if (event.closed) {
     return (
-      <main>
-        <h1>{event.name}</h1>
-        <p data-testid="closed-message">Voting is closed for this event.</p>
+      <main className="join-shell">
+        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
+        <div className="join-body">
+          <h1 className="join-event-name">{event.name}</h1>
+          <p className="join-meta" data-testid="closed-message">Voting is closed for this event.</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>{event.name}</h1>
-      <p>Voting deadline: {new Date(event.deadline).toLocaleString()}</p>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="join-email">Email</label>
-          <input
-            id="join-email"
-            type="email"
-            required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-        </div>
-        {fieldError && <p role="alert">{fieldError}</p>}
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Joining…' : 'Join event'}
-        </button>
-      </form>
+    <main className="join-shell">
+      <header className="join-header">
+        <p className="wizard-wordmark">Taliott</p>
+      </header>
+
+      <div className="join-body">
+        <h1 className="join-event-name">{event.name}</h1>
+        <p className="join-meta">
+          Voting deadline: {new Date(event.deadline).toLocaleString()}
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="join-email" className="field-label">Your email</label>
+            <input
+              id="join-email"
+              className="wizard-input"
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoFocus
+            />
+          </div>
+          {fieldError && <p className="wizard-error" role="alert">{fieldError}</p>}
+          <button className="btn btn-primary" type="submit" disabled={submitting}>
+            {submitting ? 'Joining…' : 'Join event →'}
+          </button>
+        </form>
+      </div>
+
+      <footer className="join-footer">
+        <LegalFooter />
+      </footer>
     </main>
   );
 }

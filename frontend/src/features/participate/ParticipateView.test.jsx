@@ -73,8 +73,8 @@ describe('ParticipateView', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });
 
-  it('shows the event name after loading', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+  it('shows the event name after loading (summary mode)', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: /open event/i })).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe('ParticipateView', () => {
   it('does not show "Results only" banner when open', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
@@ -138,7 +138,7 @@ describe('ParticipateView', () => {
   it('shows Download my data and Delete my data buttons', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
     expect(screen.getByRole('button', { name: /download my data/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /delete my data/i })).toBeInTheDocument();
   });
@@ -154,7 +154,7 @@ describe('ParticipateView', () => {
     URL.revokeObjectURL = vi.fn();
 
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
 
     fireEvent.click(screen.getByRole('button', { name: /download my data/i }));
 
@@ -172,7 +172,7 @@ describe('ParticipateView', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
 
     fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
 
@@ -192,7 +192,7 @@ describe('ParticipateView', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
 
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
 
     fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
 
@@ -206,7 +206,7 @@ describe('ParticipateView', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => screen.getByRole('heading'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
 
     fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
 

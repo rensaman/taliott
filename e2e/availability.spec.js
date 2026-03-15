@@ -22,7 +22,8 @@ async function createEvent(page, deadline = '2099-12-31T23:59:59.000Z') {
 test('participant can click cells and states cycle correctly', async ({ page }) => {
   const { participants } = await createEvent(page);
   await page.goto(`/participate/${participants[0].id}`);
-  await page.getByRole('button', { name: /next/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
   const cells = page.getByTestId('slot-cell');
   await expect(cells.first()).toBeVisible();
@@ -50,7 +51,8 @@ test('participant can click cells and states cycle correctly', async ({ page }) 
 test('saved indicator appears after clicking a cell', async ({ page }) => {
   const { participants } = await createEvent(page);
   await page.goto(`/participate/${participants[0].id}`);
-  await page.getByRole('button', { name: /next/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
   await page.getByTestId('slot-cell').first().click();
 
@@ -64,7 +66,8 @@ test('availability persists across page reload', async ({ page }) => {
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /next/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
   // Click first cell to 'yes' and wait for save
   await page.getByTestId('slot-cell').first().click();
@@ -72,7 +75,8 @@ test('availability persists across page reload', async ({ page }) => {
 
   // Reload and verify state is restored
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /next/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
   await expect(page.getByTestId('slot-cell').first()).toHaveAttribute('data-state', 'yes');
 });
 

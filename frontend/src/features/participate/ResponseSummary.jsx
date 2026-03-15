@@ -1,6 +1,8 @@
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import LocationMap from './LocationMap.jsx';
 import { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
+import '../setup/EventSetupForm.css';
+import './ResponseWizard.css';
 
 export default function ResponseSummary({
   participantId,
@@ -37,8 +39,8 @@ export default function ResponseSummary({
       )}
 
       {!locked && (
-        <button onClick={onUpdate} data-testid="update-response-btn">
-          Update response
+        <button className="btn btn-ghost" onClick={onUpdate} data-testid="update-response-btn">
+          ← Update response
         </button>
       )}
     </section>

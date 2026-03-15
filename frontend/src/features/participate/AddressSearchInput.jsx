@@ -27,22 +27,23 @@ export default function AddressSearchInput({ onSelect }) {
 
   return (
     <div>
-      <label htmlFor="address-search">Search address</label>
+      <label htmlFor="address-search" className="rw-address-label">Search address</label>
       <input
         id="address-search"
+        className="rw-address-input"
         type="text"
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="Type your address…"
         autoComplete="off"
       />
-      <small>
+      <small className="rw-address-hint">
         Your location is used only to calculate a fair meeting point. Coordinates may be processed
         by OpenRouteService to estimate travel times. See our{' '}
         <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
       </small>
       {results.length > 0 && (
-        <ul role="listbox" aria-label="Address suggestions">
+        <ul className="rw-address-results" role="listbox" aria-label="Address suggestions">
           {results.map((r, i) => (
             <li key={i} role="option">
               <button type="button" onClick={() => handleSelect(r)}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
+import './ResponseWizard.css';
 
 export default function ParticipateView({ participantId }) {
   const [data, setData] = useState(null);
@@ -64,9 +65,38 @@ export default function ParticipateView({ participantId }) {
     setUpdating(false);
   }
 
+  const dataRightsSection = (
+    <section aria-label="Privacy and data" className="pv-data-rights">
+      <button className="pv-data-rights-btn" onClick={handleExport}>Download my data</button>
+      {!dataDeleted && (
+        <button className="pv-data-rights-btn" onClick={handleDelete}>Delete my data</button>
+      )}
+      {dataDeleted && (
+        <p className="pv-erased" role="status">Your personal data has been erased from this event.</p>
+      )}
+    </section>
+  );
+
+  if (showWizard) {
+    return (
+      <>
+        <ResponseWizard
+          participantId={participantId}
+          initialName={participant.name}
+          slots={slots}
+          initialAvailability={availability}
+          initialLocation={location}
+          initialTravelMode={travelMode}
+          onComplete={handleComplete}
+        />
+        {dataRightsSection}
+      </>
+    );
+  }
+
   return (
-    <main>
-      <h1>{event.name}</h1>
+    <main className="pv-main">
+      <h1 className="pv-event-title">{event.name}</h1>
       <DeadlineBadge deadline={event.deadline} locked={event.locked} />
 
       {event.locked && (
@@ -86,37 +116,18 @@ export default function ParticipateView({ participantId }) {
         </section>
       )}
 
-      {showWizard ? (
-        <ResponseWizard
-          participantId={participantId}
-          initialName={participant.name}
-          slots={slots}
-          initialAvailability={availability}
-          initialLocation={location}
-          initialTravelMode={travelMode}
-          onComplete={handleComplete}
-        />
-      ) : (
-        <ResponseSummary
-          participantId={participantId}
-          name={participant.name}
-          slots={slots}
-          availability={availability}
-          location={location}
-          travelMode={travelMode}
-          locked={event.locked}
-          onUpdate={() => setUpdating(true)}
-        />
-      )}
-      <section aria-label="Privacy and data">
-        <button onClick={handleExport}>Download my data</button>
-        {!dataDeleted && (
-          <button onClick={handleDelete}>Delete my data</button>
-        )}
-        {dataDeleted && (
-          <p role="status">Your personal data has been erased from this event.</p>
-        )}
-      </section>
+      <ResponseSummary
+        participantId={participantId}
+        name={participant.name}
+        slots={slots}
+        availability={availability}
+        location={location}
+        travelMode={travelMode}
+        locked={event.locked}
+        onUpdate={() => setUpdating(true)}
+      />
+
+      {dataRightsSection}
     </main>
   );
 }

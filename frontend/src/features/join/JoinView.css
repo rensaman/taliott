@@ -1,0 +1,53 @@
+.join-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.join-header {
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.join-body {
+  flex: 1;
+  padding: 2rem 1.25rem 1.5rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.join-event-name {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  margin-bottom: 0.75rem;
+}
+
+.join-meta {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.join-footer {
+  border-top: 1px solid var(--rule);
+  padding: 0.75rem 1.25rem;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.72rem;
+}
+
+.join-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.join-footer a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}

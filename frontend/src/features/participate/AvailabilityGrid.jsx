@@ -65,46 +65,48 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
   return (
     <section aria-label="Availability grid">
       <SaveStatusIndicator status={saveStatus} />
-      <table>
-        <thead>
-          <tr>
-            <th scope="col" />
-            {days.map(day => (
-              <th key={day} scope="col">
-                {new Date(day + 'T12:00:00').toLocaleDateString(undefined, {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                })}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {timeKeys.map(tk => {
-            const h = Math.floor(tk / 60);
-            const m = tk % 60;
-            const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            return (
-            <tr key={tk}>
-              <th scope="row">{label}</th>
-              {days.map(day => {
-                const slot = dayMap.get(day)?.get(tk);
-                if (!slot) return <td key={day} />;
-                return (
-                  <td key={day}>
-                    <SlotCell
-                      slotId={slot.id}
-                      state={stateMap[slot.id] ?? 'neutral'}
-                      onClick={handleCellClick}
-                      disabled={locked}
-                    />
-                  </td>
-                );
-              })}
+      <div className="rw-grid-scroll">
+        <table className="rw-grid-table">
+          <thead>
+            <tr>
+              <th scope="col" />
+              {days.map(day => (
+                <th key={day} scope="col">
+                  {new Date(day + 'T12:00:00').toLocaleDateString(undefined, {
+                    weekday: 'short', month: 'short', day: 'numeric',
+                  })}
+                </th>
+              ))}
             </tr>
-            );
-          })}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {timeKeys.map(tk => {
+              const h = Math.floor(tk / 60);
+              const m = tk % 60;
+              const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+              return (
+                <tr key={tk}>
+                  <th scope="row">{label}</th>
+                  {days.map(day => {
+                    const slot = dayMap.get(day)?.get(tk);
+                    if (!slot) return <td key={day} />;
+                    return (
+                      <td key={day}>
+                        <SlotCell
+                          slotId={slot.id}
+                          state={stateMap[slot.id] ?? 'neutral'}
+                          onClick={handleCellClick}
+                          disabled={locked}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

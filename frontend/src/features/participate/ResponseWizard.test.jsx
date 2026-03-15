@@ -9,6 +9,7 @@ vi.mock('./AddressSearchInput.jsx', () => ({
 }));
 vi.mock('./TravelModeSelector.jsx', () => ({
   default: vi.fn(),
+  TRAVEL_MODE_LABELS: { transit: 'Transit', driving: 'Car', cycling: 'Cycling', walking: 'Walking' },
 }));
 
 import AddressSearchInput from './AddressSearchInput.jsx';
@@ -17,12 +18,13 @@ import ResponseWizard from './ResponseWizard.jsx';
 
 const SLOTS = [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }];
 
+// Steps: 0=name, 1=travel_location, 2=dates, 3=review
 function renderWizard(overrides = {}) {
   return render(
     <ResponseWizard
       participantId="p-1"
       initialName={overrides.initialName ?? ''}
-      initialStep={overrides.initialStep ?? 1}
+      initialStep={overrides.initialStep ?? 0}
       slots={SLOTS}
       initialAvailability={[]}
       initialLocation={null}
@@ -36,10 +38,11 @@ describe('ResponseWizard', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
     AddressSearchInput.mockImplementation(({ onSelect }) => (
-      <button onClick={() => onSelect({ lat: 1, lng: 2, label: 'Paris' })}>select address</button>
+      <button type="button" onClick={() => onSelect({ lat: 1, lng: 2, label: 'Paris' })}>select address</button>
     ));
     TravelModeSelector.mockImplementation(({ value, onChange }) => (
       <button
+        type="button"
         data-testid="travel-mode-selector"
         data-value={value}
         onClick={() => onChange('cycling')}
@@ -66,49 +69,49 @@ describe('ResponseWizard', () => {
     expect(screen.getByTestId('name-input')).toHaveValue('Alex');
   });
 
-  it('navigates to step 2 when clicking Next on step 1', async () => {
+  it('navigates to travel+location step when clicking Continue on name step', async () => {
     renderWizard({ initialName: 'Alex' });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
     expect(screen.queryByTestId('name-input')).not.toBeInTheDocument();
   });
 
-  it('navigates back to step 1 when clicking Back on step 2', async () => {
-    renderWizard({ initialName: 'Alex', initialStep: 2 });
+  it('navigates back to name step when clicking Back on travel+location step', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByRole('button', { name: /back/i }));
     await waitFor(() => expect(screen.getByTestId('name-input')).toBeInTheDocument());
   });
 
-  it('navigates to step 3 when clicking Next on step 2', async () => {
-    renderWizard({ initialName: 'Alex', initialStep: 2 });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
-    expect(screen.queryByTestId('submit-btn')).not.toBeInTheDocument();
+  it('navigates to dates step when clicking Continue on travel+location step', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
+    expect(screen.queryByTestId('travel-mode-selector')).not.toBeInTheDocument();
   });
 
-  it('navigates back to step 2 when clicking Back on step 3', async () => {
+  it('navigates back to travel+location step when clicking Back on dates step', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
+    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
+  });
+
+  it('navigates to review step when clicking Continue on dates step', async () => {
+    renderWizard({ initialName: 'Alex', initialStep: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+    expect(screen.queryByTestId('availability-grid')).not.toBeInTheDocument();
+  });
+
+  it('navigates back to dates step when clicking Back on review step', async () => {
     renderWizard({ initialName: 'Alex', initialStep: 3 });
     fireEvent.click(screen.getByRole('button', { name: /back/i }));
     await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
   });
 
-  it('navigates to step 4 when clicking Next on step 3', async () => {
-    renderWizard({ initialName: 'Alex', initialStep: 3 });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
-    expect(screen.queryByTestId('travel-mode-selector')).not.toBeInTheDocument();
-  });
-
-  it('navigates back to step 3 when clicking Back on step 4', async () => {
-    renderWizard({ initialName: 'Alex', initialStep: 4 });
-    fireEvent.click(screen.getByRole('button', { name: /back/i }));
-    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
-  });
-
-  it('calls PATCH /name when navigating away from step 1 with a changed name', async () => {
+  it('calls PATCH /name when navigating away from name step with a changed name', async () => {
     renderWizard({ initialName: '' });
     fireEvent.change(screen.getByTestId('name-input'), { target: { value: 'Sam' } });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         '/api/participate/p-1/name',
@@ -119,35 +122,24 @@ describe('ResponseWizard', () => {
 
   it('does not call PATCH /name when name is unchanged', async () => {
     renderWizard({ initialName: 'Alex' });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
     expect(fetch).not.toHaveBeenCalledWith('/api/participate/p-1/name', expect.anything());
   });
 
-  it('step 3 shows only TravelModeSelector', () => {
-    renderWizard({ initialName: 'Alex', initialStep: 3 });
+  it('travel+location step shows both TravelModeSelector and AddressSearchInput', () => {
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /select address/i })).not.toBeInTheDocument();
-  });
-
-  it('step 4 shows AddressSearchInput but not TravelModeSelector', () => {
-    renderWizard({ initialName: 'Alex', initialStep: 4 });
     expect(screen.getByRole('button', { name: /select address/i })).toBeInTheDocument();
-    expect(screen.queryByTestId('travel-mode-selector')).not.toBeInTheDocument();
-  });
-
-  it('step 3 does not show a LocationMap', () => {
-    renderWizard({ initialName: 'Alex', initialStep: 3 });
-    expect(screen.queryByTestId('location-map')).not.toBeInTheDocument();
   });
 
   it('passes initialTravelMode to TravelModeSelector', () => {
-    renderWizard({ initialName: 'Alex', initialStep: 3, initialTravelMode: 'cycling' });
+    renderWizard({ initialName: 'Alex', initialStep: 1, initialTravelMode: 'cycling' });
     expect(screen.getByTestId('travel-mode-selector')).toHaveAttribute('data-value', 'cycling');
   });
 
   it('calls PATCH /travel-mode when a mode is selected', async () => {
-    renderWizard({ initialName: 'Alex', initialStep: 3 });
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByTestId('travel-mode-selector'));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
@@ -164,21 +156,21 @@ describe('ResponseWizard', () => {
     fetch.mockResolvedValueOnce({ ok: false });
     renderWizard({ initialName: '' });
     fireEvent.change(screen.getByTestId('name-input'), { target: { value: 'Sam' } });
-    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByTestId('name-input')).toBeInTheDocument();
   });
 
   it('shows an error when location save fails', async () => {
     fetch.mockResolvedValueOnce({ ok: false });
-    renderWizard({ initialName: 'Alex', initialStep: 4 });
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByRole('button', { name: /select address/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });
 
   it('calls PATCH /confirm and then onComplete when Submit is clicked', async () => {
     const onComplete = vi.fn();
-    renderWizard({ initialName: 'Alex', initialStep: 4, onComplete });
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
@@ -192,7 +184,7 @@ describe('ResponseWizard', () => {
   it('shows a submit error and does not call onComplete when /confirm fails', async () => {
     fetch.mockResolvedValue({ ok: false });
     const onComplete = vi.fn();
-    renderWizard({ initialName: 'Alex', initialStep: 4, onComplete });
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(onComplete).not.toHaveBeenCalled();
@@ -201,7 +193,7 @@ describe('ResponseWizard', () => {
   it('shows a submit error when /confirm throws a network error', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'));
     const onComplete = vi.fn();
-    renderWizard({ initialName: 'Alex', initialStep: 4, onComplete });
+    renderWizard({ initialName: 'Alex', initialStep: 3, onComplete });
     fireEvent.click(screen.getByTestId('submit-btn'));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(onComplete).not.toHaveBeenCalled();
@@ -209,14 +201,14 @@ describe('ResponseWizard', () => {
 
   it('clears location error on successful location save', async () => {
     fetch.mockResolvedValueOnce({ ok: true });
-    renderWizard({ initialName: 'Alex', initialStep: 4 });
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByRole('button', { name: /select address/i }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 
   it('shows an error when location save throws a network error', async () => {
     fetch.mockRejectedValueOnce(new Error('Network error'));
-    renderWizard({ initialName: 'Alex', initialStep: 4 });
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByRole('button', { name: /select address/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });

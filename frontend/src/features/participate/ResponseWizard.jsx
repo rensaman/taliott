@@ -1,12 +1,19 @@
 import { useState } from 'react';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
-import TravelModeSelector from './TravelModeSelector.jsx';
+import TravelModeSelector, { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
+import StepRoute from '../setup/StepRoute.jsx';
+import LegalFooter from '../legal/LegalFooter.jsx';
+import '../setup/EventSetupForm.css';
+import './ResponseWizard.css';
+
+const STEPS = ['name', 'travel_location', 'dates', 'review'];
+const STEP_LABELS = ['Name', 'Location', 'Dates', 'Review'];
 
 export default function ResponseWizard({
   participantId,
   initialName,
-  initialStep = 1,
+  initialStep = 0,
   slots,
   initialAvailability,
   initialLocation,
@@ -20,6 +27,10 @@ export default function ResponseWizard({
   const [nameError, setNameError] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const currentStep = STEPS[step];
+  const isLastStep = step === STEPS.length - 1;
 
   async function saveName() {
     const trimmed = nameValue.trim();
@@ -34,18 +45,6 @@ export default function ResponseWizard({
     } catch {
       return false;
     }
-  }
-
-  async function navigateTo(targetStep) {
-    if (step === 1) {
-      const ok = await saveName();
-      if (!ok) {
-        setNameError('Failed to save name. Please try again.');
-        return;
-      }
-      setNameError(null);
-    }
-    setStep(targetStep);
   }
 
   async function saveLocation(loc) {
@@ -78,6 +77,7 @@ export default function ResponseWizard({
 
   async function handleSubmit() {
     setSubmitError(null);
+    setSubmitting(true);
     try {
       const res = await fetch(`/api/participate/${participantId}/confirm`, { method: 'PATCH' });
       if (!res.ok) {
@@ -87,57 +87,162 @@ export default function ResponseWizard({
       onComplete();
     } catch {
       setSubmitError('Failed to submit. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleNext(e) {
+    e?.preventDefault();
+    if (currentStep === 'name') {
+      const ok = await saveName();
+      if (!ok) {
+        setNameError('Failed to save name. Please try again.');
+        return;
+      }
+      setNameError(null);
+    }
+    if (isLastStep) {
+      await handleSubmit();
+    } else {
+      setStep(s => s + 1);
+    }
+  }
+
+  function handleBack() {
+    setStep(s => s - 1);
+  }
+
+  function canAdvance() {
+    if (currentStep === 'review') return !submitting;
+    return true;
+  }
+
+  function renderStepContent() {
+    switch (currentStep) {
+      case 'name':
+        return (
+          <>
+            <h2>What&apos;s your name?</h2>
+            <div className="field">
+              <label htmlFor="participant-name" className="field-label">Your name</label>
+              <input
+                id="participant-name"
+                className="wizard-input"
+                type="text"
+                value={nameValue}
+                onChange={e => setNameValue(e.target.value)}
+                autoFocus
+                placeholder="e.g. Alex"
+                data-testid="name-input"
+              />
+            </div>
+            {nameError && <p className="wizard-error" role="alert">{nameError}</p>}
+          </>
+        );
+
+      case 'travel_location':
+        return (
+          <>
+            <h2>Where are you coming from?</h2>
+            <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
+            <fieldset className="wizard-fieldset">
+              <legend>Your starting location</legend>
+              <AddressSearchInput onSelect={saveLocation} />
+              {location && (
+                <p className="rw-selected-address" data-testid="selected-address">{location.label}</p>
+              )}
+              {locationError && <p className="wizard-error" role="alert">{locationError}</p>}
+            </fieldset>
+          </>
+        );
+
+      case 'dates':
+        return (
+          <>
+            <h2>When can you make it?</h2>
+            <div className="rw-legend">
+              <span className="rw-legend-chip rw-legend-yes">Yes</span>
+              <span className="rw-legend-chip rw-legend-maybe">Maybe</span>
+              <span className="rw-legend-chip rw-legend-no">No</span>
+              <span className="rw-legend-hint">Tap to toggle</span>
+            </div>
+            <AvailabilityGrid
+              participantId={participantId}
+              slots={slots}
+              initialAvailability={initialAvailability}
+              locked={false}
+            />
+          </>
+        );
+
+      case 'review':
+        return (
+          <>
+            <h2>Ready to submit?</h2>
+            <div className="review-ticket">
+              {nameValue.trim() && (
+                <div className="review-ticket-row">
+                  <span className="review-ticket-label">Name</span>
+                  <span className="review-ticket-value">{nameValue.trim()}</span>
+                </div>
+              )}
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">Travel</span>
+                <span className="review-ticket-value">{TRAVEL_MODE_LABELS[travelMode] ?? travelMode}</span>
+              </div>
+              {location?.label && (
+                <div className="review-ticket-row">
+                  <span className="review-ticket-label">From</span>
+                  <span className="review-ticket-value">{location.label}</span>
+                </div>
+              )}
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">Dates</span>
+                <span className="review-ticket-value">Availability saved</span>
+              </div>
+            </div>
+            {submitError && <p className="wizard-error" role="alert">{submitError}</p>}
+          </>
+        );
+
+      default:
+        return null;
     }
   }
 
   return (
-    <div>
-      {step === 1 && (
-        <section aria-label="Your name">
-          <label htmlFor="participant-name">Your name</label>
-          <input
-            id="participant-name"
-            type="text"
-            value={nameValue}
-            onChange={e => setNameValue(e.target.value)}
-            data-testid="name-input"
-          />
-          {nameError && <p role="alert">{nameError}</p>}
-          <button onClick={() => navigateTo(2)}>Next</button>
-        </section>
-      )}
+    <form className="wizard" onSubmit={handleNext} aria-label="Participation">
+      <header className="wizard-header">
+        <p className="wizard-wordmark">Taliott</p>
+        <StepRoute stepLabels={STEP_LABELS} current={step} />
+      </header>
 
-      {step === 2 && (
-        <section aria-label="Your availability">
-          <AvailabilityGrid
-            participantId={participantId}
-            slots={slots}
-            initialAvailability={initialAvailability}
-            locked={false}
-          />
-          <button onClick={() => navigateTo(1)}>Back</button>
-          <button onClick={() => navigateTo(3)}>Next</button>
-        </section>
-      )}
+      <div className="wizard-body">
+        <p style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
+          Step {step + 1} of {STEPS.length}
+        </p>
+        {renderStepContent()}
+      </div>
 
-      {step === 3 && (
-        <section aria-label="Your travel mode">
-          <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
-          <button onClick={() => navigateTo(2)}>Back</button>
-          <button onClick={() => navigateTo(4)}>Next</button>
-        </section>
-      )}
-
-      {step === 4 && (
-        <section aria-label="Your location">
-          <AddressSearchInput onSelect={saveLocation} />
-          {location && <p data-testid="selected-address">{location.label}</p>}
-          {locationError && <p role="alert">{locationError}</p>}
-          <button onClick={() => navigateTo(3)}>Back</button>
-          <button onClick={handleSubmit} data-testid="submit-btn">Submit</button>
-          {submitError && <p role="alert">{submitError}</p>}
-        </section>
-      )}
-    </div>
+      <footer className="wizard-footer rw-footer">
+        <div className="rw-footer-legal">
+          <LegalFooter />
+        </div>
+        <div className="rw-footer-actions">
+          {step > 0 && (
+            <button className="btn btn-ghost" type="button" onClick={handleBack}>← Back</button>
+          )}
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={!canAdvance() || submitting}
+            data-testid={isLastStep ? 'submit-btn' : undefined}
+          >
+            {isLastStep ? (submitting ? 'Submitting…' : 'Submit →') : 'Continue →'}
+          </button>
+        </div>
+      </footer>
+    </form>
   );
 }
