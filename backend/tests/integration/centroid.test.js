@@ -268,6 +268,39 @@ describe('centroid — travel mode propagation', () => {
     const cached = await prisma.routeCache.findMany({});
     expect(cached.some(e => e.mode === 'cycling-regular')).toBe(true);
   });
+
+  it('SSE broadcast fires when travel mode changes (not just on location update)', async () => {
+    const orsMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ durations: [[400], [400]] }),
+    });
+    vi.stubGlobal('fetch', orsMock);
+
+    const res = await request(app).post('/api/events').send({
+      ...BASE_EVENT,
+      organizer_email: 'centroid-tmode-broadcast@example.com',
+      participant_emails: ['p-tmode-b@example.com'],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    const { participants } = res.body;
+
+    // Give both participants locations first
+    for (const [i, p] of participants.entries()) {
+      await request(app).patch(`/api/participate/${p.id}/location`).send(LOCATIONS[i]);
+    }
+    await prisma.routeCache.deleteMany({});
+
+    // Changing travel mode should now trigger a broadcast → ORS call with new mode
+    await request(app)
+      .patch(`/api/participate/${participants[0].id}/travel-mode`)
+      .send({ travel_mode: 'driving' });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const cached = await prisma.routeCache.findMany({});
+    expect(cached.some(e => e.mode === 'driving-car')).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -294,6 +294,17 @@ router.patch('/:participantId/travel-mode', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 
+  // Broadcast centroid update — travel mode affects routing weights
+  getPrisma().participant.findMany({
+    where: { eventId: participant.event.id },
+    select: { latitude: true, longitude: true, travelMode: true },
+  })
+    .then(async participants => {
+      const centroid = await computeCentroid(participants, { prisma: getPrisma() });
+      broadcast(participant.event.id, { type: 'location', centroid });
+    })
+    .catch(err => console.error('[sse] centroid broadcast failed:', err));
+
   return res.json({ ok: true });
 });
 
