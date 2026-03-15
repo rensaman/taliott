@@ -1,0 +1,685 @@
+/* ─── Admin page layout ───────────────────────────────────────────────────── */
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--paper);
+  border-bottom: 1.5px solid var(--ink);
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-wordmark {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.admin-wordmark::after {
+  content: '/';
+  margin-left: 0.75rem;
+  color: var(--rule);
+}
+
+.admin-event-name {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-status-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0.2rem 0.5rem;
+  border: 1.5px solid currentColor;
+  flex-shrink: 0;
+}
+
+.admin-status-badge--open {
+  color: var(--ink);
+}
+
+.admin-status-badge--finalized {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* ─── Meta bar ────────────────────────────────────────────────────────────── */
+
+.admin-meta {
+  background: var(--field-bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.admin-meta strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ─── Body grid ───────────────────────────────────────────────────────────── */
+
+.admin-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .admin-body {
+    grid-template-columns: 1fr 400px;
+    align-items: start;
+  }
+}
+
+.admin-left {
+  border-right: 0;
+}
+
+@media (min-width: 900px) {
+  .admin-left {
+    border-right: 1px solid var(--rule);
+  }
+}
+
+/* ─── Sections ────────────────────────────────────────────────────────────── */
+
+.admin-section {
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem;
+}
+
+.admin-section-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ─── Participant list ────────────────────────────────────────────────────── */
+
+.participant-list {
+  list-style: none;
+}
+
+.participant-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.8rem;
+}
+
+.participant-row:last-child {
+  border-bottom: none;
+}
+
+.participant-email {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.participant-status {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.participant-status--responded {
+  color: #2a6e2a;
+}
+
+.participant-status--pending {
+  color: var(--muted);
+}
+
+.participant-avail-dots {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.avail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.avail-dot--yes    { background: #2a6e2a; }
+.avail-dot--maybe  { background: #b37a0a; }
+.avail-dot--no     { background: var(--red); }
+.avail-dot--neutral { background: var(--rule); }
+
+/* hidden slot availability list (kept for semantics/tests) */
+.slot-availability-hidden {
+  display: none;
+}
+
+/* ─── Slot score cards ────────────────────────────────────────────────────── */
+
+.slot-scorer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.slot-score-card {
+  border: 1.5px solid var(--rule);
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s;
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.slot-score-card:hover {
+  border-color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.slot-score-card--selected {
+  border-color: var(--ink);
+  background: var(--field-bg);
+}
+
+.slot-score-rank {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--rule);
+  line-height: 1;
+}
+
+.slot-score-card--selected .slot-score-rank {
+  color: var(--ink);
+}
+
+.slot-score-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.slot-score-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.slot-score-time {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.slot-score-bars {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.slot-score-bar {
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 2rem;
+  justify-content: flex-end;
+}
+
+.slot-score-bar--yes   { color: #2a6e2a; }
+.slot-score-bar--maybe { color: #b37a0a; }
+.slot-score-bar--no    { color: var(--red); }
+
+/* ─── Native slot select ──────────────────────────────────────────────────── */
+
+.slot-select-row {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.slot-native-select {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  width: 100%;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.slot-native-select:focus {
+  border-color: var(--ink);
+}
+
+/* ─── Venue type filter (chips + custom input) ────────────────────────────── */
+
+.venue-type-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.venue-type-chip {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.6rem;
+  border: 1.5px solid var(--rule);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s, color 0.1s;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.venue-type-chip:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.venue-type-chip--active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.venue-filter-custom {
+  display: flex;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.venue-filter-label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.venue-filter-input {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.45rem 0.65rem;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.12s;
+  min-width: 0;
+}
+
+.venue-filter-input:focus {
+  border-color: var(--ink);
+}
+
+.venue-filter-btn {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.45rem 0.75rem;
+  border: 1.5px solid var(--rule);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s;
+  line-height: 1;
+}
+
+.venue-filter-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* ─── Venue cards ─────────────────────────────────────────────────────────── */
+
+.venue-card-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.venue-card-block {
+  border: 1.5px solid var(--rule);
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.venue-card-block:hover {
+  border-color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.venue-card-block--selected {
+  border-color: var(--ink);
+  background: var(--field-bg);
+}
+
+.venue-card-radio {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  accent-color: var(--ink);
+}
+
+.venue-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.venue-card-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.venue-card-name a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.venue-card-name a:hover {
+  text-decoration: underline;
+}
+
+.venue-card-meta {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.venue-card-pin {
+  color: var(--red);
+}
+
+/* ─── Finalize section ────────────────────────────────────────────────────── */
+
+.finalize-section {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.finalize-section > h2 {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  margin-bottom: 1.25rem;
+}
+
+/* Venue mode fieldset */
+.venue-mode-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.venue-mode-fieldset legend {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.venue-mode-options {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.venue-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.venue-mode-option input {
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+/* Selected venue display */
+.selected-venue-display {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 0.55rem 0.75rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--rule);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.selected-venue-display strong {
+  color: var(--ink);
+}
+
+/* Custom venue inputs */
+.custom-venue-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.custom-venue-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.custom-venue-field label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.custom-venue-field input {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.12s;
+  width: 100%;
+}
+
+.custom-venue-field input:focus {
+  border-color: var(--ink);
+}
+
+/* Finalize button + error */
+.finalize-button-row {
+  margin-top: 1.25rem;
+}
+
+.admin-error-inline {
+  font-size: 0.8rem;
+  color: var(--red);
+  border-left: 3px solid var(--red);
+  padding-left: 0.75rem;
+  margin-top: 0.75rem;
+  line-height: 1.4;
+}
+
+/* ─── Finalized notice ────────────────────────────────────────────────────── */
+
+.finalized-notice {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.finalized-notice-inner {
+  padding: 0.75rem 1rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.65rem 1.25rem;
+  border: 1.5px solid var(--ink);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  border-radius: 0;
+  appearance: none;
+  line-height: 1;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Danger zone ─────────────────────────────────────────────────────────── */
+
+.admin-danger {
+  border-top: 1px solid var(--rule);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--red);
+  color: var(--red);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  line-height: 1;
+}
+
+.btn-danger:hover {
+  background: var(--red);
+  color: var(--paper);
+}
+
+.admin-error-danger {
+  font-size: 0.8rem;
+  color: var(--red);
+}
+
+/* ─── Venue section header ────────────────────────────────────────────────── */
+
+.venue-list-section {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.venue-list-section > h2 {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  margin-bottom: 1rem;
+}

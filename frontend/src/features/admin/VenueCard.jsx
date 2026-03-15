@@ -7,27 +7,31 @@ export default function VenueCard({ venue, selected, onSelect }) {
       : null;
 
   const mapUrl = `https://www.openstreetmap.org/?mlat=${venue.latitude}&mlon=${venue.longitude}&zoom=17`;
+  const linkUrl = venue.website || mapUrl;
 
   return (
-    <li data-testid="venue-card">
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5em', cursor: 'pointer' }}>
-        <input
-          type="radio"
-          name="venue-selection"
-          checked={selected}
-          onChange={() => onSelect(venue)}
-          data-testid="venue-radio"
-        />
-        <span>&#128205;</span>
-        {' '}
-        <a href={mapUrl} target="_blank" rel="noopener noreferrer">
-          <strong>{venue.name}</strong>
-        </a>
-        {distance && <span data-testid="venue-distance"> &mdash; {distance}</span>}
-        {venue.rating != null && (
-          <span data-testid="venue-rating"> &mdash; &#9733; {venue.rating.toFixed(1)}</span>
-        )}
-      </label>
+    <li data-testid="venue-card" className={`venue-card-block${selected ? ' venue-card-block--selected' : ''}`}>
+      <input
+        type="radio"
+        name="venue-selection"
+        className="venue-card-radio"
+        checked={selected}
+        onChange={() => onSelect(venue)}
+        data-testid="venue-radio"
+        aria-label={venue.name}
+      />
+      <div className="venue-card-body">
+        <div className="venue-card-name">
+          <a href={linkUrl} target="_blank" rel="noopener noreferrer">{venue.name}</a>
+        </div>
+        <div className="venue-card-meta">
+          <span className="venue-card-pin">📍</span>
+          {distance && <span data-testid="venue-distance">{distance}</span>}
+          {venue.rating != null && (
+            <span data-testid="venue-rating">★ {venue.rating.toFixed(1)}</span>
+          )}
+        </div>
+      </div>
     </li>
   );
 }

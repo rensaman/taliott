@@ -1,9 +1,27 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
 import VenueList from './VenueList.jsx';
 import FinalizePanel from './FinalizePanel.jsx';
 import { useEventStream } from '../../hooks/useEventStream.js';
+import './AdminView.css';
+
+function scoreSlots(slots, participants) {
+  const responded = participants.filter(p => p.responded_at);
+  return slots
+    .map(slot => {
+      let yes = 0, maybe = 0, no = 0;
+      for (const p of responded) {
+        const avail = p.availability?.find(a => a.slot_id === slot.id);
+        const state = avail?.state ?? 'neutral';
+        if (state === 'yes') yes++;
+        else if (state === 'maybe') maybe++;
+        else if (state === 'no') no++;
+      }
+      return { ...slot, yes, maybe, no, respondedCount: responded.length };
+    })
+    .sort((a, b) => (b.yes * 2 + b.maybe) - (a.yes * 2 + a.maybe));
+}
 
 export default function AdminView({ adminToken }) {
   const [data, setData] = useState(null);
@@ -22,16 +40,12 @@ export default function AdminView({ adminToken }) {
       .catch(err => setError(err.message));
   }, [adminToken]);
 
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
-  // Seed live centroid from initial load
   useEffect(() => {
     if (data?.centroid !== undefined) setLiveCentroid(data.centroid);
   }, [data?.centroid]);
 
-  // Subscribe to live location updates
   useEventStream(adminToken ?? null, msg => {
     if (msg.type === 'location') setLiveCentroid(msg.centroid);
   });
@@ -46,6 +60,11 @@ export default function AdminView({ adminToken }) {
     }
   }
 
+  const scoredSlots = useMemo(() => {
+    if (!data) return [];
+    return scoreSlots(data.slots || [], data.participants || []);
+  }, [data]);
+
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
 
@@ -53,34 +72,70 @@ export default function AdminView({ adminToken }) {
   const total = data.participants.length;
 
   return (
-    <main>
-      <h1>{data.name}</h1>
-      <p>Status: <strong>{data.status}</strong></p>
-      <p>Deadline: {new Date(data.deadline).toLocaleString()}</p>
-      <p>{responded} of {total} responded</p>
-      <GroupMap centroid={liveCentroid} participants={data.participants} />
-      <ParticipantResponseList participants={data.participants} slots={data.slots || []} />
-      <VenueList
-        adminToken={adminToken}
-        defaultVenueType={data.venue_type || ''}
-        onSelectVenue={setSelectedVenue}
-      />
-      {data.status !== 'finalized' && (
-        <FinalizePanel
-          adminToken={adminToken}
-          slots={data.slots || []}
-          selectedVenueId={selectedVenue?.id ?? null}
-          selectedVenueName={selectedVenue?.name ?? null}
-          onFinalized={loadDashboard}
-        />
-      )}
-      {data.status === 'finalized' && (
-        <p data-testid="finalized-notice"><strong>This event has been finalized.</strong></p>
-      )}
-      <section aria-label="Danger zone">
-        <button onClick={handleDeleteEvent}>Delete event</button>
-        {deleteError && <p role="alert">{deleteError}</p>}
-      </section>
-    </main>
+    <div className="admin-page">
+      <header className="admin-header">
+        <a href="/" className="admin-wordmark">Taliott</a>
+        <h1 className="admin-event-name">{data.name}</h1>
+        <span className={`admin-status-badge admin-status-badge--${data.status}`}>
+          {data.status}
+        </span>
+      </header>
+
+      <div className="admin-meta">
+        <span>Deadline: <strong>{new Date(data.deadline).toLocaleString()}</strong></span>
+        <span><strong>{responded} of {total} responded</strong></span>
+      </div>
+
+      <div className="admin-body">
+        <div className="admin-left">
+          <div className="admin-section">
+            <GroupMap
+              centroid={liveCentroid}
+              participants={data.participants}
+              selectedVenue={selectedVenue ? { lat: selectedVenue.latitude, lng: selectedVenue.longitude, name: selectedVenue.name } : null}
+            />
+          </div>
+          <div className="admin-section">
+            <div className="admin-section-title">Participants</div>
+            <ParticipantResponseList
+              participants={data.participants}
+              slots={data.slots || []}
+            />
+          </div>
+        </div>
+
+        <div className="admin-right">
+          {data.status !== 'finalized' && (
+            <FinalizePanel
+              adminToken={adminToken}
+              slots={data.slots || []}
+              scoredSlots={scoredSlots}
+              selectedVenueId={selectedVenue?.id ?? null}
+              selectedVenueName={selectedVenue?.name ?? null}
+              onFinalized={loadDashboard}
+            />
+          )}
+
+          <VenueList
+            adminToken={adminToken}
+            defaultVenueType={data.venue_type || ''}
+            onSelectVenue={setSelectedVenue}
+          />
+
+          {data.status === 'finalized' && (
+            <div className="finalized-notice">
+              <div className="finalized-notice-inner">
+                <p data-testid="finalized-notice"><strong>This event has been finalized.</strong></p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <footer className="admin-danger" aria-label="Danger zone">
+        <button className="btn-danger" onClick={handleDeleteEvent}>Delete event</button>
+        {deleteError && <p role="alert" className="admin-error-danger">{deleteError}</p>}
+      </footer>
+    </div>
   );
 }

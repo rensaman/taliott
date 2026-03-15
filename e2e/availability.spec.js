@@ -21,7 +21,11 @@ async function createEvent(page, deadline = '2099-12-31T23:59:59.000Z') {
 
 test('participant can click cells and states cycle correctly', async ({ page }) => {
   const { participants } = await createEvent(page);
-  await page.goto(`/participate/${participants[0].id}`);
+  const pid = participants[0].id;
+  await page.request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278, address_label: 'London' },
+  });
+  await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
   await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
@@ -50,7 +54,11 @@ test('participant can click cells and states cycle correctly', async ({ page }) 
 
 test('saved indicator appears after clicking a cell', async ({ page }) => {
   const { participants } = await createEvent(page);
-  await page.goto(`/participate/${participants[0].id}`);
+  const pid = participants[0].id;
+  await page.request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278, address_label: 'London' },
+  });
+  await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
   await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
@@ -64,6 +72,10 @@ test('saved indicator appears after clicking a cell', async ({ page }) => {
 test('availability persists across page reload', async ({ page }) => {
   const { participants, slots } = await createEvent(page);
   const pid = participants[0].id;
+
+  await page.request.patch(`/api/participate/${pid}/location`, {
+    data: { latitude: 51.5074, longitude: -0.1278, address_label: 'London' },
+  });
 
   await page.goto(`/participate/${pid}`);
   await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location

@@ -367,6 +367,8 @@ function toVenueDto(v) {
     longitude: v.longitude,
     rating: v.rating,
     distanceM: v.distanceM,
+    website: v.website ?? null,
+    address: v.address ?? null,
   };
 }
 

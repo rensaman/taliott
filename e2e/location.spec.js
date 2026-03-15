@@ -105,7 +105,8 @@ test('participant can select a travel mode on step 3', async ({ page }) => {
   const patchDone = page.waitForResponse(r =>
     r.url().includes('/travel-mode') && r.request().method() === 'PATCH'
   );
-  await page.getByRole('radio', { name: /cycling/i }).click();
+  // ToggleBlock hides the radio input — click the label instead
+  await page.locator('.toggle-block').filter({ hasText: /cycling/i }).click();
   await patchDone;
 
   // Verify mode was saved

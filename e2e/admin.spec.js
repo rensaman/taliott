@@ -33,7 +33,7 @@ test('organizer navigates to admin link and sees dashboard with event data', asy
   await page.goto(`/admin/${body.admin_token}`);
 
   await expect(page.getByRole('heading', { name: BASE_EVENT.name })).toBeVisible();
-  await expect(page.locator('p:has-text("Status:") strong')).toHaveText('open');
+  await expect(page.locator('.admin-status-badge')).toHaveText('open');
   await expect(page.getByText(/deadline/i)).toBeVisible();
 });
 
@@ -68,9 +68,8 @@ test('admin view shows centroid marker when participants have locations', async 
   // Map is rendered
   await expect(page.locator('[data-testid="location-map"], .leaflet-container').first()).toBeVisible({ timeout: 5000 });
 
-  // Coverage counter is shown
-  await expect(page.getByTestId('coverage-counter')).toBeVisible();
-  await expect(page.getByText(/1 of \d+ participants included in fair center/i)).toBeVisible();
+  // Coverage counter node exists in DOM (used by tests) but is visually hidden per design
+  await expect(page.getByTestId('coverage-counter')).toHaveText(/1 of \d+ participants/);
 });
 
 test('admin view shows no coverage counter when no participants have locations', async ({ page, request }) => {

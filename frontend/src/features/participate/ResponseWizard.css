@@ -18,15 +18,20 @@
   gap: 1.25rem;
 }
 
-.rw-footer-legal a {
-  font-size: 0.72rem;
+.rw-consent {
+  font-size: 0.68rem;
   color: var(--muted);
-  text-decoration: none;
+  text-align: center;
+  line-height: 1.4;
 }
 
-.rw-footer-legal a:hover {
-  color: var(--ink);
+.rw-consent a {
+  color: var(--muted);
   text-decoration: underline;
+}
+
+.rw-consent a:hover {
+  color: var(--ink);
 }
 
 .rw-footer-actions {
@@ -259,6 +264,12 @@
 }
 
 /* ── Summary view layout ─────────────────────────────────────────────────── */
+.pv-wizard-event-header {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 0;
+}
+
 .pv-main {
   max-width: 480px;
   margin: 0 auto;
@@ -268,5 +279,43 @@
 .pv-event-title {
   font-size: clamp(1.6rem, 6vw, 2.4rem);
   margin-bottom: 0.5rem;
+}
+
+/* ── Response summary sections ───────────────────────────────────────────── */
+.summary {
+  margin-top: 1.5rem;
+}
+
+.summary-section {
+  padding: 1rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.summary-section--action {
+  border-bottom: 1px solid var(--rule);
+}
+
+.summary-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.summary-address {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--rule);
 }
 

@@ -80,6 +80,10 @@ export default function ParticipateView({ participantId }) {
   if (showWizard) {
     return (
       <>
+        <header className="pv-wizard-event-header">
+          <h1 className="pv-event-title">{event.name}</h1>
+          <DeadlineBadge deadline={event.deadline} locked={event.locked} />
+        </header>
         <ResponseWizard
           participantId={participantId}
           initialName={participant.name}

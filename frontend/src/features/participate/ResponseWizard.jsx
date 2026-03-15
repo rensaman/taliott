@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import TravelModeSelector, { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
 import StepRoute from '../setup/StepRoute.jsx';
-import LegalFooter from '../legal/LegalFooter.jsx';
 import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
 
@@ -23,6 +22,7 @@ export default function ResponseWizard({
   const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
+  const locationFieldsetRef = useRef(null);
   const [travelMode, setTravelMode] = useState(initialTravelMode);
   const [nameError, setNameError] = useState(null);
   const [locationError, setLocationError] = useState(null);
@@ -64,6 +64,7 @@ export default function ResponseWizard({
 
   async function saveTravelMode(mode) {
     setTravelMode(mode);
+    locationFieldsetRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     try {
       await fetch(`/api/participate/${participantId}/travel-mode`, {
         method: 'PATCH',
@@ -114,6 +115,7 @@ export default function ResponseWizard({
   }
 
   function canAdvance() {
+    if (currentStep === 'travel_location') return !!location;
     if (currentStep === 'review') return !submitting;
     return true;
   }
@@ -146,7 +148,7 @@ export default function ResponseWizard({
           <>
             <h2>Where are you coming from?</h2>
             <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
-            <fieldset className="wizard-fieldset">
+            <fieldset className="wizard-fieldset" ref={locationFieldsetRef}>
               <legend>Your starting location</legend>
               <AddressSearchInput onSelect={saveLocation} />
               {location && (
@@ -214,7 +216,7 @@ export default function ResponseWizard({
   return (
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
-        <p className="wizard-wordmark">Taliott</p>
+        <h1 className="wizard-wordmark">Taliott</h1>
         <StepRoute stepLabels={STEP_LABELS} current={step} />
       </header>
 
@@ -227,7 +229,12 @@ export default function ResponseWizard({
 
       <footer className="wizard-footer rw-footer">
         <div className="rw-footer-legal">
-          <LegalFooter />
+          <p className="rw-consent">
+            By continuing you agree to our{' '}
+            <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+          </p>
         </div>
         <div className="rw-footer-actions">
           {step > 0 && (

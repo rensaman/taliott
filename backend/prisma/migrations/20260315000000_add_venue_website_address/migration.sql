@@ -1,0 +1,2 @@
+ALTER TABLE "Venue" ADD COLUMN "website" TEXT;
+ALTER TABLE "Venue" ADD COLUMN "address" TEXT;

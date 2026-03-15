@@ -231,6 +231,31 @@ textarea.wizard-input {
   color: var(--ink);
 }
 
+/* Footer right column (button + consent) */
+.wizard-footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+/* Consent notice */
+.wizard-consent {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.wizard-consent a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.wizard-consent a:hover {
+  color: var(--ink);
+}
+
 /* Error */
 .wizard-error {
   font-size: 0.875rem;

@@ -156,7 +156,7 @@ export async function sendOrganizerJoinNotification(participant, event) {
  */
 function resolveVenueInfo(venue, event) {
   if (venue?.name) {
-    return { name: venue.name, address: null };
+    return { name: venue.name, address: venue.address ?? null };
   }
   if (event?.finalVenueName) {
     return { name: event.finalVenueName, address: event.finalVenueAddress ?? null };

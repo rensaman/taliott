@@ -57,7 +57,8 @@ export async function fillWizard(page, {
 
   // Step 5: invite_mode → review
   if (inviteMode === 'email_invites') {
-    await page.getByRole('radio', { name: /send email invites/i }).click();
+    // ToggleBlock hides the radio input — click the label instead
+    await page.locator('.toggle-block').filter({ hasText: /send email invites/i }).click();
     if (participantEmails) {
       await page.getByRole('textbox', { name: /participant emails/i }).fill(participantEmails);
     }

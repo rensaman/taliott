@@ -29,7 +29,8 @@ test.describe('invite mode selector', () => {
     await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     // shared_link is the default — textarea is not yet visible
     await expect(page.getByLabel(/participant emails/i)).not.toBeVisible();
-    await page.getByRole('radio', { name: /send email invites/i }).click();
+    // ToggleBlock hides the radio input — click the label instead
+    await page.locator('.toggle-block').filter({ hasText: /send email invites/i }).click();
     await expect(page.getByLabel(/participant emails/i)).toBeVisible();
   });
 

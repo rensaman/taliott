@@ -84,6 +84,8 @@ describe('ResponseWizard', () => {
 
   it('navigates to dates step when clicking Continue on travel+location step', async () => {
     renderWizard({ initialName: 'Alex', initialStep: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.getByTestId('selected-address')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
     await waitFor(() => expect(screen.getByTestId('availability-grid')).toBeInTheDocument());
     expect(screen.queryByTestId('travel-mode-selector')).not.toBeInTheDocument();

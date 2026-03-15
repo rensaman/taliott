@@ -108,6 +108,8 @@ model Venue {
   longitude  Float
   rating     Float?
   distanceM  Int?
+  website    String?
+  address    String?
 
   event      Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 

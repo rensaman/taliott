@@ -52,10 +52,10 @@ describe('GroupMap', () => {
     expect(screen.getAllByTestId('participant-marker')).toHaveLength(2);
   });
 
-  it('shows coverage counter with count and total', () => {
+  it('keeps coverage counter data node when centroid is provided', () => {
     render(<GroupMap centroid={CENTROID} participants={PARTICIPANTS} />);
     expect(screen.getByTestId('coverage-counter')).toBeInTheDocument();
-    expect(screen.getByText(/2 of 3 participants included in fair center/i)).toBeInTheDocument();
+    expect(screen.getByTestId('coverage-counter')).toHaveTextContent('2 of 3');
   });
 
   it('does not show coverage counter when centroid is null', () => {

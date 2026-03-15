@@ -58,7 +58,7 @@ test('admin dashboard shows "finalized" status after finalization', async ({ pag
   await page.getByRole('button', { name: /finalize event/i }).click();
 
   await expect(page.getByTestId('finalized-notice')).toBeVisible();
-  await expect(page.getByText(/status/i)).toContainText('finalized');
+  await expect(page.locator('.admin-status-badge')).toHaveText('finalized');
 });
 
 test('organizer finalizes with custom venue — participant view shows final slot and venue', async ({ page, request }) => {

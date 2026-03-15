@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
@@ -38,6 +38,14 @@ export default function EventSetupForm({ onCreated }) {
   const [step, setStep] = useState(0);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const timeRangeRef = useRef(null);
+
+  // Scroll to time range selector once the date range is fully defined
+  useEffect(() => {
+    if (formData.dateRange.start && formData.dateRange.end && timeRangeRef.current?.scrollIntoView) {
+      timeRangeRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+  }, [formData.dateRange.start, formData.dateRange.end]);
 
   const currentStep = STEPS[step];
   const totalSteps = STEPS.length;
@@ -227,7 +235,7 @@ export default function EventSetupForm({ onCreated }) {
                     onChange={v => update('dateRange', v)}
                   />
                 </fieldset>
-                <fieldset className="wizard-fieldset">
+                <fieldset className="wizard-fieldset" ref={timeRangeRef}>
                   <legend>Start time window ({timezone})</legend>
                   <TimeRangeSelector
                     startValue={formData.timeRangeStart}
@@ -372,7 +380,7 @@ export default function EventSetupForm({ onCreated }) {
   return (
     <form className="wizard" onSubmit={handleNext} aria-label="Event setup">
       <header className="wizard-header">
-        <p className="wizard-wordmark">Taliott</p>
+        <h1 className="wizard-wordmark">Taliott</h1>
         <StepRoute stepLabels={STEP_LABELS} current={step} />
       </header>
 
@@ -388,15 +396,25 @@ export default function EventSetupForm({ onCreated }) {
         {step > 0 && (
           <button className="btn btn-ghost" type="button" onClick={handleBack}>← Back</button>
         )}
-        <button
-          className="btn btn-primary"
-          type="submit"
-          disabled={!canAdvance() || submitting}
-        >
-          {isLastStep
-            ? (submitting ? 'Creating…' : 'Create Event')
-            : 'Continue →'}
-        </button>
+        <div className="wizard-footer-right">
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={!canAdvance() || submitting}
+          >
+            {isLastStep
+              ? (submitting ? 'Creating…' : 'Create Event')
+              : 'Continue →'}
+          </button>
+          {step === 0 && (
+            <p className="wizard-consent">
+              By continuing you agree to our{' '}
+              <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+            </p>
+          )}
+        </div>
       </footer>
     </form>
   );

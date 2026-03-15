@@ -34,14 +34,24 @@ export async function fetchVenuesFromOverpass(venueType, lat, lng, fetchFn = fet
     });
     if (!res.ok) throw new Error(`Overpass API error: ${res.status}`);
     const data = await res.json();
-    return (data.elements || []).map(el => ({
-      externalId: String(el.id),
-      name: el.tags?.name || 'Unnamed',
-      latitude: el.lat,
-      longitude: el.lon,
-      rating: null,
-      distanceM: Math.round(haversineDistance(lat, lng, el.lat, el.lon)),
-    }));
+    return (data.elements || []).map(el => {
+      const tags = el.tags ?? {};
+      const addrParts = [
+        tags['addr:housenumber'],
+        tags['addr:street'],
+        tags['addr:city'],
+      ].filter(Boolean);
+      return {
+        externalId: String(el.id),
+        name: tags.name || 'Unnamed',
+        latitude: el.lat,
+        longitude: el.lon,
+        rating: null,
+        distanceM: Math.round(haversineDistance(lat, lng, el.lat, el.lon)),
+        website: tags.website || tags.url || null,
+        address: addrParts.length > 0 ? addrParts.join(' ') : null,
+      };
+    });
   } finally {
     clearTimeout(timeout);
   }
