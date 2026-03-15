@@ -19,6 +19,9 @@ vi.mock('./features/legal/TermsView.jsx', () => ({
 vi.mock('./features/legal/LegalFooter.jsx', () => ({
   default: () => <div data-testid="legal-footer" />,
 }));
+vi.mock('./features/landing/LandingPage.jsx', () => ({
+  default: ({ onStart }) => <button onClick={onStart}>Create an event</button>,
+}));
 vi.mock('./features/setup/EventSetupForm.jsx', () => ({
   default: ({ onCreated }) => (
     <>
@@ -40,9 +43,9 @@ describe('App', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the app heading on the home route', () => {
+  it('shows the landing page on the home route', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'taliott' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create an event' })).toBeInTheDocument();
   });
 
   it('renders ParticipateView when path matches /participate/:id', () => {
@@ -59,6 +62,7 @@ describe('App', () => {
 
   it('shows confirmation screen with admin link after event creation', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
     fireEvent.click(screen.getByRole('button', { name: 'create' }));
     expect(screen.getByRole('heading', { name: 'My Event' })).toBeInTheDocument();
     expect(screen.getByText('3 slots generated')).toBeInTheDocument();
@@ -75,6 +79,7 @@ describe('App', () => {
 
   it('shows join_url with copy button when invite mode is shared_link', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
     fireEvent.click(screen.getByRole('button', { name: 'create-link' }));
     expect(screen.getByRole('heading', { name: 'Link Event' })).toBeInTheDocument();
     expect(screen.getByTestId('join-url')).toBeInTheDocument();
@@ -93,8 +98,9 @@ describe('App', () => {
     expect(screen.getByTestId('terms-view')).toBeInTheDocument();
   });
 
-  it('renders a LegalFooter on the home page', () => {
+  it('renders a LegalFooter when the event form is shown', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
     expect(screen.getByTestId('legal-footer')).toBeInTheDocument();
   });
 });

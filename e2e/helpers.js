@@ -21,6 +21,9 @@ export async function fillWizard(page, {
   participantEmails = '',
   stopAt = null,
 } = {}) {
+  // Click through the landing page to reach the event setup form
+  await page.getByRole('button', { name: /create an event/i }).click();
+
   // Step 1: name → organizer_email
   await page.getByRole('textbox', { name: /event name/i }).fill(name);
   await page.getByRole('button', { name: /continue/i }).click();

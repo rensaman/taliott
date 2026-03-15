@@ -7,6 +7,7 @@ import ResendLinkView from './features/resend/ResendLinkView.jsx';
 import PrivacyPolicyView from './features/legal/PrivacyPolicyView.jsx';
 import TermsView from './features/legal/TermsView.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
+import LandingPage from './features/landing/LandingPage.jsx';
 
 function getParticipantId() {
   const match = window.location.pathname.match(/^\/participate\/([^/]+)/);
@@ -37,6 +38,7 @@ function isTermsPage() {
 
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const participantId = getParticipantId();
   const adminToken = getAdminToken();
   const joinToken = getJoinToken();
@@ -91,6 +93,10 @@ export default function App() {
         )}
       </main>
     );
+  }
+
+  if (!showForm) {
+    return <LandingPage onStart={() => setShowForm(true)} />;
   }
 
   return (
