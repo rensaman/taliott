@@ -12,7 +12,8 @@
     "test:coverage": "npm run test:coverage --workspace=frontend && npm run test:coverage --workspace=backend",
     "test:integration": "npm run test:integration --workspace=backend",
     "test:e2e": "playwright test",
-    "screenshots": "playwright test screenshots.spec.js --workers=1",
+    "screenshots": "playwright test e2e/screenshots.spec.js --workers=1",
+    "screenshots:readme": "node scripts/update-readme-screenshots.js",
     "setup:hooks": "cp .hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo 'Pre-commit hook installed.'"
   },
   "devDependencies": {
