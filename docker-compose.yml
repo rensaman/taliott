@@ -45,6 +45,7 @@ services:
       SMTP_FROM: taliott <noreply@taliott.app>
       APP_BASE_URL: http://localhost:3000
       OTP_BASE_URL: http://otp:8080
+      ORS_API_KEY: ${ORS_API_KEY}
     ports:
       - "4000:4000"
     depends_on:

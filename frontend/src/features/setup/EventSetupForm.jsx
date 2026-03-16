@@ -95,7 +95,7 @@ export default function EventSetupForm({ onCreated }) {
       dateRangeEnd = formData.fixedDate;
       const [hours, mins] = formData.fixedTime.split(':').map(Number);
       timeRangeStart = hours * 60 + mins;
-      timeRangeEnd = timeRangeStart + 30;
+      timeRangeEnd = Math.min(timeRangeStart + 30, 1440);
     } else {
       dateRangeStart = formData.dateRange.start;
       dateRangeEnd = formData.dateRange.end;
