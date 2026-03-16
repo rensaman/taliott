@@ -138,7 +138,7 @@ test('confirmation screen admin link navigates to dashboard with correct event d
     organizerEmail: 'admin-e2e-org@example.com',
     dateStart: '2025-09-01',
     dateEnd: '2025-09-01',
-    deadline: '2099-12-31T23:59',
+    deadline: '2099-12-31T23:30',
   });
   await page.getByRole('button', { name: /create event/i }).click();
 

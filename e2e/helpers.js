@@ -39,8 +39,8 @@ export async function fillWizard(page, {
   // Step 3: date_and_time → deadline
   if (isFixed) {
     await page.getByRole('radio', { name: /already set/i }).click();
-    await page.getByLabel(/^date$/i).fill(fixedDate);
-    await page.getByLabel(/start time/i).fill(fixedTime);
+    await setDateInput(page, 'date-value', fixedDate);
+    await page.getByLabel(/start time/i).selectOption(fixedTime);
   } else {
     await setDateInput(page, 'date-start', dateStart);
     await setDateInput(page, 'date-end', dateEnd);
@@ -51,7 +51,9 @@ export async function fillWizard(page, {
   if (stopAt === 'deadline') return;
 
   // Step 4: deadline → invite_mode
-  await page.getByLabel(/voting deadline/i).fill(deadline);
+  const [dDate, dTime] = deadline.split('T');
+  await setDateInput(page, 'date-value', dDate);
+  await page.getByLabel(/deadline time/i).selectOption(dTime);
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'invite_mode') return;
 

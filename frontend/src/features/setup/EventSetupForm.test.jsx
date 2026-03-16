@@ -52,7 +52,9 @@ function navigateToReview({
   if (stopAt === 'deadline') return;
 
   // Step 4 → invite_mode
-  fireEvent.change(screen.getByLabelText(/voting deadline/i), { target: { value: deadline } });
+  const [dDate, dTime] = deadline.split('T');
+  fireEvent.change(screen.getByLabelText(/^date$/i), { target: { value: dDate } });
+  fireEvent.change(screen.getByLabelText(/deadline time/i), { target: { value: dTime } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'invite_mode') return;
 

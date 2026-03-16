@@ -1,7 +1,5 @@
 const MESSAGES = {
-  saving: 'Saving…',
-  saved:  'Saved',
-  error:  'Failed to save. Please try again.',
+  error: 'Failed to save. Please try again.',
 };
 
 export default function SaveStatusIndicator({ status }) {

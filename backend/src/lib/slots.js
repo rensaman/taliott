@@ -69,7 +69,7 @@ export function generateSlots(dateRangeStart, dateRangeEnd, timeRangeStart = 480
 
   while (current <= end) {
     const dateStr = current.toISOString().slice(0, 10);
-    for (let m = timeRangeStart; m < timeRangeEnd; m += 30) {
+    for (let m = timeRangeStart; m <= timeRangeEnd; m += 30) {
       const startsAt = localMinutesToUTC(dateStr, m, timezone);
       const endsAt = localMinutesToUTC(dateStr, m + 30, timezone);
       slots.push({ startsAt, endsAt });

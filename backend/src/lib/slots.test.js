@@ -3,16 +3,16 @@ import { generateSlots, countDays } from './slots.js';
 
 describe('generateSlots', () => {
   it('generates N × slotsPerDay for an N-day range', () => {
-    // full range 480–1320 = 840 minutes / 30 = 28 slots/day
-    const slotsPerDay = (1320 - 480) / 30;
+    // full range 480–1320 = 840 minutes / 30 + 1 = 29 slots/day (inclusive upper bound)
+    const slotsPerDay = (1320 - 480) / 30 + 1;
     const slots = generateSlots('2025-01-01', '2025-01-03', 480, 1320, 'UTC');
     expect(slots).toHaveLength(3 * slotsPerDay);
   });
 
   it('generates slots for 1-day morning range (480-720)', () => {
-    // 480 to 720 = 240 minutes / 30 = 8 slots
+    // 480 to 720 = 240 minutes / 30 + 1 = 9 slots (inclusive upper bound)
     const slots = generateSlots('2025-06-15', '2025-06-15', 480, 720, 'UTC');
-    expect(slots).toHaveLength(8);
+    expect(slots).toHaveLength(9);
   });
 
   it('bounds slots to correct time range (UTC)', () => {
@@ -21,10 +21,10 @@ describe('generateSlots', () => {
     const firstStart = slots[0].startsAt;
     expect(firstStart.getUTCHours()).toBe(8);
     expect(firstStart.getUTCMinutes()).toBe(0);
-    // Last slot starts at 11:30 UTC (480 + 7*30 = 690 minutes)
+    // Last slot starts at 12:00 UTC (720 minutes — upper bound is now inclusive)
     const lastStart = slots[slots.length - 1].startsAt;
-    expect(lastStart.getUTCHours()).toBe(11);
-    expect(lastStart.getUTCMinutes()).toBe(30);
+    expect(lastStart.getUTCHours()).toBe(12);
+    expect(lastStart.getUTCMinutes()).toBe(0);
   });
 
   it('each slot duration is exactly 30 minutes', () => {
@@ -35,15 +35,15 @@ describe('generateSlots', () => {
   });
 
   it('handles a range crossing a month boundary (Jan 30 → Feb 1)', () => {
-    // 480–720 = 8 slots/day
+    // 480–720 = 9 slots/day (inclusive upper bound)
     const slots = generateSlots('2025-01-30', '2025-02-01', 480, 720, 'UTC');
-    expect(slots).toHaveLength(3 * 8);
+    expect(slots).toHaveLength(3 * 9);
   });
 
   it('handles a range crossing a year boundary (Dec 31 → Jan 1)', () => {
-    // full range 480–1320 = 28 slots/day
+    // full range 480–1320 = 29 slots/day (inclusive upper bound)
     const slots = generateSlots('2024-12-31', '2025-01-01', 480, 1320, 'UTC');
-    expect(slots).toHaveLength(2 * 28);
+    expect(slots).toHaveLength(2 * 29);
   });
 
   it('falls back to defaults for no args', () => {

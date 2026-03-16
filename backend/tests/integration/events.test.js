@@ -45,8 +45,8 @@ describe('POST /api/events', () => {
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    // full range 480–1320 = 840 minutes / 30 = 28 slots/day
-    const slotsPerDay = (1320 - 480) / 30;
+    // full range 480–1320 = 840 minutes / 30 + 1 = 29 slots/day (inclusive upper bound)
+    const slotsPerDay = (1320 - 480) / 30 + 1;
     expect(res.body.slots).toHaveLength(3 * slotsPerDay);
   });
 
@@ -63,7 +63,7 @@ describe('POST /api/events', () => {
       return d.getUTCHours() * 60 + d.getUTCMinutes();
     });
     expect(Math.min(...starts)).toBe(480); // 08:00
-    expect(Math.max(...starts)).toBe(690); // 11:30 (last 30-min slot before 12:00)
+    expect(Math.max(...starts)).toBe(720); // 12:00 (upper bound is now inclusive)
   });
 
   it('handles a date range that crosses a month boundary', async () => {
@@ -77,8 +77,8 @@ describe('POST /api/events', () => {
     expect(res.status).toBe(201);
     createdEventIds.push(res.body.event_id);
 
-    // 480–720 = 240 minutes / 30 = 8 slots/day, 3 days
-    expect(res.body.slots).toHaveLength(3 * 8);
+    // 480–720 = 240 minutes / 30 + 1 = 9 slots/day (inclusive upper bound), 3 days
+    expect(res.body.slots).toHaveLength(3 * 9);
   });
 
   it('creates one participant row per email (organizer + invitees)', async () => {

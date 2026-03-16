@@ -27,8 +27,11 @@ function fmtDate(iso) {
   return `${d} ${MONTHS_SHORT[m - 1]} ${y}`;
 }
 
-export default function DateRangePicker({ value, onChange }) {
-  const { start, end } = value;
+export default function DateRangePicker({ value, onChange, singleDate = false }) {
+  // In singleDate mode value is an ISO string; normalise to internal {start, end}
+  const { start, end } = singleDate
+    ? { start: value || '', end: value || '' }
+    : (value || { start: '', end: '' });
   const today = todayISO();
 
   const initDate = start ? new Date(start + 'T12:00:00') : new Date();
@@ -36,8 +39,8 @@ export default function DateRangePicker({ value, onChange }) {
   const [displayMonth, setDisplayMonth] = useState(() => initDate.getMonth());
   const [hoverDate, setHoverDate] = useState(null);
 
-  // Two-click flow: first click = start, second click = end
-  const pickingEnd = !!(start && !end);
+  // Two-click flow only in range mode
+  const pickingEnd = singleDate ? false : !!(start && !end);
 
   // For hover preview while picking end
   const previewEnd = pickingEnd && hoverDate && hoverDate >= start ? hoverDate : end;
@@ -52,6 +55,10 @@ export default function DateRangePicker({ value, onChange }) {
   }
 
   function handleDayClick(iso) {
+    if (singleDate) {
+      onChange(iso);
+      return;
+    }
     if (!start || !pickingEnd) {
       // Start fresh: set start, clear end
       onChange({ start: iso, end: '' });
@@ -85,11 +92,13 @@ export default function DateRangePicker({ value, onChange }) {
     return cls;
   }
 
-  const statusText = !start
-    ? 'Tap a start date'
-    : !end
-      ? `From ${fmtDate(start)} — tap an end date`
-      : `${fmtDate(start)} – ${fmtDate(end)}`;
+  const statusText = singleDate
+    ? (start ? fmtDate(start) : 'Pick a date')
+    : (!start
+        ? 'Tap a start date'
+        : !end
+          ? `From ${fmtDate(start)} — tap an end date`
+          : `${fmtDate(start)} – ${fmtDate(end)}`);
 
   return (
     <div className="drp">
@@ -131,26 +140,40 @@ export default function DateRangePicker({ value, onChange }) {
       {/* Status hint */}
       <p className="drp-status" aria-live="polite">{statusText}</p>
 
-      {/* Sr-only hidden inputs — keep existing From/To label API for tests */}
-      <input
-        type="date"
-        aria-label="From"
-        data-testid="date-start"
-        className="drp-sr-input"
-        value={start}
-        onChange={e => onChange({ ...value, start: e.target.value })}
-        tabIndex={-1}
-      />
-      <input
-        type="date"
-        aria-label="To"
-        data-testid="date-end"
-        className="drp-sr-input"
-        value={end}
-        min={start || undefined}
-        onChange={e => onChange({ ...value, end: e.target.value })}
-        tabIndex={-1}
-      />
+      {/* Sr-only hidden inputs — keep existing label API for tests */}
+      {singleDate ? (
+        <input
+          type="date"
+          aria-label="Date"
+          data-testid="date-value"
+          className="drp-sr-input"
+          value={value || ''}
+          onChange={e => onChange(e.target.value)}
+          tabIndex={-1}
+        />
+      ) : (
+        <>
+          <input
+            type="date"
+            aria-label="From"
+            data-testid="date-start"
+            className="drp-sr-input"
+            value={start}
+            onChange={e => onChange({ ...value, start: e.target.value })}
+            tabIndex={-1}
+          />
+          <input
+            type="date"
+            aria-label="To"
+            data-testid="date-end"
+            className="drp-sr-input"
+            value={end}
+            min={start || undefined}
+            onChange={e => onChange({ ...value, end: e.target.value })}
+            tabIndex={-1}
+          />
+        </>
+      )}
     </div>
   );
 }

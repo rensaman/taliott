@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import TimeRangeSelector from './PartOfDaySelector.jsx';
+import TimeRangeSelector, { TIME_OPTIONS } from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
 import ToggleBlock from './ToggleBlock.jsx';
@@ -31,7 +31,8 @@ export default function EventSetupForm({ onCreated }) {
     dateRange: { start: '', end: '' },
     timeRangeStart: 480,
     timeRangeEnd: 1320,
-    deadline: '',
+    deadlineDate: '',
+    deadlineTime: '',
     inviteMode: 'shared_link',
     participantEmails: '',
   });
@@ -64,7 +65,7 @@ export default function EventSetupForm({ onCreated }) {
         }
         return !!(formData.dateRange.start && formData.dateRange.end &&
           formData.dateRange.end >= formData.dateRange.start);
-      case 'deadline': return formData.deadline.length > 0;
+      case 'deadline': return formData.deadlineDate.length > 0 && formData.deadlineTime.length > 0;
       case 'review': return !submitting;
       default: return true;
     }
@@ -119,7 +120,7 @@ export default function EventSetupForm({ onCreated }) {
           time_range_start: timeRangeStart,
           time_range_end: timeRangeEnd,
           timezone,
-          deadline: formData.deadline,
+          deadline: `${formData.deadlineDate}T${formData.deadlineTime}`,
         }),
       });
       if (!res.ok) {
@@ -204,26 +205,28 @@ export default function EventSetupForm({ onCreated }) {
 
             {formData.isDateTimeFixed ? (
               <>
-                <div className="field">
-                  <label htmlFor="fixed-date" className="field-label">Date</label>
-                  <input
-                    id="fixed-date"
-                    className="wizard-input"
-                    type="date"
+                <fieldset className="wizard-fieldset">
+                  <legend>Date</legend>
+                  <DateRangePicker
+                    singleDate
                     value={formData.fixedDate}
-                    onChange={e => update('fixedDate', e.target.value)}
+                    onChange={v => update('fixedDate', v)}
                   />
-                </div>
+                </fieldset>
                 <div className="field">
                   <label htmlFor="fixed-time" className="field-label">Start time ({timezone})</label>
-                  <input
+                  <select
                     id="fixed-time"
                     className="wizard-input"
-                    type="time"
                     aria-label="Start time"
                     value={formData.fixedTime}
                     onChange={e => update('fixedTime', e.target.value)}
-                  />
+                  >
+                    <option value="">Select a time</option>
+                    {TIME_OPTIONS.map(o => (
+                      <option key={o.label} value={o.label}>{o.label}</option>
+                    ))}
+                  </select>
                 </div>
               </>
             ) : (
@@ -253,17 +256,28 @@ export default function EventSetupForm({ onCreated }) {
         return (
           <>
             <h2>When&apos;s the voting deadline?</h2>
-            <div className="field">
-              <label htmlFor="deadline" className="field-label">Voting deadline</label>
-              <input
-                id="deadline"
-                className="wizard-input"
-                type="datetime-local"
-                aria-label="Voting deadline"
-                value={formData.deadline}
-                onChange={e => update('deadline', e.target.value)}
-                autoFocus
+            <fieldset className="wizard-fieldset">
+              <legend>Deadline date</legend>
+              <DateRangePicker
+                singleDate
+                value={formData.deadlineDate}
+                onChange={v => update('deadlineDate', v)}
               />
+            </fieldset>
+            <div className="field">
+              <label htmlFor="deadline-time" className="field-label">Deadline time ({timezone})</label>
+              <select
+                id="deadline-time"
+                className="wizard-input"
+                aria-label="Deadline time"
+                value={formData.deadlineTime}
+                onChange={e => update('deadlineTime', e.target.value)}
+              >
+                <option value="">Select a time</option>
+                {TIME_OPTIONS.map(o => (
+                  <option key={o.label} value={o.label}>{o.label}</option>
+                ))}
+              </select>
             </div>
           </>
         );
@@ -343,7 +357,7 @@ export default function EventSetupForm({ onCreated }) {
               )}
               <div className="review-ticket-row">
                 <span className="review-ticket-label">By</span>
-                <span className="review-ticket-value">{formData.deadline}</span>
+                <span className="review-ticket-value">{formatDate(formData.deadlineDate)} at {formData.deadlineTime} ({timezone})</span>
               </div>
               <div className="review-ticket-row">
                 <span className="review-ticket-label">Via</span>

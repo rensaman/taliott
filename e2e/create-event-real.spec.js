@@ -24,13 +24,13 @@ test('API response contains correct slot count for the submitted date range', as
   });
 
   await page.goto('/');
-  // 3 days × full range (480–1320) = 3 × 28 = 84 slots
+  // 3 days × full range (480–1320) = 3 × 29 = 87 slots (inclusive upper bound)
   await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', timeRangeStart: 480, timeRangeEnd: 1320 });
   await page.getByRole('button', { name: /create event/i }).click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
-  const expectedSlots = 3 * (1320 - 480) / 30;
+  const expectedSlots = 3 * ((1320 - 480) / 30 + 1);
   expect(responseBody?.slots?.length).toBe(expectedSlots);
 });
 

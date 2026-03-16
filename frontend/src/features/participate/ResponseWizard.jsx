@@ -199,10 +199,6 @@ export default function ResponseWizard({
                   <span className="review-ticket-value">{location.label}</span>
                 </div>
               )}
-              <div className="review-ticket-row">
-                <span className="review-ticket-label">Dates</span>
-                <span className="review-ticket-value">Availability saved</span>
-              </div>
             </div>
             {submitError && <p className="wizard-error" role="alert">{submitError}</p>}
           </>

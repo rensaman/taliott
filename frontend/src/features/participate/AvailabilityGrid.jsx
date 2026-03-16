@@ -28,13 +28,11 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
   const [saveStatus, setSaveStatus] = useState('idle');
   const pendingRef = useRef({});
   const timerRef = useRef(null);
-  const savedTimerRef = useRef(null);
 
   const flush = useCallback(async () => {
     const changes = pendingRef.current;
     if (Object.keys(changes).length === 0) return;
     pendingRef.current = {};
-    setSaveStatus('saving');
     try {
       const res = await fetch(`/api/participate/${participantId}/availability`, {
         method: 'PATCH',
@@ -43,13 +41,7 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
           availability: Object.entries(changes).map(([slot_id, state]) => ({ slot_id, state })),
         }),
       });
-      if (res.ok) {
-        setSaveStatus('saved');
-        clearTimeout(savedTimerRef.current);
-        savedTimerRef.current = setTimeout(() => setSaveStatus('idle'), 1500);
-      } else {
-        setSaveStatus('error');
-      }
+      if (!res.ok) setSaveStatus('error');
     } catch {
       setSaveStatus('error');
     }

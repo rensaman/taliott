@@ -73,13 +73,6 @@ describe('AvailabilityGrid', () => {
     expect(body.availability).toContainEqual({ slot_id: 's2', state: 'yes' });
   });
 
-  it('shows saving then saved status after flush', async () => {
-    renderGrid();
-    fireEvent.click(screen.getAllByTestId('slot-cell')[0]);
-    vi.advanceTimersByTime(600);
-    await waitFor(() => expect(screen.getByTestId('save-status')).toHaveTextContent('Saving…'));
-    await waitFor(() => expect(screen.getByTestId('save-status')).toHaveTextContent('Saved'));
-  });
 
   it('shows error status when fetch fails', async () => {
     fetch.mockResolvedValue({ ok: false });

@@ -52,22 +52,6 @@ test('participant can click cells and states cycle correctly', async ({ page }) 
   await expect(cells.first()).toHaveAttribute('data-state', 'neutral');
 });
 
-test('saved indicator appears after clicking a cell', async ({ page }) => {
-  const { participants } = await createEvent(page);
-  const pid = participants[0].id;
-  await page.request.patch(`/api/participate/${pid}/location`, {
-    data: { latitude: 51.5074, longitude: -0.1278, address_label: 'London' },
-  });
-  await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
-  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
-
-  await page.getByTestId('slot-cell').first().click();
-
-  // Saving… then Saved
-  await expect(page.getByTestId('save-status')).toContainText(/saving|saved/i, { timeout: 3000 });
-  await expect(page.getByTestId('save-status')).toContainText('Saved', { timeout: 5000 });
-});
 
 test('availability persists across page reload', async ({ page }) => {
   const { participants, slots } = await createEvent(page);
@@ -81,9 +65,10 @@ test('availability persists across page reload', async ({ page }) => {
   await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
   await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
 
-  // Click first cell to 'yes' and wait for save
+  // Click first cell to 'yes' and wait for the PATCH to complete
+  const saveResponse = page.waitForResponse(r => r.url().includes('/availability') && r.request().method() === 'PATCH');
   await page.getByTestId('slot-cell').first().click();
-  await expect(page.getByTestId('save-status')).toContainText('Saved', { timeout: 5000 });
+  await saveResponse;
 
   // Reload and verify state is restored
   await page.goto(`/participate/${pid}`);
