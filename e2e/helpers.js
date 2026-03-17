@@ -40,7 +40,7 @@ export async function fillWizard(page, {
   if (isFixed) {
     await page.getByRole('radio', { name: /already set/i }).click();
     await setDateInput(page, 'date-value', fixedDate);
-    await page.getByLabel(/start time/i).selectOption(fixedTime);
+    await page.getByLabel(/start time/i).fill(fixedTime);
   } else {
     await setDateInput(page, 'date-start', dateStart);
     await setDateInput(page, 'date-end', dateEnd);
@@ -53,7 +53,7 @@ export async function fillWizard(page, {
   // Step 4: deadline → invite_mode
   const [dDate, dTime] = deadline.split('T');
   await setDateInput(page, 'date-value', dDate);
-  await page.getByLabel(/deadline time/i).selectOption(dTime);
+  await page.getByLabel(/deadline time/i).fill(dTime);
   await page.getByRole('button', { name: /continue/i }).click();
   if (stopAt === 'invite_mode') return;
 

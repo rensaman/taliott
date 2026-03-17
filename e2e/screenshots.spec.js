@@ -74,7 +74,7 @@ test.describe('Event creation flow', () => {
     // Step 4 — voting deadline
     await snap(page, 'create-05-deadline.png');
     await page.locator('[data-testid="date-value"]').fill('2025-06-20');
-    await page.getByRole('combobox', { name: /deadline time/i }).selectOption('12:00');
+    await page.getByLabel(/deadline time/i).fill('12:00');
     await page.getByRole('button', { name: /continue/i }).click();
 
     // Step 5 — invite mode (defaults to shared link)

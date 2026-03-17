@@ -11,6 +11,7 @@ function SlotScoreCard({ slot, rank, selected, onClick }) {
 
   return (
     <div
+      data-testid={`slot-card-${slot.id}`}
       className={`slot-score-card${selected ? ' slot-score-card--selected' : ''}`}
       onClick={onClick}
       role="button"
@@ -107,25 +108,6 @@ export default function FinalizePanel({
             ))}
           </div>
         )}
-
-        {/* Native select — keeps accessibility + test compatibility */}
-        <div className="slot-select-row">
-          <label htmlFor="slot-select" className="form-label">Select time slot</label>
-          <select
-            id="slot-select"
-            className="slot-native-select"
-            value={slotId}
-            onChange={e => setSlotId(e.target.value)}
-            required
-          >
-            <option value="">-- choose a slot --</option>
-            {slots.map(s => (
-              <option key={s.id} value={s.id}>
-                {new Date(s.starts_at).toLocaleString()} – {new Date(s.ends_at).toLocaleString()}
-              </option>
-            ))}
-          </select>
-        </div>
 
         <div>
           <fieldset className="venue-mode-fieldset">

@@ -181,7 +181,7 @@ test('FinalizePanel has no venue dropdown — finalize works with slot only', as
   await expect(page.getByRole('combobox', { name: /select venue/i })).not.toBeVisible();
 
   // Finalize with slot only (no venue) — verifies the form still works without the old dropdown
-  await page.locator('#slot-select').selectOption({ index: 1 });
+  await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByRole('button', { name: /finalize event/i }).click();
 
   await expect(page.getByTestId('finalized-notice')).toBeVisible();

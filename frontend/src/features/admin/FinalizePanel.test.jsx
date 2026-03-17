@@ -18,11 +18,10 @@ describe('FinalizePanel', () => {
     expect(screen.getByTestId('finalize-panel')).toBeInTheDocument();
   });
 
-  it('renders slot options', () => {
+  it('renders slot cards', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    expect(screen.getByRole('option', { name: /choose a slot/i })).toBeInTheDocument();
-    const options = screen.getAllByRole('option');
-    expect(options.length).toBeGreaterThanOrEqual(3); // placeholder + 2 slots
+    expect(screen.getByTestId('slot-card-slot-1')).toBeInTheDocument();
+    expect(screen.getByTestId('slot-card-slot-2')).toBeInTheDocument();
   });
 
   it('renders venue mode radio buttons', () => {
@@ -56,7 +55,7 @@ describe('FinalizePanel', () => {
 
   it('finalize button is enabled after slot is selected', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     expect(screen.getByRole('button', { name: /finalize/i })).not.toBeDisabled();
   });
 
@@ -65,7 +64,7 @@ describe('FinalizePanel', () => {
     const onFinalized = vi.fn();
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} onFinalized={onFinalized} />);
-    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(
@@ -79,7 +78,7 @@ describe('FinalizePanel', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
-    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
 
     await waitFor(() => {
@@ -93,7 +92,7 @@ describe('FinalizePanel', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
     fireEvent.change(screen.getByTestId('custom-venue-name'), { target: { value: 'The Blue Note' } });
     fireEvent.change(screen.getByTestId('custom-venue-address'), { target: { value: '131 W 3rd St' } });
@@ -115,7 +114,7 @@ describe('FinalizePanel', () => {
     });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    fireEvent.change(screen.getByLabelText(/time slot/i), { target: { value: 'slot-1' } });
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
 
     await waitFor(() =>

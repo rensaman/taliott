@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import TimeRangeSelector, { TIME_OPTIONS } from './PartOfDaySelector.jsx';
+import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
 import ToggleBlock from './ToggleBlock.jsx';
@@ -96,7 +96,7 @@ export default function EventSetupForm({ onCreated }) {
       dateRangeEnd = formData.fixedDate;
       const [hours, mins] = formData.fixedTime.split(':').map(Number);
       timeRangeStart = hours * 60 + mins;
-      timeRangeEnd = Math.min(timeRangeStart + 30, 1440);
+      timeRangeEnd = timeRangeStart;
     } else {
       dateRangeStart = formData.dateRange.start;
       dateRangeEnd = formData.dateRange.end;
@@ -215,18 +215,14 @@ export default function EventSetupForm({ onCreated }) {
                 </fieldset>
                 <div className="field">
                   <label htmlFor="fixed-time" className="field-label">Start time ({timezone})</label>
-                  <select
+                  <input
                     id="fixed-time"
+                    type="time"
                     className="wizard-input"
                     aria-label="Start time"
                     value={formData.fixedTime}
                     onChange={e => update('fixedTime', e.target.value)}
-                  >
-                    <option value="">Select a time</option>
-                    {TIME_OPTIONS.map(o => (
-                      <option key={o.label} value={o.label}>{o.label}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </>
             ) : (
@@ -266,18 +262,14 @@ export default function EventSetupForm({ onCreated }) {
             </fieldset>
             <div className="field">
               <label htmlFor="deadline-time" className="field-label">Deadline time ({timezone})</label>
-              <select
+              <input
                 id="deadline-time"
+                type="time"
                 className="wizard-input"
                 aria-label="Deadline time"
                 value={formData.deadlineTime}
                 onChange={e => update('deadlineTime', e.target.value)}
-              >
-                <option value="">Select a time</option>
-                {TIME_OPTIONS.map(o => (
-                  <option key={o.label} value={o.label}>{o.label}</option>
-                ))}
-              </select>
+              />
             </div>
           </>
         );
