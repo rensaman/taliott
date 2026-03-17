@@ -30,7 +30,7 @@ export default function EventSetupForm({ onCreated }) {
     fixedTime: '',
     dateRange: { start: '', end: '' },
     timeRangeStart: 480,
-    timeRangeEnd: 1320,
+    timeRangeEnd: 540,
     deadlineDate: '',
     deadlineTime: '',
     inviteMode: 'shared_link',

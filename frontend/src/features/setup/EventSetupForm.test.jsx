@@ -173,11 +173,11 @@ describe('EventSetupForm', () => {
     expect(screen.getByRole('slider', { name: /earliest start/i })).toBeInTheDocument();
   });
 
-  it('defaults time range to 08:00–22:00', () => {
+  it('defaults time range to 08:00–09:00', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'date_and_time' });
     expect(screen.getByRole('slider', { name: /earliest start/i }).value).toBe('480');
-    expect(screen.getByRole('slider', { name: /latest start/i }).value).toBe('1320');
+    expect(screen.getByRole('slider', { name: /latest start/i }).value).toBe('540');
   });
 
   it('switching to fixed mode hides the date range and sliders', () => {
