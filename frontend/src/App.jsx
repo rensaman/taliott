@@ -8,6 +8,8 @@ import PrivacyPolicyView from './features/legal/PrivacyPolicyView.jsx';
 import TermsView from './features/legal/TermsView.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
 import LandingPage from './features/landing/LandingPage.jsx';
+import FeedbackForm from './features/feedback/FeedbackForm.jsx';
+import { track } from './lib/analytics.js';
 import './App.css';
 
 function copyToClipboard(text) {
@@ -82,6 +84,8 @@ function ConfirmationView({ confirmation }) {
             </p>
           </div>
         )}
+
+        <FeedbackForm context="organizer" />
       </main>
     </div>
   );
@@ -154,9 +158,14 @@ export default function App() {
     return <LandingPage onStart={() => setShowForm(true)} />;
   }
 
+  function handleCreated(confirmation) {
+    track('event_created', { invite_mode: confirmation.invite_mode });
+    setConfirmation(confirmation);
+  }
+
   return (
     <>
-      <EventSetupForm onCreated={setConfirmation} />
+      <EventSetupForm onCreated={handleCreated} />
       <LegalFooter />
     </>
   );

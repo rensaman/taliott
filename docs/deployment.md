@@ -28,6 +28,14 @@ This document covers everything that must be in place before taliott is operated
 |---|---|---|
 | `VITE_CONTACT_EMAIL` | **yes** | Email address shown in the Privacy Policy and Terms as the data controller contact |
 | `VITE_APP_NAME` | no | Service name shown in legal pages (default `taliott`) |
+| `VITE_UMAMI_WEBSITE_ID` | no | Umami website ID. If unset, analytics script is not injected |
+| `VITE_UMAMI_SCRIPT_URL` | no | Full URL to Umami's `script.js`. Defaults to `http://localhost:3001/script.js`; set to your public Umami URL in production |
+
+### Umami (analytics) — `docker-compose.yml` / environment
+
+| Variable | Required | Description |
+|---|---|---|
+| `UMAMI_APP_SECRET` | **yes** (prod) | Secret used to sign Umami session cookies. Change from the default before exposing Umami publicly |
 
 ---
 
@@ -117,9 +125,38 @@ Requests you will need to handle manually (via email to `VITE_CONTACT_EMAIL`):
 
 ---
 
-## 8. Monitoring and observability
+## 8. Analytics and feedback
 
-The application has no built-in monitoring. Before launch, consider:
+### Umami (page analytics)
+
+Taliott ships with a self-hosted [Umami](https://umami.is) analytics integration. It is cookieless and GDPR-compliant out of the box — no cookie consent banner is required.
+
+**Docker setup** (already in `docker-compose.yml`):
+- `umami` service — web UI at port 3001
+- `postgres-umami` service — dedicated postgres for Umami data
+
+**Production checklist:**
+1. Set `UMAMI_APP_SECRET` to a strong random string (e.g. `openssl rand -hex 32`). The default placeholder is for development only.
+2. Set `VITE_UMAMI_WEBSITE_ID` and `VITE_UMAMI_SCRIPT_URL` at frontend build time.
+3. Change the default Umami admin password immediately after first login.
+4. Consider whether you want Umami accessible publicly or only on an internal network. If public, put it behind the same reverse proxy as the app (different path or subdomain).
+
+**Custom events tracked:**
+
+| Event name | Fired when |
+|---|---|
+| `event_created` | Organizer completes the setup wizard; includes `invite_mode` property |
+| `availability_submitted` | Participant submits their availability |
+
+Page views are tracked automatically for all routes.
+
+### Feedback form
+
+An NPS (0–10) feedback form with optional free-text comment is shown inline — to organizers on the confirmation screen and to participants immediately after submitting. Responses are stored in the `Feedback` table in the app database. No external service is required.
+
+For a full set of analysis queries (NPS score, participation rates, event trends), see [`docs/analytics.sql`](analytics.sql).
+
+### Additional monitoring
 
 - **Error tracking:** Integrate Sentry or similar (add `import * as Sentry from '@sentry/node'` to `backend/src/index.js`). Without it, backend errors are only visible in server logs.
 - **Uptime monitoring:** Use an external ping service (Better Uptime, UptimeRobot) to alert on downtime.
@@ -135,7 +172,8 @@ The provided `docker-compose.yml` is configured for development. For production:
 1. Remove or gate the Mailpit container (`mailpit` service) — it is a dev-only email catcher.
 2. Set `NODE_ENV=production` so the debug admin router is disabled.
 3. Ensure the OTP service has sufficient memory. The default JVM heap is configured in `docker-compose.yml` — increase it for larger GTFS datasets.
-4. Use Docker secrets or a secrets manager (Vault, AWS Secrets Manager) for `DATABASE_URL`, `SMTP_PASS`, and `ORS_API_KEY` rather than plain `.env` files on the host.
+4. Use Docker secrets or a secrets manager (Vault, AWS Secrets Manager) for `DATABASE_URL`, `SMTP_PASS`, `ORS_API_KEY`, and `UMAMI_APP_SECRET` rather than plain `.env` files on the host.
+5. For Umami: change the default admin password, set a strong `UMAMI_APP_SECRET`, and decide whether the Umami UI should be exposed publicly or restricted to internal access.
 
 ---
 
@@ -155,6 +193,13 @@ Optional but recommended
   [ ] OTP running with regional GTFS + OSM data if transit mode is needed
   [ ] Error tracking (Sentry or equivalent) integrated
   [ ] Uptime monitoring configured
+
+Analytics (Umami)
+  [ ] UMAMI_APP_SECRET set to a strong random string
+  [ ] Default Umami admin password changed
+  [ ] Website added in Umami dashboard and website ID copied
+  [ ] VITE_UMAMI_WEBSITE_ID and VITE_UMAMI_SCRIPT_URL set at frontend build time
+  [ ] Umami network exposure decided (public vs. internal)
 
 Legal (EU / GDPR)
   [ ] VITE_CONTACT_EMAIL set to a monitored address

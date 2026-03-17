@@ -1,0 +1,140 @@
+.feedback-card {
+  border-top: 1px solid var(--rule);
+  padding: 1.5rem 0 0;
+  margin-top: 2rem;
+}
+
+.feedback-card--sent {
+  border-top: 1px solid var(--rule);
+  padding: 1.5rem 0 0;
+  margin-top: 2rem;
+}
+
+.feedback-thanks {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.feedback-question {
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.feedback-scale {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.feedback-scale-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.feedback-scores {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.feedback-score-btn {
+  width: 2rem;
+  height: 2rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--field-bg);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, border-color 0.1s;
+  border-radius: 0;
+  appearance: none;
+  padding: 0;
+}
+
+.feedback-score-btn:hover {
+  background: var(--rule);
+}
+
+.feedback-score-btn--selected {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.feedback-comment {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  background: var(--field-bg);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+  border-radius: 0;
+  appearance: none;
+  outline: none;
+}
+
+.feedback-comment:focus {
+  border-color: var(--ink);
+}
+
+.feedback-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.feedback-submit {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: 0;
+  appearance: none;
+}
+
+.feedback-submit:hover:not(:disabled) {
+  background: var(--red);
+}
+
+.feedback-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.feedback-dismiss {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.feedback-dismiss:hover {
+  color: var(--ink);
+}

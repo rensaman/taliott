@@ -62,6 +62,7 @@ No accounts needed for participants.
 - **Frontend** — React 18 + Vite, port 3000
 - **Backend** — Express 4 + Node.js (ESM), port 4000
 - **Database** — PostgreSQL 16 via Prisma ORM
+- **Analytics** — Umami (self-hosted, cookieless, port 3001) — optional
 
 ---
 
@@ -108,6 +109,13 @@ APP_BASE_URL="http://localhost:3000"
 # OTP_BASE_URL="http://localhost:8080"
 ```
 
+Analytics (optional) — create `frontend/.env.local`:
+```
+VITE_UMAMI_WEBSITE_ID=paste-website-id-from-umami-dashboard
+VITE_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
+```
+See [Analytics setup](#analytics-umami) below for the full flow.
+
 ### 4. Run migrations
 
 ```bash
@@ -130,15 +138,61 @@ App at http://localhost:3000. Backend API at http://localhost:4000. Email UI (Ma
 
 ---
 
+## Analytics (Umami)
+
+Taliott includes optional self-hosted analytics via [Umami](https://umami.is). It is cookieless and GDPR-compliant by default — no consent banner required.
+
+### What is tracked
+
+| Event | When |
+|---|---|
+| Page views | Automatic (all pages) |
+| `event_created` | Organizer completes the setup wizard |
+| `availability_submitted` | Participant submits their response |
+
+### Setup
+
+**1. Start Umami:**
+```bash
+docker compose up -d umami
+```
+Umami runs at http://localhost:3001. Default credentials: `admin` / `umami`.
+
+**2. Add your site:**
+- Settings → Websites → Add website
+- Enter any name and `localhost` as domain
+- Copy the **Website ID**
+
+**3. Configure the frontend:**
+```bash
+# frontend/.env.local
+VITE_UMAMI_WEBSITE_ID=your-website-id-here
+VITE_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
+```
+
+**4. Restart the dev server** (`npm run dev`) — analytics will start appearing in the Umami dashboard.
+
+In production, set `VITE_UMAMI_SCRIPT_URL` to your public Umami URL and `UMAMI_APP_SECRET` in your environment (see [deployment guide](docs/deployment.md)).
+
+### Feedback form
+
+An NPS feedback form (0–10 score + optional comment) is shown:
+- To organizers on the event confirmation screen
+- To participants immediately after they submit their availability
+
+Responses are stored in the `Feedback` table in the app database. Each browser submits at most once (tracked via `localStorage`).
+
+---
+
 ## Docker (full stack)
 
-Runs everything — postgres, mailpit, backend, frontend — in containers.
+Runs everything — postgres, mailpit, backend, frontend, and Umami analytics — in containers.
 
 ```bash
 docker compose up --build
 ```
 
-App at http://localhost:3000. Migrations run automatically on backend startup.
+App at http://localhost:3000. Migrations run automatically on backend startup. Umami analytics at http://localhost:3001.
 
 To stop:
 ```bash
@@ -208,23 +262,36 @@ taliott/
 ├── frontend/          # React/Vite app
 │   ├── src/
 │   │   ├── features/  # Feature-scoped components + co-located tests
+│   │   │   └── feedback/  # NPS feedback form (FeedbackForm.jsx)
 │   │   ├── hooks/     # Shared React hooks
-│   │   ├── lib/       # Frontend utilities
+│   │   ├── lib/       # Frontend utilities (analytics.js, etc.)
 │   │   └── App.jsx
 │   └── Dockerfile
 ├── backend/           # Express API
 │   ├── src/
 │   │   ├── lib/       # Pure utilities (slots, centroid, ICS, etc.)
 │   │   └── routes/    # API route handlers + co-located unit tests
+│   │       └── feedback.js  # POST /api/feedback
 │   ├── prisma/        # Schema + migrations
 │   └── tests/integration/
 ├── e2e/               # Playwright tests
 ├── scripts/           # Maintenance scripts (e.g. update-readme-screenshots.js)
-├── docs/              # Product spec and deployment notes
+├── docs/              # Specs, deployment guide, analytics queries, legal analysis
 ├── region.config.js   # Region / geocoding configuration
 ├── docker-compose.yml
 └── docker-compose.test.yml
 ```
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/deployment.md](docs/deployment.md) | Production setup: env vars, SMTP, ORS, OTP, HTTPS, GDPR checklist |
+| [docs/analytics.sql](docs/analytics.sql) | SQL queries for NPS scores, participation rates, event trends |
+| [docs/specs/overview.md](docs/specs/overview.md) | Product spec and acceptance criteria |
+| [docs/legal/gdpr-compliance-analysis.md](docs/legal/gdpr-compliance-analysis.md) | GDPR data mapping, third-party services, implemented rights |
 
 ---
 

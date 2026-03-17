@@ -70,7 +70,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'My Event' })).toBeInTheDocument();
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
     expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
-    expect(screen.getByText(/2/)).toBeInTheDocument();
+    expect(screen.getByText((_, el) => el?.tagName === 'P' && /2.*participant/i.test(el.textContent))).toBeInTheDocument();
   });
 
   it('renders JoinView when path matches /join/:token', () => {

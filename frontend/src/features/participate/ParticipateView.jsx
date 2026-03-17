@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
+import FeedbackForm from '../feedback/FeedbackForm.jsx';
+import { track } from '../../lib/analytics.js';
 import './ResponseWizard.css';
 
 export default function ParticipateView({ participantId }) {
@@ -9,6 +11,7 @@ export default function ParticipateView({ participantId }) {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [dataDeleted, setDataDeleted] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -53,6 +56,7 @@ export default function ParticipateView({ participantId }) {
   }
 
   async function handleComplete() {
+    track('availability_submitted');
     const res = await fetch(`/api/participate/${participantId}`).catch(() => null);
     if (res?.ok) {
       setData(await res.json());
@@ -63,6 +67,7 @@ export default function ParticipateView({ participantId }) {
       }));
     }
     setUpdating(false);
+    setJustCompleted(true);
   }
 
   const dataRightsSection = (
@@ -130,6 +135,8 @@ export default function ParticipateView({ participantId }) {
         locked={event.locked}
         onUpdate={() => setUpdating(true)}
       />
+
+      {justCompleted && <FeedbackForm context="participant" />}
 
       {dataRightsSection}
     </main>

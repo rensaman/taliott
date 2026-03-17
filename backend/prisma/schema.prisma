@@ -128,3 +128,11 @@ model RouteCache {
 
   @@unique([fromLat, fromLng, toLat, toLng, mode])
 }
+
+model Feedback {
+  id        String   @id @default(uuid())
+  score     Int
+  comment   String?
+  context   String
+  createdAt DateTime @default(now())
+}
