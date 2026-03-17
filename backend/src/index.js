@@ -32,7 +32,7 @@ const writeLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV === 'test',
+  skip: () => process.env.NODE_ENV !== 'production',
 });
 
 // Lenient limiter for typeahead geocode (read-only, user-facing, frequent)
@@ -41,7 +41,7 @@ const geocodeLimiter = rateLimit({
   max: 60,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV === 'test',
+  skip: () => process.env.NODE_ENV !== 'production',
 });
 
 app.use('/api/health', healthRouter);
