@@ -41,6 +41,9 @@ CLAUDE.md
 # Legal analysis (internal, not for distribution)
 docs/legal/gdpr-compliance-analysis.md
 
+# Ops/deployment notes (internal)
+docs/hetzner-deployment.md
+
 # OTP data
 otp/data/*.zip
 

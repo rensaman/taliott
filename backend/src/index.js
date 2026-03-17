@@ -6,6 +6,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../.env') });
 
 import express from 'express';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import healthRouter from './routes/health.js';
 import eventsRouter from './routes/events.js';
 import participateRouter from './routes/participate.js';
@@ -21,15 +23,34 @@ import { getPrisma } from './lib/prisma.js';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: '50kb' }));
+
+// Strict limiter for routes that send email or write to DB with low legitimate frequency
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+// Lenient limiter for typeahead geocode (read-only, user-facing, frequent)
+const geocodeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+});
 
 app.use('/api/health', healthRouter);
-app.use('/api/events', eventsRouter);
+app.use('/api/events', writeLimiter, eventsRouter);
 app.use('/api/participate', participateRouter);
-app.use('/api/geocode', geocodeRouter);
+app.use('/api/geocode', geocodeLimiter, geocodeRouter);
 app.use('/api/join', joinRouter);
-app.use('/api/resend-link', resendLinkRouter);
-app.use('/api/feedback', feedbackRouter);
+app.use('/api/resend-link', writeLimiter, resendLinkRouter);
+app.use('/api/feedback', writeLimiter, feedbackRouter);
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api/admin', adminRouter);
 }
