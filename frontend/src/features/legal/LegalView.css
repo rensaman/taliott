@@ -70,15 +70,16 @@
   margin: 0 auto;
   display: flex;
   gap: 1.25rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .legal-footer a {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
   color: var(--muted);
   text-decoration: none;
 }
 
 .legal-footer a:hover {
   color: var(--ink);
-  text-decoration: underline;
 }
