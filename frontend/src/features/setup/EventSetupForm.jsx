@@ -5,10 +5,11 @@ import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
 import ToggleBlock from './ToggleBlock.jsx';
+import { privacyPath, termsPath } from '../../lib/legalPaths.js';
+import { localizeTimezone } from '../../lib/localizeTimezone.js';
 import './EventSetupForm.css';
 
 const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_mode', 'review'];
-const STEP_LABELS = ['Name', 'Email', 'Dates', 'Deadline', 'Invites', 'Review'];
 
 function minutesToHHMM(minutes) {
   const h = Math.floor(minutes / 60);
@@ -24,7 +25,16 @@ function formatDate(iso) {
 }
 
 export default function EventSetupForm({ onCreated }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const STEP_LABELS = [
+    t('setup.steps.name'),
+    t('setup.steps.email'),
+    t('setup.steps.dates'),
+    t('setup.steps.deadline'),
+    t('setup.steps.invites'),
+    t('setup.steps.review'),
+  ];
   const [formData, setFormData] = useState({
     name: '',
     organizerEmail: '',
@@ -67,7 +77,8 @@ export default function EventSetupForm({ onCreated }) {
           return formData.fixedDate.length > 0 && formData.fixedTime.length > 0;
         }
         return !!(formData.dateRange.start && formData.dateRange.end &&
-          formData.dateRange.end >= formData.dateRange.start);
+          formData.dateRange.end >= formData.dateRange.start &&
+          formData.timeRangeStart < formData.timeRangeEnd);
       case 'deadline': return formData.deadlineDate.length > 0 && formData.deadlineTime.length > 0;
       case 'review': return !submitting;
       default: return true;
@@ -99,7 +110,7 @@ export default function EventSetupForm({ onCreated }) {
       dateRangeEnd = formData.fixedDate;
       const [hours, mins] = formData.fixedTime.split(':').map(Number);
       timeRangeStart = hours * 60 + mins;
-      timeRangeEnd = timeRangeStart;
+      timeRangeEnd = timeRangeStart + 1;
     } else {
       dateRangeStart = formData.dateRange.start;
       dateRangeEnd = formData.dateRange.end;
@@ -134,13 +145,18 @@ export default function EventSetupForm({ onCreated }) {
       const result = await res.json();
       onCreated?.(result);
     } catch (err) {
-      setError(err.message);
+      const msg = err.message;
+      setError(
+        msg.includes('time_range_start') && msg.includes('less than time_range_end')
+          ? t('errors.timeRangeOrder')
+          : msg
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timezone = localizeTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone, i18n.language);
 
   function renderStepContent() {
     switch (currentStep) {
@@ -379,7 +395,7 @@ export default function EventSetupForm({ onCreated }) {
             </div>
             <p className="review-privacy">
               {t('setup.review.privacyText')}{' '}
-              <a href="/privacy" target="_blank" rel="noreferrer">{t('setup.review.privacyLink')}</a>.
+              <a href={privacyPath(i18n.language)} target="_blank" rel="noreferrer">{t('setup.review.privacyLink')}</a>.
             </p>
           </>
         );
@@ -425,9 +441,9 @@ export default function EventSetupForm({ onCreated }) {
           {step === 0 && (
             <p className="wizard-consent">
               {t('wizard.consentPrefix')}{' '}
-              <a href="/terms" target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
+              <a href={termsPath(i18n.language)} target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
               {' '}{t('wizard.and')}{' '}
-              <a href="/privacy" target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
+              <a href={privacyPath(i18n.language)} target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
             </p>
           )}
         </div>

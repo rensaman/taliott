@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import i18n from '../../i18n.js';
 
 vi.mock('./AvailabilityGrid.jsx', () => ({
   default: vi.fn(),
@@ -102,5 +103,36 @@ describe('ResponseSummary', () => {
   it('hides "Update response" button when locked', () => {
     renderSummary({ locked: true });
     expect(screen.queryByTestId('update-response-btn')).not.toBeInTheDocument();
+  });
+});
+
+describe('ResponseSummary — i18n HU', () => {
+  beforeEach(() => {
+    AvailabilityGrid.mockImplementation(() => <div data-testid="availability-grid" />);
+    LocationMap.mockImplementation(() => <div data-testid="location-map" />);
+  });
+
+  afterEach(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  it('renders section labels in Hungarian', async () => {
+    await i18n.changeLanguage('hu');
+    renderSummary({ travelMode: 'transit', location: LOCATION });
+    expect(screen.getByText('Név')).toBeInTheDocument();
+    expect(screen.getByText('Elérhetőség')).toBeInTheDocument();
+    expect(screen.getByText('Utazás')).toBeInTheDocument();
+  });
+
+  it('renders Update response button in Hungarian', async () => {
+    await i18n.changeLanguage('hu');
+    renderSummary({ locked: false });
+    expect(screen.getByTestId('update-response-btn')).toHaveTextContent(/Válasz módosítása/i);
+  });
+
+  it('renders travel mode label in Hungarian', async () => {
+    await i18n.changeLanguage('hu');
+    renderSummary({ travelMode: 'cycling' });
+    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Kerékpár');
   });
 });

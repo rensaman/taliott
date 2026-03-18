@@ -1,4 +1,18 @@
 {
+  "landing": {
+    "headline1": "Csoportos találkozók,",
+    "headline2": "káosz",
+    "headline3": "nélkül.",
+    "sub": "Mindenki megadja, honnan jön. Kiválasztod a legmegfelelőbb helyszínt és időpontot.",
+    "step1": { "label": "Adj meg egy helyszínt", "desc": "Mindenki megadja, honnan indul — semmi macera, semmi táblázat." },
+    "step2": { "label": "Szavazz dátumokra", "desc": "Jelöld be, mikor érsz rá. Az egyezések automatikusan kiemelkednek." },
+    "step3": { "label": "Találkozzatok középen", "desc": "Méltányos helyszín, méltányos időpont. Kész." },
+    "cta": "Esemény létrehozása",
+    "recover": "Van már eseményed?",
+    "recoverLink": "Linkjed visszaállítása",
+    "footerPrivacy": "Adatvédelmi tájékoztató",
+    "footerTerms": "Általános szerződési feltételek"
+  },
   "wizard": {
     "wordmark": "Taliott",
     "consentPrefix": "A folytatással elfogadod az",
@@ -15,6 +29,14 @@
     }
   },
   "setup": {
+    "steps": {
+      "name": "Név",
+      "email": "Email",
+      "dates": "Dátumok",
+      "deadline": "Határidő",
+      "invites": "Meghívók",
+      "review": "Áttekintés"
+    },
     "name": {
       "heading": "Mi az esemény neve?",
       "label": "Esemény neve",
@@ -100,6 +122,12 @@
       "labelTravel": "Utazás",
       "labelFrom": "Honnan",
       "errorSubmit": "Nem sikerült elküldeni. Kérjük, próbáld újra."
+    },
+    "summary": {
+      "labelName": "Név",
+      "labelAvailability": "Elérhetőség",
+      "labelGettingThere": "Utazás",
+      "updateResponse": "← Válasz módosítása"
     },
     "loading": "Betöltés…",
     "notFound": "A részvételi link nem található.",
@@ -224,5 +252,8 @@
   "legalFooter": {
     "privacy": "Adatvédelmi tájékoztató",
     "terms": "Általános szerződési feltételek"
+  },
+  "errors": {
+    "timeRangeOrder": "A kezdési időpontnak korábbinak kell lennie a zárásnál."
   }
 }

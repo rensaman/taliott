@@ -12,6 +12,7 @@ import TermsViewHu from './features/legal/TermsViewHu.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
 import LandingPage from './features/landing/LandingPage.jsx';
 import FeedbackForm from './features/feedback/FeedbackForm.jsx';
+import LanguageSelector from './features/setup/LanguageSelector.jsx';
 import { track } from './lib/analytics.js';
 import './App.css';
 
@@ -137,55 +138,36 @@ export default function App() {
   const joinToken = getJoinToken();
   const resend = isResendPage();
 
-  if (isPrivacyHuPage()) {
-    return <PrivacyPolicyViewHu />;
+  function handleCreated(result) {
+    track('event_created', { invite_mode: result.invite_mode });
+    setConfirmation(result);
   }
 
-  if (isTermsHuPage()) {
-    return <TermsViewHu />;
-  }
-
-  if (isPrivacyPage()) {
-    return <PrivacyPolicyView />;
-  }
-
-  if (isTermsPage()) {
-    return <TermsView />;
-  }
-
-  if (resend) {
-    return <ResendLinkView />;
-  }
-
-  if (participantId) {
-    return <ParticipateView participantId={participantId} />;
-  }
-
-  if (adminToken) {
-    return <AdminView adminToken={adminToken} />;
-  }
-
-  if (joinToken) {
-    return <JoinView joinToken={joinToken} />;
-  }
-
-  if (confirmation) {
-    return <ConfirmationView confirmation={confirmation} />;
-  }
-
-  if (!showForm) {
-    return <LandingPage onStart={() => setShowForm(true)} />;
-  }
-
-  function handleCreated(confirmation) {
-    track('event_created', { invite_mode: confirmation.invite_mode });
-    setConfirmation(confirmation);
+  function renderView() {
+    if (isPrivacyHuPage()) return <PrivacyPolicyViewHu />;
+    if (isTermsHuPage()) return <TermsViewHu />;
+    if (isPrivacyPage()) return <PrivacyPolicyView />;
+    if (isTermsPage()) return <TermsView />;
+    if (resend) return <ResendLinkView />;
+    if (participantId) return <ParticipateView participantId={participantId} />;
+    if (adminToken) return <AdminView adminToken={adminToken} />;
+    if (joinToken) return <JoinView joinToken={joinToken} />;
+    if (confirmation) return <ConfirmationView confirmation={confirmation} />;
+    if (!showForm) return <LandingPage onStart={() => setShowForm(true)} />;
+    return (
+      <>
+        <EventSetupForm onCreated={handleCreated} />
+        <LegalFooter />
+      </>
+    );
   }
 
   return (
     <>
-      <EventSetupForm onCreated={handleCreated} />
-      <LegalFooter />
+      <div className="lang-corner">
+        <LanguageSelector />
+      </div>
+      {renderView()}
     </>
   );
 }

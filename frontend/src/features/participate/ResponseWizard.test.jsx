@@ -228,5 +228,12 @@ describe('ResponseWizard', () => {
       renderWizard();
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__PARTICIPATE_HEADING_TEST__');
     });
+
+    it('shows travel mode label in Hungarian on the review step', async () => {
+      await i18n.changeLanguage('hu');
+      renderWizard({ initialName: 'Alex', initialStep: 3, initialTravelMode: 'cycling' });
+      expect(screen.getByText('Kerékpár')).toBeInTheDocument();
+      await i18n.changeLanguage('en');
+    });
   });
 });

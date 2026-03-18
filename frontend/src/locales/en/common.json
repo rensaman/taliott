@@ -14,7 +14,29 @@
       "submitting": "Submitting…"
     }
   },
+  "landing": {
+    "headline1": "Group meetups,",
+    "headline2": "without",
+    "headline3": "the chaos.",
+    "sub": "Everyone shares where they're coming from. You pick the spot that's fair for all — and a time that works.",
+    "step1": { "label": "Pin your location", "desc": "Everyone shares where they're coming from — no faff, no spreadsheets." },
+    "step2": { "label": "Vote on dates", "desc": "Pick the slots that work. The overlap rises to the top." },
+    "step3": { "label": "Meet in the middle", "desc": "A fair spot, a fair time. Done." },
+    "cta": "Create an event",
+    "recover": "Already have an event?",
+    "recoverLink": "Find your link",
+    "footerPrivacy": "Privacy",
+    "footerTerms": "Terms"
+  },
   "setup": {
+    "steps": {
+      "name": "Name",
+      "email": "Email",
+      "dates": "Dates",
+      "deadline": "Deadline",
+      "invites": "Invites",
+      "review": "Review"
+    },
     "name": {
       "heading": "What's the event called?",
       "label": "Event name",
@@ -100,6 +122,12 @@
       "labelTravel": "Travel",
       "labelFrom": "From",
       "errorSubmit": "Failed to submit. Please try again."
+    },
+    "summary": {
+      "labelName": "Name",
+      "labelAvailability": "Availability",
+      "labelGettingThere": "Getting there",
+      "updateResponse": "← Update response"
     },
     "loading": "Loading…",
     "notFound": "Participation link not found.",
@@ -224,5 +252,8 @@
   "legalFooter": {
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
+  },
+  "errors": {
+    "timeRangeOrder": "Start time must be earlier than end time."
   }
 }

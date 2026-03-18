@@ -20,6 +20,19 @@ describe('LegalFooter', () => {
   });
 });
 
+describe('LegalFooter — language-aware links', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  it('links to /privacy/hu and /terms/hu when language is hu', async () => {
+    await i18n.changeLanguage('hu');
+    render(<LegalFooter />);
+    expect(screen.getByRole('link', { name: /adatvédelmi/i })).toHaveAttribute('href', '/privacy/hu');
+    expect(screen.getByRole('link', { name: /szerződési/i })).toHaveAttribute('href', '/terms/hu');
+  });
+});
+
 describe('i18n', () => {
   afterEach(() => {
     i18n.removeResourceBundle('en', 'common');

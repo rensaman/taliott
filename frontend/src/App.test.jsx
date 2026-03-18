@@ -25,6 +25,9 @@ vi.mock('./features/legal/TermsViewHu.jsx', () => ({
 vi.mock('./features/legal/LegalFooter.jsx', () => ({
   default: () => <div data-testid="legal-footer" />,
 }));
+vi.mock('./features/setup/LanguageSelector.jsx', () => ({
+  default: () => <div data-testid="language-selector" />,
+}));
 vi.mock('./features/resend/ResendLinkView.jsx', () => ({
   default: () => <div data-testid="resend-view" />,
 }));
@@ -142,6 +145,54 @@ describe('App', () => {
     const copyBtn = screen.getByRole('button', { name: /copy/i });
     fireEvent.click(copyBtn);
     expect(navigator.clipboard.writeText).toHaveBeenCalled();
+  });
+});
+
+describe('LanguageSelector — global overlay', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('renders on the landing page', () => {
+    render(<App />);
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the event setup form', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the confirmation screen', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'create' }));
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the participate view', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/participate/abc-123' });
+    render(<App />);
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the admin view', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/admin/tok-abc' });
+    render(<App />);
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the join view', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/join/tok-xyz' });
+    render(<App />);
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+  });
+
+  it('renders on the resend view', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/resend' });
+    render(<App />);
+    expect(screen.getByTestId('language-selector')).toBeInTheDocument();
   });
 });
 

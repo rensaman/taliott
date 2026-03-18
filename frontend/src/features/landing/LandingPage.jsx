@@ -1,22 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { privacyPath, termsPath } from '../../lib/legalPaths.js';
 import './LandingPage.css';
 
-const STEPS = [
-  {
-    label: 'Pin your location',
-    desc: 'Everyone shares where they\'re coming from — no faff, no spreadsheets.',
-  },
-  {
-    label: 'Vote on dates',
-    desc: 'Pick the slots that work. The overlap rises to the top.',
-  },
-  {
-    label: 'Meet in the middle',
-    desc: 'A fair spot, a fair time. Done.',
-  },
-];
-
 export default function LandingPage({ onStart }) {
+  const { t, i18n } = useTranslation();
+
+  const steps = [
+    { label: t('landing.step1.label'), desc: t('landing.step1.desc') },
+    { label: t('landing.step2.label'), desc: t('landing.step2.desc') },
+    { label: t('landing.step3.label'), desc: t('landing.step3.desc') },
+  ];
+
   return (
     <div className="landing">
       <header className="landing-header">
@@ -25,23 +20,20 @@ export default function LandingPage({ onStart }) {
 
       <section className="landing-hero">
         <h1 className="landing-headline">
-          Group meetups,<br />
-          <em>without</em><br />
-          the chaos.
+          {t('landing.headline1')}<br />
+          <em>{t('landing.headline2')}</em><br />
+          {t('landing.headline3')}
         </h1>
         <div className="landing-rule" aria-hidden="true" />
-        <p className="landing-sub">
-          Everyone shares where they&apos;re coming from.
-          You pick the spot that&apos;s fair for all — and a time that works.
-        </p>
+        <p className="landing-sub">{t('landing.sub')}</p>
       </section>
 
       <section className="landing-route" aria-label="How it works">
-        {STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <div className="landing-route-item" key={step.label}>
             <div className="route-node">
               <div className="route-node-circle" aria-hidden="true">{i + 1}</div>
-              {i < STEPS.length - 1 && <div className="route-line" aria-hidden="true" />}
+              {i < steps.length - 1 && <div className="route-line" aria-hidden="true" />}
             </div>
             <div className="route-text">
               <p className="route-text-label">{step.label}</p>
@@ -53,17 +45,17 @@ export default function LandingPage({ onStart }) {
 
       <div className="landing-cta-section">
         <button className="landing-cta" onClick={onStart} data-testid="create-event-btn">
-          Create an event
+          {t('landing.cta')}
         </button>
       </div>
 
       <p className="landing-recover">
-        Already have an event? <a href="/resend">Find your link</a>
+        {t('landing.recover')} <a href="/resend">{t('landing.recoverLink')}</a>
       </p>
 
       <footer className="landing-footer">
-        <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
+        <a href={privacyPath(i18n.language)}>{t('landing.footerPrivacy')}</a>
+        <a href={termsPath(i18n.language)}>{t('landing.footerTerms')}</a>
       </footer>
     </div>
   );

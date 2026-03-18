@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import LandingPage from './LandingPage.jsx';
+import i18n from '../../i18n.js';
 
 describe('LandingPage', () => {
   it('renders the wordmark', () => {
@@ -31,5 +32,24 @@ describe('LandingPage', () => {
     render(<LandingPage onStart={vi.fn()} />);
     expect(screen.getByRole('link', { name: /privacy/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /terms/i })).toBeInTheDocument();
+  });
+});
+
+describe('LandingPage — i18n (HU)', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  it('renders the CTA in Hungarian', async () => {
+    await i18n.changeLanguage('hu');
+    render(<LandingPage onStart={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /esemény létrehozása/i })).toBeInTheDocument();
+  });
+
+  it('footer links point to HU legal pages', async () => {
+    await i18n.changeLanguage('hu');
+    render(<LandingPage onStart={vi.fn()} />);
+    expect(screen.getByRole('link', { name: /adatvédelmi/i })).toHaveAttribute('href', '/privacy/hu');
+    expect(screen.getByRole('link', { name: /szerződési/i })).toHaveAttribute('href', '/terms/hu');
   });
 });

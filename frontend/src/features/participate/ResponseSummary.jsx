@@ -1,6 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import LocationMap from './LocationMap.jsx';
-import { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
 import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
 
@@ -14,17 +14,18 @@ export default function ResponseSummary({
   locked,
   onUpdate,
 }) {
+  const { t } = useTranslation();
   return (
     <section aria-label="Your response" className="summary">
       {name && (
         <div className="summary-section">
-          <p className="summary-label">Name</p>
+          <p className="summary-label">{t('participate.summary.labelName')}</p>
           <p data-testid="summary-name" className="summary-value">{name}</p>
         </div>
       )}
 
       <div className="summary-section">
-        <p className="summary-label">Availability</p>
+        <p className="summary-label">{t('participate.summary.labelAvailability')}</p>
         <AvailabilityGrid
           participantId={participantId}
           slots={slots}
@@ -35,10 +36,10 @@ export default function ResponseSummary({
 
       {(travelMode || location) && (
         <div className="summary-section">
-          <p className="summary-label">Getting there</p>
+          <p className="summary-label">{t('participate.summary.labelGettingThere')}</p>
           {travelMode && (
             <p data-testid="summary-travel-mode" className="summary-value">
-              {TRAVEL_MODE_LABELS[travelMode] ?? travelMode}
+              {t(`travelMode.${travelMode}.label`, { defaultValue: travelMode })}
             </p>
           )}
           {location && (
@@ -53,7 +54,7 @@ export default function ResponseSummary({
       {!locked && (
         <div className="summary-section summary-section--action">
           <button className="btn btn-ghost" onClick={onUpdate} data-testid="update-response-btn">
-            ← Update response
+            {t('participate.summary.updateResponse')}
           </button>
         </div>
       )}

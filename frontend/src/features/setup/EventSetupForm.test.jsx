@@ -373,4 +373,67 @@ describe('EventSetupForm', () => {
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__HEADING_TEST__');
     });
   });
+
+  it('Continue is disabled when timeRangeStart >= timeRangeEnd', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ stopAt: 'date_and_time' });
+    fireEvent.change(screen.getByRole('slider', { name: /earliest start/i }), {
+      target: { value: '900' },
+    });
+    fireEvent.change(screen.getByRole('slider', { name: /latest start/i }), {
+      target: { value: '480' },
+    });
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
+  });
+
+  it('sends time_range_end = time_range_start + 1 for fixed-date events', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+    render(<EventSetupForm onCreated={vi.fn()} />);
+    navigateToReview({ isFixed: true, fixedDate: '2025-06-01', fixedTime: '10:00' });
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.time_range_start).toBe(600);
+    expect(body.time_range_end).toBe(601);
+  });
+});
+
+describe('EventSetupForm — i18n HU', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(async () => {
+    vi.unstubAllGlobals();
+    await i18n.changeLanguage('en');
+  });
+
+  it('renders step labels in Hungarian', async () => {
+    await i18n.changeLanguage('hu');
+    render(<EventSetupForm />);
+    const nav = screen.getByRole('navigation', { name: /progress/i });
+    expect(nav).toHaveTextContent('Határidő');
+  });
+
+  it('wizard consent links point to HU legal pages', async () => {
+    await i18n.changeLanguage('hu');
+    render(<EventSetupForm />);
+    expect(screen.getByRole('link', { name: /általános/i })).toHaveAttribute('href', '/terms/hu');
+    expect(screen.getByRole('link', { name: /adatvédelmi/i })).toHaveAttribute('href', '/privacy/hu');
+  });
+
+  it('translates the time_range_start backend error', async () => {
+    fetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: 'time_range_start must be less than time_range_end' }),
+    });
+    render(<EventSetupForm />);
+    navigateToReview(); // navigate using EN selectors
+    await i18n.changeLanguage('hu'); // switch to HU before submitting
+    fireEvent.click(screen.getByRole('button', { name: /esemény létrehozása/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).not.toHaveTextContent('time_range_start');
+      expect(screen.getByRole('alert')).toHaveTextContent(/korábbinak/i);
+    });
+  });
 });

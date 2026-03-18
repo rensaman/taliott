@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
-import TravelModeSelector, { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
+import TravelModeSelector from './TravelModeSelector.jsx';
 import StepRoute from '../setup/StepRoute.jsx';
 import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
@@ -193,7 +193,7 @@ export default function ResponseWizard({
               )}
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('participate.review.labelTravel')}</span>
-                <span className="review-ticket-value">{TRAVEL_MODE_LABELS[travelMode] ?? travelMode}</span>
+                <span className="review-ticket-value">{t(`travelMode.${travelMode}.label`, { defaultValue: travelMode })}</span>
               </div>
               {location?.label && (
                 <div className="review-ticket-row">
