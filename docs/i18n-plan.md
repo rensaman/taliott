@@ -32,45 +32,49 @@ backend/locales/
 
 ---
 
-## Phase 0 — Infrastructure (~12k tokens) [ ]
+## Phase 0 — Infrastructure (~12k tokens) [x]
 **Goal:** i18n wired up, EN stub works, language toggle visible but only EN available
 
 Tasks:
-- [ ] Add `i18next`, `react-i18next` to `frontend/package.json`
-- [ ] Create `frontend/src/i18n.js` (init, localStorage key: `taliott_lang`, browser detect fallback)
-- [ ] Wrap `<App>` in `<I18nextProvider>` in `main.jsx`
-- [ ] Add `LanguageSelector` component (EN/HU toggle, header placement)
-- [ ] Scaffold empty locale JSON files for all domains
+- [x] Add `i18next`, `react-i18next` to `frontend/package.json`
+- [x] Create `frontend/src/i18n.js` (init, localStorage key: `taliott_lang`, browser detect fallback)
+- [x] Wrap `<App>` in `<I18nextProvider>` in `main.jsx`
+- [x] Add `LanguageSelector` component (EN/HU toggle, header placement)
+- [x] Scaffold empty locale JSON files for all domains
 
 ---
 
-## Phase 1a — Core Flow Components (~60k tokens) [ ]
+## Phase 1a — Core Flow Components (~60k tokens) [x]
 **Goal:** Event creation + participation flows fully translated
 
 Files:
-- [ ] `frontend/src/features/setup/EventSetupForm.jsx` (~80 strings)
-- [ ] `frontend/src/features/participate/ResponseWizard.jsx` (~40 strings)
-- [ ] `frontend/src/features/admin/AdminView.jsx` (~30 strings)
-- [ ] `frontend/src/features/setup/DateRangePicker.jsx` (~30 strings, month/weekday names)
-- [ ] `frontend/src/features/admin/FinalizePanel.jsx` (~25 strings)
+- [x] `frontend/src/features/setup/EventSetupForm.jsx` (~80 strings)
+- [x] `frontend/src/features/participate/ResponseWizard.jsx` (~40 strings)
+- [x] `frontend/src/features/admin/AdminView.jsx` (~30 strings)
+- [x] `frontend/src/features/setup/DateRangePicker.jsx` (~30 strings, month/weekday names)
+- [x] `frontend/src/features/admin/FinalizePanel.jsx` (~25 strings)
 
 ---
 
-## Phase 1b — Remaining Frontend Components (~60k tokens) [ ]
+## Phase 1b — Remaining Frontend Components (~60k tokens) [x]
 **Goal:** All remaining UI text extracted
 
 Files:
-- [ ] `frontend/src/features/participate/ParticipateView.jsx` (~20 strings)
-- [ ] `frontend/src/App.jsx` (~20 strings)
-- [ ] `frontend/src/features/join/JoinView.jsx` (~15 strings)
-- [ ] `frontend/src/features/admin/VenueList.jsx` (~15 strings)
-- [ ] `frontend/src/features/admin/VenueTypeFilter.jsx` (~15 strings)
-- [ ] `frontend/src/features/resend/ResendLinkView.jsx` (~10 strings)
-- [ ] `frontend/src/features/participate/TravelModeSelector.jsx` (~10 strings)
-- [ ] `frontend/src/features/feedback/FeedbackForm.jsx` (~10 strings)
-- [ ] `frontend/src/features/participate/DeadlineBadge.jsx` (~5 strings)
-- [ ] `frontend/src/features/legal/LegalFooter.jsx` (~3 strings)
-- [ ] All remaining small components
+- [x] `frontend/src/features/participate/ParticipateView.jsx` (~20 strings)
+- [x] `frontend/src/App.jsx` — `ConfirmationView` (~20 strings)
+- [x] `frontend/src/features/join/JoinView.jsx` (~15 strings)
+- [x] `frontend/src/features/admin/VenueList.jsx` (~15 strings)
+- [x] `frontend/src/features/admin/VenueTypeFilter.jsx` (~15 strings)
+- [x] `frontend/src/features/resend/ResendLinkView.jsx` (~10 strings)
+- [x] `frontend/src/features/participate/TravelModeSelector.jsx` (~10 strings)
+- [x] `frontend/src/features/feedback/FeedbackForm.jsx` (~10 strings)
+- [x] `frontend/src/features/participate/DeadlineBadge.jsx` (~5 strings)
+- [x] `frontend/src/features/legal/LegalFooter.jsx` (~3 strings)
+
+Notes:
+- `TRAVEL_MODE_LABELS` kept as static English export (used by ResponseWizard/ResponseSummary review steps — update in Phase 3)
+- New `VenueTypeFilter.test.jsx` created (6 behavioural + 2 i18n tests)
+- i18n sentinel tests added to all 9 affected test files
 
 ---
 
@@ -120,9 +124,9 @@ Tasks:
 ## Token Budget Summary
 | Phase | Estimate | Status |
 |-------|----------|--------|
-| 0 | ~12k | [ ] |
-| 1a | ~60k | [ ] |
-| 1b | ~60k | [ ] |
+| 0 | ~12k | [x] |
+| 1a | ~60k | [x] |
+| 1b | ~60k | [x] |
 | 2 | ~30k | [ ] |
 | 3 | ~15k | [ ] |
 | 4 | ~8k | [ ] |
