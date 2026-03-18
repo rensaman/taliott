@@ -25,7 +25,7 @@ function scoreSlots(slots, participants) {
 }
 
 export default function AdminView({ adminToken }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [error, setError] = useState(null);
@@ -84,7 +84,7 @@ export default function AdminView({ adminToken }) {
       </header>
 
       <div className="admin-meta">
-        <span>{t('admin.deadlineLabel')} <strong>{new Date(data.deadline).toLocaleString()}</strong></span>
+        <span>{t('admin.deadlineLabel')} <strong>{new Date(data.deadline).toLocaleString(i18n.language)}</strong></span>
         <span><strong>{t('admin.responded', { responded, total })}</strong></span>
       </div>
 
@@ -135,7 +135,7 @@ export default function AdminView({ adminToken }) {
       </div>
 
       <footer className="admin-danger" aria-label="Danger zone">
-        <button className="btn-danger" onClick={handleDeleteEvent}>{t('admin.deleteEvent')}</button>
+        <button className="btn-danger" onClick={handleDeleteEvent} data-testid="delete-event-btn">{t('admin.deleteEvent')}</button>
         {deleteError && <p role="alert" className="admin-error-danger">{deleteError}</p>}
       </footer>
     </div>

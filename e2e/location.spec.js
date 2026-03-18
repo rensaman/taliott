@@ -25,7 +25,7 @@ test('participant sees address search on the location step', async ({ page }) =>
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   await expect(page.getByLabel(/search address/i)).toBeVisible();
 });
@@ -66,7 +66,7 @@ test('participant types address, selects result, and coordinates are saved', asy
   );
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   const input = page.getByLabel(/search address/i);
   await input.fill('London');
@@ -96,17 +96,17 @@ test('participant can select a travel mode on step 3', async ({ page }) => {
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   // Travel mode selector should be visible
-  await expect(page.getByText(/how will you get there/i)).toBeVisible();
+  await expect(page.getByTestId('travel-mode-selector')).toBeVisible();
 
   // Select 'cycling' and wait for the PATCH to complete
   const patchDone = page.waitForResponse(r =>
     r.url().includes('/travel-mode') && r.request().method() === 'PATCH'
   );
   // ToggleBlock hides the radio input — click the label instead
-  await page.locator('.toggle-block').filter({ hasText: /cycling/i }).click();
+  await page.getByTestId('travel-mode-cycling').click();
   await patchDone;
 
   // Verify mode was saved

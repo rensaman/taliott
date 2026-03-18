@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import HeatmapGrid from './HeatmapGrid.jsx';
+import i18n from '../../i18n.js';
 
 const SLOTS = [
   { id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' },
@@ -57,5 +58,12 @@ describe('HeatmapGrid', () => {
   it('renders the group availability heading', () => {
     render(<HeatmapGrid slots={SLOTS} heatmap={HEATMAP} />);
     expect(screen.getByRole('heading', { name: /group availability/i })).toBeInTheDocument();
+  });
+
+  it('passes i18n.language as locale to column header date formatting', () => {
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    render(<HeatmapGrid slots={SLOTS} heatmap={HEATMAP} />);
+    expect(spy).toHaveBeenCalledWith(i18n.language, expect.objectContaining({ weekday: 'short' }));
+    spy.mockRestore();
   });
 });

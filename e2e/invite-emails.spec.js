@@ -83,7 +83,7 @@ test.describe.serial('invite emails via Mailpit', () => {
       dateEnd: '2025-09-01',
       deadline: '2025-08-31T12:00',
     });
-    await page.getByRole('button', { name: /create event/i }).click();
+    await page.getByTestId('create-event-submit-btn').click();
 
     await expect(page.getByTestId('admin-token')).toBeVisible();
   });

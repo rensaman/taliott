@@ -135,5 +135,12 @@ describe('FinalizePanel', () => {
       render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__FINALIZE_HEADING_TEST__');
     });
+
+    it('passes i18n.language as locale to slot date formatting', () => {
+      const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+      render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+      expect(spy).toHaveBeenCalledWith('en', expect.objectContaining({ weekday: 'short' }));
+      spy.mockRestore();
+    });
   });
 });

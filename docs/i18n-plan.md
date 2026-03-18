@@ -115,23 +115,38 @@ Notes:
 
 ---
 
-## Phase 4 — Language Persistence + Wiring (~8k tokens) [ ]
+## Phase 4 — Language Persistence + Wiring (~8k tokens) [x]
 **Goal:** Language choice persists across page loads and sessions
 
 Tasks:
-- [ ] Wire `LanguageSelector` to `i18next.changeLanguage()` + `localStorage`
-- [ ] Pass `lang` in event creation payload from summary step
-- [ ] Ensure `Intl.DateTimeFormat` locale strings use selected language
+- [x] Wire `LanguageSelector` to `i18next.changeLanguage()` + `localStorage`
+- [x] Pass `lang` in event creation payload from summary step
+- [x] Ensure `Intl.DateTimeFormat` locale strings use selected language
+
+Notes:
+- `i18n.js` reads `taliott_lang` from localStorage on init; persists on `languageChanged` event; guards with try/catch for jsdom/SSR compat
+- HU locale files now imported and loaded (previously `{}` stubs)
+- `localStorage` not available in test jsdom env — persistence tested via `vi.stubGlobal('localStorage', ...)` spy on `setItem`
+- Date locale propagated in: `DeadlineBadge`, `FinalizePanel` (SlotScoreCard), `AdminView`, `JoinView`, `HeatmapGrid`, `AvailabilityGrid`, `ParticipateView`, `ParticipantResponseList`
+- `useTranslation` added to `HeatmapGrid`, `AvailabilityGrid`, `ParticipantResponseList` (previously had no i18n)
+- 9 new tests across 7 test files
 
 ---
 
-## Phase 5 — Test Updates (~25k tokens) [ ]
+## Phase 5 — Test Updates (~25k tokens) [x]
 **Goal:** All tests pass with i18n in place
 
 Tasks:
-- [ ] Mock `useTranslation` in unit tests (return key as value)
-- [ ] Replace text-based E2E selectors with `data-testid` where needed
-- [ ] Backend integration tests assert on English errors only (no change needed)
+- [x] Mock `useTranslation` in unit tests (return key as value)
+- [x] Replace text-based E2E selectors with `data-testid` where needed
+- [x] Backend integration tests assert on English errors only (no change needed)
+
+Notes:
+- Unit tests already passed with real EN translations (i18n defaulting to EN in jsdom)
+- `data-testid` added to: `LandingPage` CTA, `EventSetupForm` inputs + nav buttons, `ToggleBlock` (via prop), `JoinView` form, `ResendLinkView` form + status, `ParticipateView` GDPR buttons + status, `FinalizePanel` finalize button + custom venue radio, `VenueTypeFilter` input + search button, `ResponseWizard` continue button, `DeadlineBadge`, `AdminView` delete button, `TravelModeSelector` fieldset + mode blocks, `App.jsx` invite-emails-sent notice, `JoinView` invalid-link message
+- All E2E interaction selectors updated to use `data-testid` (helpers.js, all spec files)
+- `ToggleBlock` accepts `data-testid` prop; all toggle blocks in `EventSetupForm` and `TravelModeSelector` have stable testids
+- Content assertions (toHaveText on DB values like 'open'/'finalized', hardcoded text like coverage counter) retained as-is; only translated-text interaction selectors were replaced
 
 ---
 
@@ -143,7 +158,7 @@ Tasks:
 | 1b | ~60k | [x] |
 | 2 | ~30k | [x] |
 | 3 | ~15k | [x] |
-| 4 | ~8k | [ ] |
-| 5 | ~25k | [ ] |
+| 4 | ~8k | [x] |
+| 5 | ~25k | [x] |
 | **Total** | **~210k** | |
 | With buffer | ~270–315k | |

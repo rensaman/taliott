@@ -34,7 +34,7 @@ export default function ResendLinkView() {
       <div className="join-body">
         <h1 className="join-event-name">{t('resend.heading')}</h1>
         {submitted ? (
-          <p role="status">{t('resend.successMsg')}</p>
+          <p role="status" data-testid="resend-status">{t('resend.successMsg')}</p>
         ) : (
           <form onSubmit={handleSubmit} aria-label="Resend link form">
             <div className="field">
@@ -43,6 +43,7 @@ export default function ResendLinkView() {
                 id="resend-email"
                 className="wizard-input"
                 type="email"
+                data-testid="resend-email-input"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder={t('resend.emailPlaceholder')}
@@ -50,7 +51,7 @@ export default function ResendLinkView() {
                 autoFocus
               />
             </div>
-            <button className="btn btn-primary" type="submit" disabled={submitting}>
+            <button className="btn btn-primary" type="submit" disabled={submitting} data-testid="resend-submit-btn">
               {submitting ? t('resend.sending') : t('resend.submit')}
             </button>
           </form>

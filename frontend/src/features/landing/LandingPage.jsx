@@ -52,7 +52,7 @@ export default function LandingPage({ onStart }) {
       </section>
 
       <div className="landing-cta-section">
-        <button className="landing-cta" onClick={onStart}>
+        <button className="landing-cta" onClick={onStart} data-testid="create-event-btn">
           Create an event
         </button>
       </div>

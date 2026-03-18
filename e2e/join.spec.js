@@ -27,12 +27,12 @@ test.describe('join page', () => {
     const joinUrl = await createSharedLinkEvent(request);
     await page.goto(joinUrl);
     await expect(page.getByRole('heading', { name: SHARED_LINK_EVENT.name })).toBeVisible();
-    await expect(page.getByText(/deadline/i)).toBeVisible();
+    await expect(page.getByTestId('join-deadline')).toBeVisible();
   });
 
   test('shows invalid message for an unknown join token', async ({ page }) => {
     await page.goto('/join/00000000-0000-0000-0000-000000000000');
-    await expect(page.getByText(/invalid or has expired/i)).toBeVisible();
+    await expect(page.getByTestId('join-invalid-link')).toBeVisible();
   });
 
   test('shows closed message for a locked event', async ({ page, request }) => {
@@ -48,8 +48,8 @@ test.describe('join page', () => {
     const joinUrl = await createSharedLinkEvent(request);
     await page.goto(joinUrl);
 
-    await page.getByLabel(/email/i).fill('e2e-joiner@example.com');
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill('e2e-joiner@example.com');
+    await page.getByTestId('join-submit-btn').click();
 
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
   });
@@ -58,14 +58,14 @@ test.describe('join page', () => {
     const joinUrl = await createSharedLinkEvent(request);
 
     await page.goto(joinUrl);
-    await page.getByLabel(/email/i).fill('participant-one@example.com');
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill('participant-one@example.com');
+    await page.getByTestId('join-submit-btn').click();
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
     const firstUrl = page.url();
 
     await page.goto(joinUrl);
-    await page.getByLabel(/email/i).fill('participant-two@example.com');
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill('participant-two@example.com');
+    await page.getByTestId('join-submit-btn').click();
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
     const secondUrl = page.url();
 
@@ -76,14 +76,14 @@ test.describe('join page', () => {
     const joinUrl = await createSharedLinkEvent(request);
 
     await page.goto(joinUrl);
-    await page.getByLabel(/email/i).fill('repeat-joiner@example.com');
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill('repeat-joiner@example.com');
+    await page.getByTestId('join-submit-btn').click();
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
     const firstUrl = page.url();
 
     await page.goto(joinUrl);
-    await page.getByLabel(/email/i).fill('repeat-joiner@example.com');
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill('repeat-joiner@example.com');
+    await page.getByTestId('join-submit-btn').click();
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
     expect(page.url()).toBe(firstUrl);
   });
@@ -99,8 +99,8 @@ test.describe.serial('join confirmation email', () => {
     await page.goto(joinUrl);
 
     const joinerEmail = 'email-joiner@example.com';
-    await page.getByLabel(/email/i).fill(joinerEmail);
-    await page.getByRole('button', { name: /join event/i }).click();
+    await page.getByTestId('join-email-input').fill(joinerEmail);
+    await page.getByTestId('join-submit-btn').click();
     await expect(page).toHaveURL(/\/participate\/[0-9a-f-]{36}$/);
 
     const participantId = page.url().split('/').at(-1);

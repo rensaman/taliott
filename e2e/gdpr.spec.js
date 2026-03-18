@@ -28,8 +28,8 @@ test('participation page shows Download and Delete buttons', async ({ page, requ
   const { participants } = await createEvent(request);
   await page.goto(`/participate/${participants[0].id}`);
 
-  await expect(page.getByRole('button', { name: /download my data/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /delete my data/i })).toBeVisible();
+  await expect(page.getByTestId('download-data-btn')).toBeVisible();
+  await expect(page.getByTestId('delete-data-btn')).toBeVisible();
 });
 
 test('participant can download their data as JSON', async ({ page, request }) => {
@@ -39,7 +39,7 @@ test('participant can download their data as JSON', async ({ page, request }) =>
   await page.goto(`/participate/${pid}`);
 
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: /download my data/i }).click();
+  await page.getByTestId('download-data-btn').click();
   const dl = await download;
 
   expect(dl.suggestedFilename()).toBe('my-taliott-data.json');
@@ -67,17 +67,17 @@ test('participant deletes their data — personal fields are gone from the API',
   });
 
   await page.goto(`/participate/${pid}`);
-  await expect(page.getByRole('button', { name: /delete my data/i })).toBeVisible();
+  await expect(page.getByTestId('delete-data-btn')).toBeVisible();
 
   // Accept the confirmation dialog
   page.once('dialog', d => d.accept());
-  await page.getByRole('button', { name: /delete my data/i }).click();
+  await page.getByTestId('delete-data-btn').click();
 
   // Page shows erasure confirmation
-  await expect(page.getByRole('status')).toContainText(/erased/i);
+  await expect(page.getByTestId('data-erased-status')).toBeVisible();
 
   // Delete button is gone
-  await expect(page.getByRole('button', { name: /delete my data/i })).not.toBeVisible();
+  await expect(page.getByTestId('delete-data-btn')).not.toBeVisible();
 
   // API confirms personal data is gone
   const res = await request.get(`/api/participate/${pid}`);
@@ -97,10 +97,10 @@ test('participant cancels the delete confirmation — data is preserved', async 
 
   // Dismiss the confirmation dialog
   page.once('dialog', d => d.dismiss());
-  await page.getByRole('button', { name: /delete my data/i }).click();
+  await page.getByTestId('delete-data-btn').click();
 
   // Status message should not appear
-  await expect(page.getByRole('status')).not.toBeVisible();
+  await expect(page.getByTestId('data-erased-status')).not.toBeVisible();
 
   // Data should still be intact
   const res = await request.get(`/api/participate/${pid}`);
@@ -114,7 +114,7 @@ test('admin page shows Delete event button', async ({ page, request }) => {
   const { admin_token } = await createEvent(request);
   await page.goto(`/admin/${admin_token}`);
 
-  await expect(page.getByRole('button', { name: /delete event/i })).toBeVisible();
+  await expect(page.getByTestId('delete-event-btn')).toBeVisible();
 });
 
 test('organiser deletes the event and is redirected to the home page', async ({ page, request }) => {
@@ -122,7 +122,7 @@ test('organiser deletes the event and is redirected to the home page', async ({ 
   await page.goto(`/admin/${admin_token}`);
 
   page.once('dialog', d => d.accept());
-  await page.getByRole('button', { name: /delete event/i }).click();
+  await page.getByTestId('delete-event-btn').click();
 
   await expect(page).toHaveURL('/');
 
@@ -136,7 +136,7 @@ test('organiser cancels event deletion — event is preserved', async ({ page, r
   await page.goto(`/admin/${admin_token}`);
 
   page.once('dialog', d => d.dismiss());
-  await page.getByRole('button', { name: /delete event/i }).click();
+  await page.getByTestId('delete-event-btn').click();
 
   // Still on admin page
   await expect(page).toHaveURL(new RegExp(`/admin/${admin_token}`));

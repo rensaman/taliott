@@ -2,6 +2,7 @@
  * HeatmapGrid — read-only overlay showing group yes_count per slot.
  * Color intensity: white (0 yes) → green (all yes).
  */
+import { useTranslation } from 'react-i18next';
 
 function buildDayTimeMap(slots) {
   const map = new Map();
@@ -23,6 +24,7 @@ function cellStyle(yesCount, total) {
 }
 
 export default function HeatmapGrid({ slots, heatmap }) {
+  const { i18n } = useTranslation();
   if (!heatmap || heatmap.slots.length === 0) return null;
 
   const { total_participants: total, slots: heatmapSlots } = heatmap;
@@ -44,7 +46,7 @@ export default function HeatmapGrid({ slots, heatmap }) {
             <th scope="col" />
             {days.map(day => (
               <th key={day} scope="col">
-                {new Date(day + 'T12:00:00').toLocaleDateString(undefined, {
+                {new Date(day + 'T12:00:00').toLocaleDateString(i18n.language, {
                   weekday: 'short', month: 'short', day: 'numeric',
                 })}
               </th>

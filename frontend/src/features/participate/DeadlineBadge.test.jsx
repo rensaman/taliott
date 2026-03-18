@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import i18n from '../../i18n.js';
 import enCommon from '../../locales/en/common.json';
@@ -34,5 +34,12 @@ describe('i18n', () => {
     i18n.addResourceBundle('en', 'common', { deadlineBadge: { closed: '__DEADLINE_CLOSED_TEST__ {{date}}' } }, true, true);
     render(<DeadlineBadge deadline="2020-01-01T12:00:00Z" locked={true} />);
     expect(screen.getByText(/__DEADLINE_CLOSED_TEST__/)).toBeInTheDocument();
+  });
+
+  it('passes i18n.language as locale to toLocaleString', () => {
+    const spy = vi.spyOn(Date.prototype, 'toLocaleString');
+    render(<DeadlineBadge deadline="2025-06-01T12:00:00Z" locked={false} />);
+    expect(spy).toHaveBeenCalledWith('en');
+    spy.mockRestore();
   });
 });

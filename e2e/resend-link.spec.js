@@ -13,16 +13,16 @@ const RUN_ID = Date.now();
 test('/resend page renders an email input and submit button', async ({ page }) => {
   await page.goto('/resend');
   await expect(page.getByRole('heading', { name: /recover your link/i })).toBeVisible();
-  await expect(page.getByLabel(/your email/i)).toBeVisible();
-  await expect(page.getByRole('button', { name: /send my link/i })).toBeVisible();
+  await expect(page.getByTestId('resend-email-input')).toBeVisible();
+  await expect(page.getByTestId('resend-submit-btn')).toBeVisible();
 });
 
 test('submitting an unknown email shows confirmation message but sends no email', async ({ page }) => {
   await page.goto('/resend');
-  await page.getByLabel(/your email/i).fill('nobody@unknown-resend.com');
-  await page.getByRole('button', { name: /send my link/i }).click();
+  await page.getByTestId('resend-email-input').fill('nobody@unknown-resend.com');
+  await page.getByTestId('resend-submit-btn').click();
 
-  await expect(page.getByRole('status')).toContainText(/if we found a matching event/i);
+  await expect(page.getByTestId('resend-status')).toBeVisible();
 });
 
 test('organizer recovers admin link via resend page', async ({ page, request }) => {
@@ -44,10 +44,10 @@ test('organizer recovers admin link via resend page', async ({ page, request }) 
   expect(res.ok()).toBeTruthy();
 
   await page.goto('/resend');
-  await page.getByLabel(/your email/i).fill(orgEmail);
-  await page.getByRole('button', { name: /send my link/i }).click();
+  await page.getByTestId('resend-email-input').fill(orgEmail);
+  await page.getByTestId('resend-submit-btn').click();
 
-  await expect(page.getByRole('status')).toContainText(/if we found a matching event/i);
+  await expect(page.getByTestId('resend-status')).toBeVisible();
 
   // Unique email means no interference — no since filter needed
   const email = await waitForEmail(orgEmail, { timeout: 8000, subject: 'is ready' });
@@ -77,10 +77,10 @@ test('participant recovers participation link via resend page', async ({ page, r
   expect(res.ok()).toBeTruthy();
 
   await page.goto('/resend');
-  await page.getByLabel(/your email/i).fill(partEmail);
-  await page.getByRole('button', { name: /send my link/i }).click();
+  await page.getByTestId('resend-email-input').fill(partEmail);
+  await page.getByTestId('resend-submit-btn').click();
 
-  await expect(page.getByRole('status')).toContainText(/if we found a matching event/i);
+  await expect(page.getByTestId('resend-status')).toBeVisible();
 
   // Unique email means no interference — no since filter needed
   const email = await waitForEmail(partEmail, { timeout: 8000 });

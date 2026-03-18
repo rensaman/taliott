@@ -10,7 +10,7 @@ import { fillWizard } from './helpers.js';
 test('submitting the form creates a real event and shows confirmation', async ({ page }) => {
   await page.goto('/');
   await fillWizard(page, { inviteMode: 'email_invites', participantEmails: 'jamie@example.com\nsam@example.com' });
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 });
@@ -26,7 +26,7 @@ test('API response contains correct slot count for the submitted date range', as
   await page.goto('/');
   // 3 days × full range (480–1320) = 3 × 29 = 87 slots (inclusive upper bound)
   await fillWizard(page, { dateStart: '2025-06-01', dateEnd: '2025-06-03', timeRangeStart: 480, timeRangeEnd: 1320 });
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
@@ -46,7 +46,7 @@ test('confirmation shows the admin token returned by the backend', async ({ page
 
   await page.goto('/');
   await fillWizard(page);
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
@@ -66,7 +66,7 @@ test('API response includes organizer and invited participants', async ({ page }
 
   await page.goto('/');
   await fillWizard(page, { inviteMode: 'email_invites', participantEmails: 'jamie@example.com\nsam@example.com' });
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 
@@ -86,7 +86,7 @@ test('request body includes a valid IANA timezone', async ({ page }) => {
 
   await page.goto('/');
   await fillWizard(page);
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   await expect(page.getByRole('heading', { name: /summer meetup/i })).toBeVisible();
 

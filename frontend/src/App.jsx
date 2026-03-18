@@ -82,7 +82,7 @@ function ConfirmationView({ confirmation }) {
           </div>
         ) : (
           <div className="confirmation-section">
-            <p className="confirmation-email-notice">
+            <p className="confirmation-email-notice" data-testid="invite-emails-sent">
               {t('confirmation.emailNotice', { count: confirmation.participants?.length ?? 0 })}
             </p>
           </div>

@@ -52,38 +52,38 @@ test.describe('Event creation flow', () => {
     await page.waitForLoadState('networkidle');
     await snap(page, 'create-01-landing.png');
 
-    await page.getByRole('button', { name: /create an event/i }).click();
+    await page.getByTestId('create-event-btn').click();
     await page.waitForLoadState('networkidle');
 
     // Step 1 — event name
     await snap(page, 'create-02-event-name.png');
-    await page.getByRole('textbox', { name: /event name/i }).fill('Summer Meetup');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('event-name-input').fill('Summer Meetup');
+    await page.getByTestId('wizard-next-btn').click();
 
     // Step 2 — organizer email
     await snap(page, 'create-03-organizer-email.png');
-    await page.getByRole('textbox', { name: /your email/i }).fill('alex@example.com');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('organizer-email-input').fill('alex@example.com');
+    await page.getByTestId('wizard-next-btn').click();
 
     // Step 3 — date range + time window (combined step)
     await snap(page, 'create-04-date-and-time.png');
     await page.locator('[data-testid="date-start"]').fill('2025-07-01');
     await page.locator('[data-testid="date-end"]').fill('2025-07-03');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('wizard-next-btn').click();
 
     // Step 4 — voting deadline
     await snap(page, 'create-05-deadline.png');
     await page.locator('[data-testid="date-value"]').fill('2025-06-20');
     await page.getByLabel(/deadline time/i).fill('12:00');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('wizard-next-btn').click();
 
     // Step 5 — invite mode (defaults to shared link)
     await snap(page, 'create-06-invite-mode.png');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('wizard-next-btn').click();
 
     // Step 6 — review
     await snap(page, 'create-07-review.png');
-    await page.getByRole('button', { name: /create event/i }).click();
+    await page.getByTestId('create-event-submit-btn').click();
     await page.waitForSelector('[data-testid="admin-token"]', { timeout: 15000 });
     await snap(page, 'create-08-confirmation.png');
   });
@@ -103,8 +103,8 @@ test.describe('Participation flow', () => {
 
     // Step 1 — name
     await snap(page, 'participate-01-name.png');
-    await page.getByRole('textbox', { name: /your name/i }).fill('Jamie');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('name-input').fill('Jamie');
+    await page.getByTestId('wizard-next-btn').click();
     await page.waitForTimeout(500);
 
     // Step 2 — travel mode & location (location required; bypass via form submit)
@@ -115,12 +115,12 @@ test.describe('Participation flow', () => {
     // Step 3 — availability grid
     await page.waitForSelector('[data-testid="slot-cell"]', { timeout: 5000 });
     await snap(page, 'participate-03-availability.png');
-    await page.getByRole('button', { name: /continue/i }).click();
+    await page.getByTestId('wizard-next-btn').click();
     await page.waitForTimeout(300);
 
     // Step 4 — review & submit
     await snap(page, 'participate-04-review.png');
-    await page.getByRole('button', { name: /submit/i }).click();
+    await page.getByTestId('submit-btn').click();
     await page.waitForTimeout(1500);
     await snap(page, 'participate-05-done.png');
   });

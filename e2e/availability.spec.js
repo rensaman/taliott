@@ -26,8 +26,8 @@ test('participant can click cells and states cycle correctly', async ({ page }) 
     data: { latitude: 51.5074, longitude: -0.1278, address_label: 'London' },
   });
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
-  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // travel+location → dates
 
   const cells = page.getByTestId('slot-cell');
   await expect(cells.first()).toBeVisible();
@@ -62,8 +62,8 @@ test('availability persists across page reload', async ({ page }) => {
   });
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
-  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // travel+location → dates
 
   // Click first cell to 'yes' and wait for the PATCH to complete
   const saveResponse = page.waitForResponse(r => r.url().includes('/availability') && r.request().method() === 'PATCH');
@@ -72,8 +72,8 @@ test('availability persists across page reload', async ({ page }) => {
 
   // Reload and verify state is restored
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
-  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // travel+location → dates
   await expect(page.getByTestId('slot-cell').first()).toHaveAttribute('data-state', 'yes');
 });
 

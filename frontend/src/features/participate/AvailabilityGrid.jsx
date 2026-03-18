@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import SlotCell from './SlotCell.jsx';
 import SaveStatusIndicator from './SaveStatusIndicator.jsx';
 
@@ -18,6 +19,7 @@ function buildDayMap(slots) {
 }
 
 export default function AvailabilityGrid({ participantId, slots, initialAvailability, locked }) {
+  const { i18n } = useTranslation();
   const [stateMap, setStateMap] = useState(() => {
     const map = {};
     for (const slot of slots) map[slot.id] = 'neutral';
@@ -71,7 +73,7 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
               <th scope="col" />
               {days.map(day => (
                 <th key={day} scope="col">
-                  {new Date(day + 'T12:00:00').toLocaleDateString(undefined, {
+                  {new Date(day + 'T12:00:00').toLocaleDateString(i18n.language, {
                     weekday: 'short', month: 'short', day: 'numeric',
                   })}
                 </th>

@@ -242,7 +242,7 @@ export default function ResponseWizard({
             className="btn btn-primary"
             type="submit"
             disabled={!canAdvance() || submitting}
-            data-testid={isLastStep ? 'submit-btn' : undefined}
+            data-testid={isLastStep ? 'submit-btn' : 'wizard-next-btn'}
           >
             {isLastStep ? (submitting ? t('wizard.btn.submitting') : t('wizard.btn.submit')) : t('wizard.btn.continue')}
           </button>

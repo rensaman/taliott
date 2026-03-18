@@ -154,6 +154,7 @@ export default function EventSetupForm({ onCreated }) {
                 id="event-name"
                 className="wizard-input"
                 type="text"
+                data-testid="event-name-input"
                 aria-label={t('setup.name.label')}
                 value={formData.name}
                 onChange={e => update('name', e.target.value)}
@@ -174,6 +175,7 @@ export default function EventSetupForm({ onCreated }) {
                 id="organizer-email"
                 className="wizard-input"
                 type="email"
+                data-testid="organizer-email-input"
                 aria-label={t('setup.email.label')}
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
@@ -196,6 +198,7 @@ export default function EventSetupForm({ onCreated }) {
                 onChange={() => update('isDateTimeFixed', false)}
                 title={t('setup.dateTime.flexible.title')}
                 description={t('setup.dateTime.flexible.description')}
+                data-testid="toggle-dt-flexible"
               />
               <ToggleBlock
                 name="dt_pref"
@@ -204,6 +207,7 @@ export default function EventSetupForm({ onCreated }) {
                 onChange={() => update('isDateTimeFixed', true)}
                 title={t('setup.dateTime.fixed.title')}
                 description={t('setup.dateTime.fixed.description')}
+                data-testid="toggle-dt-fixed"
               />
             </div>
 
@@ -290,6 +294,7 @@ export default function EventSetupForm({ onCreated }) {
                 onChange={() => update('inviteMode', 'shared_link')}
                 title={t('setup.inviteMode.sharedLink.title')}
                 description={t('setup.inviteMode.sharedLink.description')}
+                data-testid="toggle-invite-link"
               />
               <ToggleBlock
                 name="invite_mode"
@@ -298,6 +303,7 @@ export default function EventSetupForm({ onCreated }) {
                 onChange={() => update('inviteMode', 'email_invites')}
                 title={t('setup.inviteMode.email.title')}
                 description={t('setup.inviteMode.email.description')}
+                data-testid="toggle-invite-email"
               />
             </div>
             {formData.inviteMode === 'email_invites' && (
@@ -308,6 +314,7 @@ export default function EventSetupForm({ onCreated }) {
                 <textarea
                   id="participant-emails"
                   className="wizard-input"
+                  data-testid="participant-emails-input"
                   aria-label={t('setup.inviteMode.emailsLabel')}
                   value={formData.participantEmails}
                   onChange={e => update('participantEmails', e.target.value)}
@@ -402,13 +409,14 @@ export default function EventSetupForm({ onCreated }) {
 
       <footer className="wizard-footer">
         {step > 0 && (
-          <button className="btn btn-ghost" type="button" onClick={handleBack}>{t('wizard.btn.back')}</button>
+          <button className="btn btn-ghost" type="button" onClick={handleBack} data-testid="wizard-back-btn">{t('wizard.btn.back')}</button>
         )}
         <div className="wizard-footer-right">
           <button
             className="btn btn-primary"
             type="submit"
             disabled={!canAdvance() || submitting}
+            data-testid={isLastStep ? 'create-event-submit-btn' : 'wizard-next-btn'}
           >
             {isLastStep
               ? (submitting ? t('wizard.btn.creating') : t('wizard.btn.createEvent'))

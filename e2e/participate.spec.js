@@ -32,8 +32,8 @@ test('participant visiting a past-deadline link sees locked state', async ({ pag
   await page.goto(`/participate/${pid}`);
 
   await expect(page.getByRole('heading', { name: /deadline e2e/i })).toBeVisible();
-  await expect(page.getByText(/voting closed/i)).toBeVisible();
-  await expect(page.getByRole('status')).toHaveText(/results only/i);
+  await expect(page.getByTestId('deadline-badge')).toBeVisible();
+  await expect(page.getByTestId('results-only-status')).toBeVisible();
 });
 
 test('participant visiting an open event sees deadline and no locked banner', async ({ page }) => {
@@ -43,8 +43,8 @@ test('participant visiting an open event sees deadline and no locked banner', as
   await page.goto(`/participate/${pid}`);
 
   await expect(page.getByRole('heading', { name: /deadline e2e/i })).toBeVisible();
-  await expect(page.getByText(/voting deadline/i)).toBeVisible();
-  await expect(page.getByRole('status')).not.toBeVisible();
+  await expect(page.getByTestId('deadline-badge')).toBeVisible();
+  await expect(page.getByTestId('results-only-status')).not.toBeVisible();
 });
 
 test('participation view shows the correct number of time slots', async ({ page }) => {
@@ -57,8 +57,8 @@ test('participation view shows the correct number of time slots', async ({ page 
   });
 
   await page.goto(`/participate/${pid}`);
-  await page.getByRole('button', { name: /continue/i }).click(); // name → travel+location
-  await page.getByRole('button', { name: /continue/i }).click(); // travel+location → dates
+  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
+  await page.getByTestId('wizard-next-btn').click(); // travel+location → dates
 
   await expect(page.getByTestId('slot-cell')).toHaveCount(slots.length);
 });

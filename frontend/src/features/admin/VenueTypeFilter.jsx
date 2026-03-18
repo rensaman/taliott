@@ -37,12 +37,13 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
           id="venue-type-input"
           type="text"
           className="venue-filter-input"
+          data-testid="venue-type-input"
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder={t('venueTypeFilter.placeholder')}
           aria-label={t('venueTypeFilter.ariaLabel')}
         />
-        <button type="submit" className="venue-filter-btn">{t('venueTypeFilter.searchBtn')}</button>
+        <button type="submit" className="venue-filter-btn" data-testid="venue-search-btn">{t('venueTypeFilter.searchBtn')}</button>
       </div>
     </form>
   );

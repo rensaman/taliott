@@ -5,7 +5,7 @@ import '../setup/EventSetupForm.css';
 import './JoinView.css';
 
 export default function JoinView({ joinToken }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
@@ -54,7 +54,7 @@ export default function JoinView({ joinToken }) {
     return (
       <main className="join-shell">
         <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
-        <div className="join-body"><p>{t('join.invalidLink')}</p></div>
+        <div className="join-body"><p data-testid="join-invalid-link">{t('join.invalidLink')}</p></div>
       </main>
     );
   }
@@ -94,8 +94,8 @@ export default function JoinView({ joinToken }) {
 
       <div className="join-body">
         <h1 className="join-event-name">{event.name}</h1>
-        <p className="join-meta">
-          {t('join.deadlineLabel')} {new Date(event.deadline).toLocaleString()}
+        <p className="join-meta" data-testid="join-deadline">
+          {t('join.deadlineLabel')} {new Date(event.deadline).toLocaleString(i18n.language)}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -105,6 +105,7 @@ export default function JoinView({ joinToken }) {
               id="join-email"
               className="wizard-input"
               type="email"
+              data-testid="join-email-input"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -113,7 +114,7 @@ export default function JoinView({ joinToken }) {
             />
           </div>
           {fieldError && <p className="wizard-error" role="alert">{fieldError}</p>}
-          <button className="btn btn-primary" type="submit" disabled={submitting}>
+          <button className="btn btn-primary" type="submit" disabled={submitting} data-testid="join-submit-btn">
             {submitting ? t('join.joining') : t('join.submit')}
           </button>
         </form>

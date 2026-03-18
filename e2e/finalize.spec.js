@@ -32,9 +32,9 @@ test('finalize panel is visible on admin dashboard for open event', async ({ pag
 test('finalize button is disabled until a slot is selected', async ({ page, request }) => {
   const body = await createEvent(request);
   await page.goto(`/admin/${body.admin_token}`);
-  await expect(page.getByRole('button', { name: /finalize event/i })).toBeDisabled();
+  await expect(page.getByTestId('finalize-btn')).toBeDisabled();
   await page.locator('[data-testid^="slot-card-"]').first().click();
-  await expect(page.getByRole('button', { name: /finalize event/i })).toBeEnabled();
+  await expect(page.getByTestId('finalize-btn')).toBeEnabled();
 });
 
 test('organizer selects a slot and finalizes — finalized notice replaces panel', async ({ page, request }) => {
@@ -44,7 +44,7 @@ test('organizer selects a slot and finalizes — finalized notice replaces panel
   await expect(page.getByTestId('finalize-panel')).toBeVisible();
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
-  await page.getByRole('button', { name: /finalize event/i }).click();
+  await page.getByTestId('finalize-btn').click();
 
   await expect(page.getByTestId('finalized-notice')).toBeVisible();
   await expect(page.getByTestId('finalize-panel')).not.toBeVisible();
@@ -55,7 +55,7 @@ test('admin dashboard shows "finalized" status after finalization', async ({ pag
   await page.goto(`/admin/${body.admin_token}`);
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
-  await page.getByRole('button', { name: /finalize event/i }).click();
+  await page.getByTestId('finalize-btn').click();
 
   await expect(page.getByTestId('finalized-notice')).toBeVisible();
   await expect(page.locator('.admin-status-badge')).toHaveText('finalized');
@@ -68,10 +68,10 @@ test('organizer finalizes with custom venue — participant view shows final slo
   await page.goto(`/admin/${body.admin_token}`);
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
-  await page.getByRole('radio', { name: /enter custom venue/i }).click();
+  await page.getByTestId('custom-venue-radio').click();
   await page.getByTestId('custom-venue-name').fill('The Blue Note');
   await page.getByTestId('custom-venue-address').fill('131 W 3rd St, New York');
-  await page.getByRole('button', { name: /finalize event/i }).click();
+  await page.getByTestId('finalize-btn').click();
 
   await expect(page.getByTestId('finalized-notice')).toBeVisible();
 
@@ -95,6 +95,6 @@ test('participant view is read-only after organizer finalizes', async ({ page, r
 
   // Participant visits their link — should see locked/results-only state and finalized banner
   await page.goto(`/participate/${participant.id}`);
-  await expect(page.getByRole('status')).toHaveText(/results only/i);
+  await expect(page.getByTestId('results-only-status')).toBeVisible();
   await expect(page.getByTestId('finalized-banner')).toBeVisible();
 });

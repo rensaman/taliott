@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next';
+
 const STATE_SYMBOL = { yes: '✓', maybe: '?', no: '✗', neutral: '—' };
 const DOT_CLASS = { yes: 'avail-dot--yes', maybe: 'avail-dot--maybe', no: 'avail-dot--no', neutral: 'avail-dot--neutral' };
 
 export default function ParticipantResponseList({ participants, slots = [] }) {
+  const { i18n } = useTranslation();
   return (
     <ul className="participant-list">
       {participants.map(p => {
@@ -26,7 +29,7 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
                     <span
                       key={s.id}
                       className={`avail-dot ${DOT_CLASS[state]}`}
-                      title={`${new Date(s.starts_at).toLocaleString()}: ${state}`}
+                      title={`${new Date(s.starts_at).toLocaleString(i18n.language)}: ${state}`}
                     />
                   );
                 })}
@@ -40,7 +43,7 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
                   const state = avail?.state ?? 'neutral';
                   return (
                     <li key={s.id}>
-                      {new Date(s.starts_at).toLocaleString()}: {STATE_SYMBOL[state]} {state}
+                      {new Date(s.starts_at).toLocaleString(i18n.language)}: {STATE_SYMBOL[state]} {state}
                     </li>
                   );
                 })}

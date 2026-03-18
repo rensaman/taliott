@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
+import i18n from '../../i18n.js';
 
 const SLOTS = [
   { id: 's1', starts_at: '2025-10-01T08:00:00.000Z', ends_at: '2025-10-01T09:00:00.000Z' },
@@ -99,5 +100,12 @@ describe('AvailabilityGrid', () => {
     for (const cell of screen.getAllByTestId('slot-cell')) {
       expect(cell).toBeDisabled();
     }
+  });
+
+  it('passes i18n.language as locale to column header date formatting', () => {
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    renderGrid();
+    expect(spy).toHaveBeenCalledWith(i18n.language, expect.objectContaining({ weekday: 'short' }));
+    spy.mockRestore();
   });
 });

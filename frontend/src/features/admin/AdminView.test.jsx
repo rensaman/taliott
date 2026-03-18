@@ -219,5 +219,14 @@ describe('AdminView', () => {
         expect(screen.getByText('__PARTICIPANTS_TEST__')).toBeInTheDocument()
       );
     });
+
+    it('passes i18n.language as locale to deadline toLocaleString', async () => {
+      const spy = vi.spyOn(Date.prototype, 'toLocaleString');
+      fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+      render(<AdminView adminToken="some-token" />);
+      await waitFor(() => screen.getByRole('heading', { level: 1 }));
+      expect(spy).toHaveBeenCalledWith('en');
+      spy.mockRestore();
+    });
   });
 });

@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 function SlotScoreCard({ slot, rank, selected, onClick }) {
+  const { i18n } = useTranslation();
   const start = new Date(slot.starts_at);
   const end = new Date(slot.ends_at);
-  const dateStr = start.toLocaleDateString(undefined, {
+  const dateStr = start.toLocaleDateString(i18n.language, {
     weekday: 'short', month: 'short', day: 'numeric',
   });
-  const timeStr = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+  const timeStr = `${start.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })} – ${end.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}`;
   const hasData = slot.respondedCount > 0;
 
   return (
@@ -132,6 +133,7 @@ export default function FinalizePanel({
                   value="custom"
                   checked={venueMode === 'custom'}
                   onChange={() => setVenueMode('custom')}
+                  data-testid="custom-venue-radio"
                 />
                 {t('finalize.venueCustom')}
               </label>
@@ -179,7 +181,7 @@ export default function FinalizePanel({
         {error && <p role="alert" className="admin-error-inline">{error}</p>}
 
         <div className="finalize-button-row">
-          <button type="submit" className="btn btn-primary" disabled={loading || !slotId}>
+          <button type="submit" className="btn btn-primary" disabled={loading || !slotId} data-testid="finalize-btn">
             {loading ? t('finalize.btnFinalizing') : t('finalize.btnFinalize')}
           </button>
         </div>

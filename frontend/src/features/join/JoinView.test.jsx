@@ -145,4 +145,13 @@ describe('i18n', () => {
     render(<JoinView joinToken={TOKEN} />);
     expect(await screen.findByText('__INVALID_LINK_TEST__')).toBeInTheDocument();
   });
+
+  it('passes i18n.language as locale to deadline toLocaleString', async () => {
+    const spy = vi.spyOn(Date.prototype, 'toLocaleString');
+    mockFetch([{ body: OPEN_EVENT }]);
+    render(<JoinView joinToken={TOKEN} />);
+    await waitFor(() => screen.getByText('Test Event'));
+    expect(spy).toHaveBeenCalledWith('en');
+    spy.mockRestore();
+  });
 });

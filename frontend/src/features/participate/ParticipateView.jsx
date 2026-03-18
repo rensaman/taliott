@@ -8,7 +8,7 @@ import { track } from '../../lib/analytics.js';
 import './ResponseWizard.css';
 
 export default function ParticipateView({ participantId }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -74,12 +74,12 @@ export default function ParticipateView({ participantId }) {
 
   const dataRightsSection = (
     <section aria-label="Privacy and data" className="pv-data-rights">
-      <button className="pv-data-rights-btn" onClick={handleExport}>{t('participate.downloadData')}</button>
+      <button className="pv-data-rights-btn" onClick={handleExport} data-testid="download-data-btn">{t('participate.downloadData')}</button>
       {!dataDeleted && (
-        <button className="pv-data-rights-btn" onClick={handleDelete}>{t('participate.deleteData')}</button>
+        <button className="pv-data-rights-btn" onClick={handleDelete} data-testid="delete-data-btn">{t('participate.deleteData')}</button>
       )}
       {dataDeleted && (
-        <p className="pv-erased" role="status">{t('participate.dataErased')}</p>
+        <p className="pv-erased" role="status" data-testid="data-erased-status">{t('participate.dataErased')}</p>
       )}
     </section>
   );
@@ -111,13 +111,13 @@ export default function ParticipateView({ participantId }) {
       <DeadlineBadge deadline={event.deadline} locked={event.locked} />
 
       {event.locked && (
-        <p role="status">{t('participate.resultsOnly')}</p>
+        <p role="status" data-testid="results-only-status">{t('participate.resultsOnly')}</p>
       )}
 
       {finalSlot && (
         <section aria-label="Event result" data-testid="finalized-banner">
           <h2>{t('participate.eventFinalized')}</h2>
-          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString() })}</p>
+          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
           {finalVenue && (
             <p>
               {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}

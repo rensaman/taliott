@@ -6,9 +6,9 @@ import './ToggleBlock.css';
  * Renders a styled full-width label with a hidden <input type="radio"> inside.
  * The accessible name is derived from title + description text.
  */
-export default function ToggleBlock({ name, value, checked, onChange, title, description }) {
+export default function ToggleBlock({ name, value, checked, onChange, title, description, 'data-testid': testId }) {
   return (
-    <label className={`toggle-block${checked ? ' toggle-block--checked' : ''}`}>
+    <label className={`toggle-block${checked ? ' toggle-block--checked' : ''}`} data-testid={testId}>
       <input
         className="toggle-block-input"
         type="radio"

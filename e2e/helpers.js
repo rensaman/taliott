@@ -24,21 +24,21 @@ export async function fillWizard(page, {
   stopAt = null,
 } = {}) {
   // Click through the landing page to reach the event setup form
-  await page.getByRole('button', { name: /create an event/i }).click();
+  await page.getByTestId('create-event-btn').click();
 
   // Step 1: name → organizer_email
-  await page.getByRole('textbox', { name: /event name/i }).fill(name);
-  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByTestId('event-name-input').fill(name);
+  await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'organizer_email') return;
 
   // Step 2: organizer_email → date_and_time
-  await page.getByRole('textbox', { name: /your email/i }).fill(organizerEmail);
-  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByTestId('organizer-email-input').fill(organizerEmail);
+  await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'date_and_time') return;
 
   // Step 3: date_and_time → deadline
   if (isFixed) {
-    await page.getByRole('radio', { name: /already set/i }).click();
+    await page.getByTestId('toggle-dt-fixed').click();
     await setDateInput(page, 'date-value', fixedDate);
     await page.getByLabel(/start time/i).fill(fixedTime);
   } else {
@@ -47,26 +47,25 @@ export async function fillWizard(page, {
     await setSlider(page, 'Earliest start', timeRangeStart);
     await setSlider(page, 'Latest start', timeRangeEnd);
   }
-  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'deadline') return;
 
   // Step 4: deadline → invite_mode
   const [dDate, dTime] = deadline.split('T');
   await setDateInput(page, 'date-value', dDate);
   await page.getByLabel(/deadline time/i).fill(dTime);
-  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'invite_mode') return;
 
   // Step 5: invite_mode → review
   if (inviteMode === 'email_invites') {
-    // ToggleBlock hides the radio input — click the label instead
-    await page.locator('.toggle-block').filter({ hasText: /send email invites/i }).click();
+    await page.getByTestId('toggle-invite-email').click();
     if (participantEmails) {
-      await page.getByRole('textbox', { name: /participant emails/i }).fill(participantEmails);
+      await page.getByTestId('participant-emails-input').fill(participantEmails);
     }
   }
   // shared_link is the default — no action needed
-  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByTestId('wizard-next-btn').click();
 
   // Caller is now on the review step
 }

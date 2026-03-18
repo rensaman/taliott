@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
+import i18n from '../../i18n.js';
 
 const PARTICIPANTS = [
   { id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z' },
@@ -36,5 +37,16 @@ describe('ParticipantResponseList', () => {
   it('shows a pending indicator for non-responded participants', () => {
     render(<ParticipantResponseList participants={PARTICIPANTS} />);
     expect(screen.getAllByText(/pending/i).length).toBe(2);
+  });
+
+  it('passes i18n.language as locale to slot date toLocaleString', () => {
+    const participants = [
+      { id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z', availability: [] },
+    ];
+    const slots = [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }];
+    const spy = vi.spyOn(Date.prototype, 'toLocaleString');
+    render(<ParticipantResponseList participants={participants} slots={slots} />);
+    expect(spy).toHaveBeenCalledWith(i18n.language);
+    spy.mockRestore();
   });
 });

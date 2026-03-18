@@ -21,43 +21,42 @@ test.describe('invite mode selector', () => {
 
   test('shows both invite mode options with shared_link selected by default', async ({ page }) => {
     await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
-    await expect(page.getByRole('radio', { name: /share a join link/i })).toBeChecked();
-    await expect(page.getByRole('radio', { name: /send email invites/i })).not.toBeChecked();
+    await expect(page.getByTestId('toggle-invite-link').locator('input[type="radio"]')).toBeChecked();
+    await expect(page.getByTestId('toggle-invite-email').locator('input[type="radio"]')).not.toBeChecked();
   });
 
   test('shows participant emails textarea inline when email_invites is selected', async ({ page }) => {
     await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     // shared_link is the default — textarea is not yet visible
-    await expect(page.getByLabel(/participant emails/i)).not.toBeVisible();
-    // ToggleBlock hides the radio input — click the label instead
-    await page.locator('.toggle-block').filter({ hasText: /send email invites/i }).click();
-    await expect(page.getByLabel(/participant emails/i)).toBeVisible();
+    await expect(page.getByTestId('participant-emails-input')).not.toBeVisible();
+    await page.getByTestId('toggle-invite-email').click();
+    await expect(page.getByTestId('participant-emails-input')).toBeVisible();
   });
 
   test('hides participant emails textarea when shared_link is selected', async ({ page }) => {
     await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     // shared_link is the default — no textarea shown
-    await expect(page.getByLabel(/participant emails/i)).not.toBeVisible();
+    await expect(page.getByTestId('participant-emails-input')).not.toBeVisible();
     // Advancing goes straight to review
-    await page.getByRole('button', { name: /continue/i }).click();
-    await expect(page.getByRole('heading', { name: /ready to create/i })).toBeVisible();
+    await page.getByTestId('wizard-next-btn').click();
+    await expect(page.getByTestId('create-event-submit-btn')).toBeVisible();
   });
 
   test('confirmation screen shows join URL with copy button when shared_link is selected', async ({ page }) => {
     await fillWizard(page, { ...BASE_FORM, inviteMode: 'shared_link' });
-    await page.getByRole('button', { name: /create event/i }).click();
+    await page.getByTestId('create-event-submit-btn').click();
 
     await expect(page.getByTestId('join-url')).toBeVisible();
     await expect(page.getByRole('button', { name: /copy/i })).toBeVisible();
     // Participant email count message should NOT appear
-    await expect(page.getByText(/invite emails have been sent/i)).not.toBeVisible();
+    await expect(page.getByTestId('invite-emails-sent')).not.toBeVisible();
   });
 
   test('confirmation screen shows participant count when email_invites is selected', async ({ page }) => {
     await fillWizard(page, { ...BASE_FORM, inviteMode: 'email_invites', participantEmails: 'a@example.com' });
-    await page.getByRole('button', { name: /create event/i }).click();
+    await page.getByTestId('create-event-submit-btn').click();
 
-    await expect(page.getByText(/invite emails have been sent/i)).toBeVisible();
+    await expect(page.getByTestId('invite-emails-sent')).toBeVisible();
     await expect(page.getByTestId('join-url')).not.toBeVisible();
   });
 });

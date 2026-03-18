@@ -95,7 +95,7 @@ test('venue list section is visible on the admin dashboard', async ({ page, requ
   await expect(page.getByRole('heading', { name: /venue recommendations/i })).toBeVisible();
   await expect(page.getByTestId('venue-type-filter')).toBeVisible();
   // Filter input starts empty — venue type is entered during finalization
-  await expect(page.getByLabel(/venue type/i)).toHaveValue('');
+  await expect(page.getByTestId('venue-type-input')).toHaveValue('');
 });
 
 test('changing venue type filter triggers a new venue search', async ({ page, request }) => {
@@ -124,8 +124,8 @@ test('changing venue type filter triggers a new venue search', async ({ page, re
   });
 
   // Change the filter to 'bar' and submit
-  await page.getByLabel(/venue type/i).fill('bar');
-  await page.getByRole('button', { name: /search/i }).click();
+  await page.getByTestId('venue-type-input').fill('bar');
+  await page.getByTestId('venue-search-btn').click();
 
   await expect(page.getByTestId('venue-card').getByText('Test bar')).toBeVisible();
   await expect(page.getByTestId('venue-card')).toBeVisible();
@@ -140,7 +140,7 @@ test('confirmation screen admin link navigates to dashboard with correct event d
     dateEnd: '2025-09-01',
     deadline: '2099-12-31T23:30',
   });
-  await page.getByRole('button', { name: /create event/i }).click();
+  await page.getByTestId('create-event-submit-btn').click();
 
   const adminLink = page.getByTestId('admin-token');
   await expect(adminLink).toBeVisible();
