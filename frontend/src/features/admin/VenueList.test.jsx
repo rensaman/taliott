@@ -1,6 +1,8 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import VenueList from './VenueList.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 const MOCK_VENUES = [
   { id: 'v1', name: 'The Restaurant', distanceM: 200, rating: 4.5, latitude: 51.5, longitude: -0.1 },
@@ -105,5 +107,22 @@ describe('VenueList', () => {
     await waitFor(() => expect(screen.getByText(/no venues found/i)).toBeInTheDocument());
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch.mock.calls[1][0]).toContain('venue_type=bar');
+  });
+});
+
+describe('i18n', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the section heading', () => {
+    i18n.addResourceBundle('en', 'common', { venueList: { heading: '__VENUE_HEADING_TEST__' } }, true, true);
+    render(<VenueList adminToken="tok" defaultVenueType="" />);
+    expect(screen.getByRole('heading', { name: '__VENUE_HEADING_TEST__' })).toBeInTheDocument();
   });
 });

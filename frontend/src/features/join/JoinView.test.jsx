@@ -3,6 +3,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import JoinView from './JoinView.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 const TOKEN = 'test-join-token';
 
@@ -120,5 +122,27 @@ describe('JoinView', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent(/email is invalid/i)
     );
+  });
+});
+
+describe('i18n', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the submit button label', async () => {
+    i18n.addResourceBundle('en', 'common', { join: { submit: '__JOIN_SUBMIT_TEST__' } }, true, true);
+    mockFetch([{ body: OPEN_EVENT }]);
+    render(<JoinView joinToken={TOKEN} />);
+    expect(await screen.findByRole('button', { name: '__JOIN_SUBMIT_TEST__' })).toBeInTheDocument();
+  });
+
+  it('uses i18n for the invalid link message', async () => {
+    i18n.addResourceBundle('en', 'common', { join: { invalidLink: '__INVALID_LINK_TEST__' } }, true, true);
+    mockFetch([{ ok: false, status: 404, body: { error: 'Not found' } }]);
+    render(<JoinView joinToken={TOKEN} />);
+    expect(await screen.findByText('__INVALID_LINK_TEST__')).toBeInTheDocument();
   });
 });

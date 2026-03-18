@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FeedbackForm from './FeedbackForm.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 let store = {};
 const mockStorage = {
@@ -91,5 +93,24 @@ describe('FeedbackForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Score 3' }));
     fireEvent.click(screen.getByRole('button', { name: /send/i }));
     await waitFor(() => expect(screen.getByText(/thanks/i)).toBeInTheDocument());
+  });
+});
+
+describe('i18n', () => {
+  beforeEach(() => {
+    store = {};
+    vi.stubGlobal('localStorage', mockStorage);
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true })));
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the NPS question text', () => {
+    i18n.addResourceBundle('en', 'common', { feedback: { question: '__FEEDBACK_QUESTION_TEST__' } }, true, true);
+    render(<FeedbackForm context="organizer" />);
+    expect(screen.getByText('__FEEDBACK_QUESTION_TEST__')).toBeInTheDocument();
   });
 });

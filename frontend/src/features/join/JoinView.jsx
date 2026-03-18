@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import LegalFooter from '../legal/LegalFooter.jsx';
 import '../setup/EventSetupForm.css';
 import './JoinView.css';
 
 export default function JoinView({ joinToken }) {
+  const { t } = useTranslation();
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
@@ -37,12 +39,12 @@ export default function JoinView({ joinToken }) {
       });
       const body = await res.json();
       if (!res.ok) {
-        setFieldError(body.error ?? 'Something went wrong');
+        setFieldError(body.error ?? t('join.genericError'));
         return;
       }
       window.location.href = `/participate/${body.participant_id}`;
     } catch {
-      setFieldError('Network error, please try again');
+      setFieldError(t('join.networkError'));
     } finally {
       setSubmitting(false);
     }
@@ -51,34 +53,34 @@ export default function JoinView({ joinToken }) {
   if (error === 'not_found') {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
-        <div className="join-body"><p>This join link is invalid or has expired.</p></div>
+        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <div className="join-body"><p>{t('join.invalidLink')}</p></div>
       </main>
     );
   }
   if (error) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
-        <div className="join-body"><p>Something went wrong. Please try again later.</p></div>
+        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <div className="join-body"><p>{t('join.genericError')}</p></div>
       </main>
     );
   }
   if (!event) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
-        <div className="join-body"><p>Loading…</p></div>
+        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <div className="join-body"><p>{t('join.loading')}</p></div>
       </main>
     );
   }
   if (event.closed) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">Taliott</p></header>
+        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
         <div className="join-body">
           <h1 className="join-event-name">{event.name}</h1>
-          <p className="join-meta" data-testid="closed-message">Voting is closed for this event.</p>
+          <p className="join-meta" data-testid="closed-message">{t('join.closed')}</p>
         </div>
       </main>
     );
@@ -87,18 +89,18 @@ export default function JoinView({ joinToken }) {
   return (
     <main className="join-shell">
       <header className="join-header">
-        <p className="wizard-wordmark">Taliott</p>
+        <p className="wizard-wordmark">{t('wizard.wordmark')}</p>
       </header>
 
       <div className="join-body">
         <h1 className="join-event-name">{event.name}</h1>
         <p className="join-meta">
-          Voting deadline: {new Date(event.deadline).toLocaleString()}
+          {t('join.deadlineLabel')} {new Date(event.deadline).toLocaleString()}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="join-email" className="field-label">Your email</label>
+            <label htmlFor="join-email" className="field-label">{t('join.emailLabel')}</label>
             <input
               id="join-email"
               className="wizard-input"
@@ -106,13 +108,13 @@ export default function JoinView({ joinToken }) {
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t('join.emailPlaceholder')}
               autoFocus
             />
           </div>
           {fieldError && <p className="wizard-error" role="alert">{fieldError}</p>}
           <button className="btn btn-primary" type="submit" disabled={submitting}>
-            {submitting ? 'Joining…' : 'Join event →'}
+            {submitting ? t('join.joining') : t('join.submit')}
           </button>
         </form>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './FeedbackForm.css';
 
 const STORAGE_KEY = 'taliott_feedback_sent';
@@ -12,6 +13,7 @@ function storageSet(key, value) {
 }
 
 export default function FeedbackForm({ context }) {
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(() => !!storageGet(STORAGE_KEY));
   const [score, setScore] = useState(null);
   const [comment, setComment] = useState('');
@@ -45,16 +47,16 @@ export default function FeedbackForm({ context }) {
   if (sent) {
     return (
       <div className="feedback-card feedback-card--sent">
-        <p className="feedback-thanks">Thanks for the feedback.</p>
+        <p className="feedback-thanks">{t('feedback.thanks')}</p>
       </div>
     );
   }
 
   return (
     <div className="feedback-card">
-      <p className="feedback-question">How likely are you to recommend Taliott?</p>
+      <p className="feedback-question">{t('feedback.question')}</p>
       <div className="feedback-scale">
-        <span className="feedback-scale-label">Not at all</span>
+        <span className="feedback-scale-label">{t('feedback.notAtAll')}</span>
         <div className="feedback-scores">
           {Array.from({ length: 11 }, (_, i) => (
             <button
@@ -68,13 +70,13 @@ export default function FeedbackForm({ context }) {
             </button>
           ))}
         </div>
-        <span className="feedback-scale-label">Extremely</span>
+        <span className="feedback-scale-label">{t('feedback.extremely')}</span>
       </div>
 
       {score !== null && (
         <textarea
           className="feedback-comment"
-          placeholder="Anything else on your mind? (optional)"
+          placeholder={t('feedback.commentPlaceholder')}
           value={comment}
           onChange={e => setComment(e.target.value)}
           rows={3}
@@ -88,10 +90,10 @@ export default function FeedbackForm({ context }) {
           onClick={handleSubmit}
           disabled={score === null || sending}
         >
-          Send
+          {t('feedback.send')}
         </button>
         <button className="feedback-dismiss" onClick={handleDismiss}>
-          No thanks
+          {t('feedback.noThanks')}
         </button>
       </div>
     </div>

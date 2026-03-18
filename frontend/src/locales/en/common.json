@@ -100,7 +100,17 @@
       "labelTravel": "Travel",
       "labelFrom": "From",
       "errorSubmit": "Failed to submit. Please try again."
-    }
+    },
+    "loading": "Loading…",
+    "notFound": "Participation link not found.",
+    "downloadData": "Download my data",
+    "deleteData": "Delete my data",
+    "deleteConfirm": "Are you sure? This will permanently erase your name, location, and availability from this event.",
+    "dataErased": "Your personal data has been erased from this event.",
+    "resultsOnly": "Results only — voting has closed.",
+    "eventFinalized": "Event finalized",
+    "finalizedWhen": "When: {{date}}",
+    "finalizedWhere": "Where: {{venue}}"
   },
   "admin": {
     "wordmark": "Taliott",
@@ -150,5 +160,69 @@
   "language": {
     "en": "EN",
     "hu": "HU"
+  },
+  "confirmation": {
+    "eyebrow": "Event created",
+    "adminLinkLabel": "Your admin link — save this",
+    "shareLabel": "Share with participants",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "emailNotice": "Invite emails have been sent to {{count}} participant(s)."
+  },
+  "join": {
+    "loading": "Loading…",
+    "invalidLink": "This join link is invalid or has expired.",
+    "genericError": "Something went wrong. Please try again later.",
+    "closed": "Voting is closed for this event.",
+    "deadlineLabel": "Voting deadline:",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@example.com",
+    "networkError": "Network error, please try again",
+    "joining": "Joining…",
+    "submit": "Join event →"
+  },
+  "venueList": {
+    "heading": "Venue Recommendations",
+    "noType": "Set a venue type to see recommendations.",
+    "loading": "Loading venues…",
+    "empty": "No venues found for \"{{type}}\".",
+    "failedToLoad": "Failed to load venues"
+  },
+  "venueTypeFilter": {
+    "placeholder": "or search your own type…",
+    "ariaLabel": "Venue type",
+    "searchBtn": "Search"
+  },
+  "resend": {
+    "heading": "Recover your link",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@example.com",
+    "submit": "Send my link",
+    "sending": "Sending…",
+    "successMsg": "If we found a matching event, we've sent the link to your inbox."
+  },
+  "travelMode": {
+    "legend": "How will you get there?",
+    "transit": { "label": "Transit", "description": "Bus, metro, or train" },
+    "driving": { "label": "Car", "description": "Drive your own vehicle" },
+    "cycling": { "label": "Cycling", "description": "Bike or e-bike" },
+    "walking": { "label": "Walking", "description": "On foot" }
+  },
+  "feedback": {
+    "question": "How likely are you to recommend Taliott?",
+    "notAtAll": "Not at all",
+    "extremely": "Extremely",
+    "commentPlaceholder": "Anything else on your mind? (optional)",
+    "send": "Send",
+    "noThanks": "No thanks",
+    "thanks": "Thanks for the feedback."
+  },
+  "deadlineBadge": {
+    "closed": "Voting closed — {{date}}",
+    "deadline": "Voting deadline: {{date}}"
+  },
+  "legalFooter": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   }
 }

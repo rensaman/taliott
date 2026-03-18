@@ -40,6 +40,8 @@ vi.mock('./features/setup/EventSetupForm.jsx', () => ({
 
 import { fireEvent } from '@testing-library/react';
 import App from './App.jsx';
+import i18n from './i18n.js';
+import enCommon from './locales/en/common.json';
 
 describe('App', () => {
   afterEach(() => {
@@ -122,5 +124,21 @@ describe('App', () => {
     const copyBtn = screen.getByRole('button', { name: /copy/i });
     fireEvent.click(copyBtn);
     expect(navigator.clipboard.writeText).toHaveBeenCalled();
+  });
+});
+
+describe('i18n — ConfirmationView', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the event created eyebrow', () => {
+    i18n.addResourceBundle('en', 'common', { confirmation: { eyebrow: '__CONFIRM_EYEBROW_TEST__' } }, true, true);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Create an event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'create' }));
+    expect(screen.getByText('__CONFIRM_EYEBROW_TEST__')).toBeInTheDocument();
   });
 });

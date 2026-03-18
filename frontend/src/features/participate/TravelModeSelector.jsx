@@ -1,30 +1,32 @@
+import { useTranslation } from 'react-i18next';
 import ToggleBlock from '../setup/ToggleBlock.jsx';
 import '../setup/ToggleBlock.css';
 import '../setup/EventSetupForm.css';
 
-const MODES = [
-  { value: 'transit',  label: 'Transit',  description: 'Bus, metro, or train' },
-  { value: 'driving',  label: 'Car',       description: 'Drive your own vehicle' },
-  { value: 'cycling',  label: 'Cycling',   description: 'Bike or e-bike' },
-  { value: 'walking',  label: 'Walking',   description: 'On foot' },
-];
+export const TRAVEL_MODE_LABELS = {
+  transit: 'Transit',
+  driving: 'Car',
+  cycling: 'Cycling',
+  walking: 'Walking',
+};
 
-export const TRAVEL_MODE_LABELS = Object.fromEntries(MODES.map(m => [m.value, m.label]));
+const MODE_VALUES = ['transit', 'driving', 'cycling', 'walking'];
 
 export default function TravelModeSelector({ value, onChange }) {
+  const { t } = useTranslation();
   return (
     <fieldset className="wizard-fieldset">
-      <legend>How will you get there?</legend>
+      <legend>{t('travelMode.legend')}</legend>
       <div className="toggle-group">
-        {MODES.map(({ value: v, label, description }) => (
+        {MODE_VALUES.map(v => (
           <ToggleBlock
             key={v}
             name="travel-mode"
             value={v}
             checked={value === v}
             onChange={() => onChange(v)}
-            title={label}
-            description={description}
+            title={t(`travelMode.${v}.label`)}
+            description={t(`travelMode.${v}.description`)}
           />
         ))}
       </div>

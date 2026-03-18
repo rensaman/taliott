@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
@@ -7,6 +8,7 @@ import { track } from '../../lib/analytics.js';
 import './ResponseWizard.css';
 
 export default function ParticipateView({ participantId }) {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -16,7 +18,7 @@ export default function ParticipateView({ participantId }) {
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
       .then(res => {
-        if (!res.ok) throw new Error('Participation link not found.');
+        if (!res.ok) throw new Error(t('participate.notFound'));
         return res.json();
       })
       .then(d => setData(d))
@@ -24,7 +26,7 @@ export default function ParticipateView({ participantId }) {
   }, [participantId]);
 
   if (error) return <p role="alert">{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (!data) return <p>{t('participate.loading')}</p>;
 
   const { event, slots, availability, participant, finalSlot, finalVenue } = data;
 
@@ -50,7 +52,7 @@ export default function ParticipateView({ participantId }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm('Are you sure? This will permanently erase your name, location, and availability from this event.')) return;
+    if (!window.confirm(t('participate.deleteConfirm'))) return;
     const res = await fetch(`/api/participate/${participantId}`, { method: 'DELETE' });
     if (res.ok) setDataDeleted(true);
   }
@@ -72,12 +74,12 @@ export default function ParticipateView({ participantId }) {
 
   const dataRightsSection = (
     <section aria-label="Privacy and data" className="pv-data-rights">
-      <button className="pv-data-rights-btn" onClick={handleExport}>Download my data</button>
+      <button className="pv-data-rights-btn" onClick={handleExport}>{t('participate.downloadData')}</button>
       {!dataDeleted && (
-        <button className="pv-data-rights-btn" onClick={handleDelete}>Delete my data</button>
+        <button className="pv-data-rights-btn" onClick={handleDelete}>{t('participate.deleteData')}</button>
       )}
       {dataDeleted && (
-        <p className="pv-erased" role="status">Your personal data has been erased from this event.</p>
+        <p className="pv-erased" role="status">{t('participate.dataErased')}</p>
       )}
     </section>
   );
@@ -109,17 +111,16 @@ export default function ParticipateView({ participantId }) {
       <DeadlineBadge deadline={event.deadline} locked={event.locked} />
 
       {event.locked && (
-        <p role="status">Results only — voting has closed.</p>
+        <p role="status">{t('participate.resultsOnly')}</p>
       )}
 
       {finalSlot && (
         <section aria-label="Event result" data-testid="finalized-banner">
-          <h2>Event finalized</h2>
-          <p>When: {new Date(finalSlot.starts_at).toLocaleString()}</p>
+          <h2>{t('participate.eventFinalized')}</h2>
+          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString() })}</p>
           {finalVenue && (
             <p>
-              Where: {finalVenue.name}
-              {finalVenue.address ? `, ${finalVenue.address}` : ''}
+              {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
             </p>
           )}
         </section>

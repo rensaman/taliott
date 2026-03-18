@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PRESET_TYPES = ['Restaurant', 'Bar', 'Cafe', 'Pub', 'Park', 'Museum'];
 
 export default function VenueTypeFilter({ defaultValue, onSearch }) {
+  const { t } = useTranslation();
   const [value, setValue] = useState(defaultValue || '');
 
   function handleSubmit(e) {
@@ -37,10 +39,10 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
           className="venue-filter-input"
           value={value}
           onChange={e => setValue(e.target.value)}
-          placeholder="or search your own type…"
-          aria-label="Venue type"
+          placeholder={t('venueTypeFilter.placeholder')}
+          aria-label={t('venueTypeFilter.ariaLabel')}
         />
-        <button type="submit" className="venue-filter-btn">Search</button>
+        <button type="submit" className="venue-filter-btn">{t('venueTypeFilter.searchBtn')}</button>
       </div>
     </form>
   );

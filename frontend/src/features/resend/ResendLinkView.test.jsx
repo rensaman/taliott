@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ResendLinkView from './ResendLinkView.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 describe('ResendLinkView', () => {
   beforeEach(() => {
@@ -44,5 +46,23 @@ describe('ResendLinkView', () => {
     await waitFor(() =>
       expect(screen.getByRole('status')).toBeInTheDocument()
     );
+  });
+});
+
+describe('i18n', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the page heading', () => {
+    fetch.mockReturnValue(new Promise(() => {}));
+    i18n.addResourceBundle('en', 'common', { resend: { heading: '__RESEND_HEADING_TEST__' } }, true, true);
+    render(<ResendLinkView />);
+    expect(screen.getByRole('heading', { name: '__RESEND_HEADING_TEST__' })).toBeInTheDocument();
   });
 });

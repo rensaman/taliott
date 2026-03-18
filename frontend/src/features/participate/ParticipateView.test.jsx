@@ -1,5 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 vi.mock('./ResponseWizard.jsx', () => ({ default: vi.fn() }));
 vi.mock('./ResponseSummary.jsx', () => ({ default: vi.fn() }));
@@ -223,5 +225,37 @@ describe('ParticipateView', () => {
     await waitFor(() => expect(screen.getByTestId('wizard-complete')).toBeInTheDocument());
     fireEvent.click(screen.getByTestId('wizard-complete'));
     await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
+  });
+});
+
+describe('i18n', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+    ResponseWizard.mockImplementation(({ onComplete }) => (
+      <button data-testid="wizard-complete" onClick={onComplete}>complete wizard</button>
+    ));
+    ResponseSummary.mockImplementation(({ onUpdate }) => (
+      <button data-testid="summary-update" onClick={onUpdate}>update response</button>
+    ));
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    i18n.removeResourceBundle('en', 'common');
+    i18n.addResourceBundle('en', 'common', enCommon, true, true);
+  });
+
+  it('uses i18n for the Download my data button', async () => {
+    i18n.addResourceBundle('en', 'common', { participate: { downloadData: '__DOWNLOAD_TEST__' } }, true, true);
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    expect(await screen.findByRole('button', { name: '__DOWNLOAD_TEST__' })).toBeInTheDocument();
+  });
+
+  it('uses i18n for the results-only banner', async () => {
+    i18n.addResourceBundle('en', 'common', { participate: { resultsOnly: '__RESULTS_ONLY_TEST__' } }, true, true);
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('__RESULTS_ONLY_TEST__');
   });
 });

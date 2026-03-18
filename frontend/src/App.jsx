@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import EventSetupForm from './features/setup/EventSetupForm.jsx';
 import ParticipateView from './features/participate/ParticipateView.jsx';
 import AdminView from './features/admin/AdminView.jsx';
@@ -33,6 +34,7 @@ function execCommandCopy(text) {
 }
 
 function ConfirmationView({ confirmation }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
   const joinUrl = confirmation.join_url
@@ -49,14 +51,14 @@ function ConfirmationView({ confirmation }) {
   return (
     <div className="confirmation">
       <header className="confirmation-header">
-        <p className="confirmation-wordmark">Taliott</p>
+        <p className="confirmation-wordmark">{t('wizard.wordmark')}</p>
       </header>
       <main className="confirmation-body">
-        <p className="confirmation-eyebrow">Event created</p>
+        <p className="confirmation-eyebrow">{t('confirmation.eyebrow')}</p>
         <h1 className="confirmation-name">{confirmation.name}</h1>
 
         <div className="confirmation-section">
-          <p className="confirmation-section-label">Your admin link — save this</p>
+          <p className="confirmation-section-label">{t('confirmation.adminLinkLabel')}</p>
           <a
             href={adminUrl}
             className="confirmation-admin-link"
@@ -68,19 +70,18 @@ function ConfirmationView({ confirmation }) {
 
         {joinUrl ? (
           <div className="confirmation-section">
-            <p className="confirmation-section-label">Share with participants</p>
+            <p className="confirmation-section-label">{t('confirmation.shareLabel')}</p>
             <div className="confirmation-join-row">
               <span className="confirmation-join-url" data-testid="join-url">{joinUrl}</span>
               <button className="confirmation-copy-btn" onClick={handleCopy}>
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? t('confirmation.copied') : t('confirmation.copy')}
               </button>
             </div>
           </div>
         ) : (
           <div className="confirmation-section">
             <p className="confirmation-email-notice">
-              Invite emails have been sent to{' '}
-              <strong>{confirmation.participants?.length ?? 0}</strong> participant(s).
+              {t('confirmation.emailNotice', { count: confirmation.participants?.length ?? 0 })}
             </p>
           </div>
         )}
