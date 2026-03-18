@@ -1,6 +1,8 @@
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AdminView from './AdminView.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 let capturedSseHandler = null;
 vi.mock('../../hooks/useEventStream.js', () => ({
@@ -201,5 +203,21 @@ describe('AdminView', () => {
     await waitFor(() =>
       expect(screen.getByTestId('coverage-counter')).toHaveTextContent('2 of 3')
     );
+  });
+
+  describe('i18n', () => {
+    afterEach(() => {
+      i18n.removeResourceBundle('en', 'common');
+      i18n.addResourceBundle('en', 'common', enCommon, true, true);
+    });
+
+    it('uses i18n for the participants section title', async () => {
+      i18n.addResourceBundle('en', 'common', { admin: { sectionParticipants: '__PARTICIPANTS_TEST__' } }, true, true);
+      fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+      render(<AdminView adminToken="some-token" />);
+      await waitFor(() =>
+        expect(screen.getByText('__PARTICIPANTS_TEST__')).toBeInTheDocument()
+      );
+    });
   });
 });

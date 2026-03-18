@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
 import VenueList from './VenueList.jsx';
@@ -24,6 +25,7 @@ function scoreSlots(slots, participants) {
 }
 
 export default function AdminView({ adminToken }) {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [error, setError] = useState(null);
@@ -33,12 +35,12 @@ export default function AdminView({ adminToken }) {
   const loadDashboard = useCallback(() => {
     fetch(`/api/events/${adminToken}`)
       .then(res => {
-        if (!res.ok) throw new Error('Dashboard not found.');
+        if (!res.ok) throw new Error(t('admin.errorNotFound'));
         return res.json();
       })
       .then(setData)
       .catch(err => setError(err.message));
-  }, [adminToken]);
+  }, [adminToken, t]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
@@ -51,12 +53,12 @@ export default function AdminView({ adminToken }) {
   });
 
   async function handleDeleteEvent() {
-    if (!window.confirm('Are you sure? This will permanently delete the event and all participant data.')) return;
+    if (!window.confirm(t('admin.deleteConfirm'))) return;
     const res = await fetch(`/api/events/${adminToken}`, { method: 'DELETE' });
     if (res.ok) {
       window.location.assign('/');
     } else {
-      setDeleteError('Failed to delete event. Please try again.');
+      setDeleteError(t('admin.deleteError'));
     }
   }
 
@@ -66,7 +68,7 @@ export default function AdminView({ adminToken }) {
   }, [data]);
 
   if (error) return <p role="alert">{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (!data) return <p>{t('admin.loading')}</p>;
 
   const responded = data.participants.filter(p => p.responded_at).length;
   const total = data.participants.length;
@@ -74,7 +76,7 @@ export default function AdminView({ adminToken }) {
   return (
     <div className="admin-page">
       <header className="admin-header">
-        <a href="/" className="admin-wordmark">Taliott</a>
+        <a href="/" className="admin-wordmark">{t('admin.wordmark')}</a>
         <h1 className="admin-event-name">{data.name}</h1>
         <span className={`admin-status-badge admin-status-badge--${data.status}`}>
           {data.status}
@@ -82,8 +84,8 @@ export default function AdminView({ adminToken }) {
       </header>
 
       <div className="admin-meta">
-        <span>Deadline: <strong>{new Date(data.deadline).toLocaleString()}</strong></span>
-        <span><strong>{responded} of {total} responded</strong></span>
+        <span>{t('admin.deadlineLabel')} <strong>{new Date(data.deadline).toLocaleString()}</strong></span>
+        <span><strong>{t('admin.responded', { responded, total })}</strong></span>
       </div>
 
       <div className="admin-body">
@@ -96,7 +98,7 @@ export default function AdminView({ adminToken }) {
             />
           </div>
           <div className="admin-section">
-            <div className="admin-section-title">Participants</div>
+            <div className="admin-section-title">{t('admin.sectionParticipants')}</div>
             <ParticipantResponseList
               participants={data.participants}
               slots={data.slots || []}
@@ -125,7 +127,7 @@ export default function AdminView({ adminToken }) {
           {data.status === 'finalized' && (
             <div className="finalized-notice">
               <div className="finalized-notice-inner">
-                <p data-testid="finalized-notice"><strong>This event has been finalized.</strong></p>
+                <p data-testid="finalized-notice"><strong>{t('admin.finalizedNotice')}</strong></p>
               </div>
             </div>
           )}
@@ -133,7 +135,7 @@ export default function AdminView({ adminToken }) {
       </div>
 
       <footer className="admin-danger" aria-label="Danger zone">
-        <button className="btn-danger" onClick={handleDeleteEvent}>Delete event</button>
+        <button className="btn-danger" onClick={handleDeleteEvent}>{t('admin.deleteEvent')}</button>
         {deleteError && <p role="alert" className="admin-error-danger">{deleteError}</p>}
       </footer>
     </div>

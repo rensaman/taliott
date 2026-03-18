@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import DateRangePicker from './DateRangePicker.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 const DEFAULT_VALUE = { start: '', end: '' };
 
@@ -70,5 +72,18 @@ describe('DateRangePicker', () => {
     // Click a day that comes after the 1st
     fireEvent.click(dayBtns[4]);
     expect(onChange).toHaveBeenCalled();
+  });
+
+  describe('i18n', () => {
+    afterEach(() => {
+      i18n.removeResourceBundle('en', 'common');
+      i18n.addResourceBundle('en', 'common', enCommon, true, true);
+    });
+
+    it('uses i18n for the previous month aria-label', () => {
+      i18n.addResourceBundle('en', 'common', { datepicker: { prevMonth: '__PREV_MONTH_TEST__' } }, true, true);
+      render(<DateRangePicker value={{ start: '', end: '' }} onChange={() => {}} />);
+      expect(screen.getByRole('button', { name: '__PREV_MONTH_TEST__' })).toBeInTheDocument();
+    });
   });
 });

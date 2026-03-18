@@ -1,0 +1,154 @@
+{
+  "wizard": {
+    "wordmark": "Taliott",
+    "consentPrefix": "By continuing you agree to our",
+    "tos": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "btn": {
+      "continue": "Continue →",
+      "back": "← Back",
+      "createEvent": "Create Event",
+      "creating": "Creating…",
+      "submit": "Submit →",
+      "submitting": "Submitting…"
+    }
+  },
+  "setup": {
+    "name": {
+      "heading": "What's the event called?",
+      "label": "Event name",
+      "placeholder": "e.g. Summer meetup"
+    },
+    "email": {
+      "heading": "What's your email?",
+      "label": "Your email",
+      "placeholder": "you@example.com"
+    },
+    "dateTime": {
+      "heading": "When is it happening?",
+      "flexible": {
+        "title": "We need to find a time that works",
+        "description": "Participants vote on their availability"
+      },
+      "fixed": {
+        "title": "The date and time are already set",
+        "description": "You just need location and RSVPs"
+      },
+      "dateLabel": "Date",
+      "startTimeLabel": "Start time ({{timezone}})",
+      "dateRange": "Date range",
+      "startTimeWindow": "Start time window ({{timezone}})"
+    },
+    "deadline": {
+      "heading": "When's the voting deadline?",
+      "dateLabel": "Deadline date",
+      "timeLabel": "Deadline time ({{timezone}})"
+    },
+    "inviteMode": {
+      "heading": "How do you want to invite people?",
+      "sharedLink": {
+        "title": "Share a join link",
+        "description": "Anyone with the link can join and vote"
+      },
+      "email": {
+        "title": "Send email invites",
+        "description": "Invitations go directly to each person"
+      },
+      "emailsLabel": "Participant emails",
+      "emailsOnePerLine": "(one per line)"
+    },
+    "review": {
+      "heading": "Ready to create your event?",
+      "labelName": "Name",
+      "labelOrg": "Org.",
+      "labelWhen": "When",
+      "labelDates": "Dates",
+      "labelTime": "Time",
+      "labelBy": "By",
+      "labelVia": "Via",
+      "labelTo": "To",
+      "at": "at",
+      "viaEmail": "Email invites",
+      "viaLink": "Shared link",
+      "privacyText": "By creating this event you confirm that any participant emails you have provided were collected with their knowledge. Emails are used solely to send event invitations and notifications. See our",
+      "privacyLink": "Privacy Policy"
+    }
+  },
+  "participate": {
+    "name": {
+      "heading": "What's your name?",
+      "label": "Your name",
+      "placeholder": "e.g. Alex",
+      "errorSave": "Failed to save name. Please try again."
+    },
+    "location": {
+      "heading": "Where are you coming from?",
+      "legend": "Your starting location",
+      "errorSave": "Failed to save location. Please try again."
+    },
+    "dates": {
+      "heading": "When can you make it?",
+      "legendYes": "Yes",
+      "legendMaybe": "Maybe",
+      "legendNo": "No",
+      "legendHint": "Tap to toggle"
+    },
+    "review": {
+      "heading": "Ready to submit?",
+      "labelName": "Name",
+      "labelTravel": "Travel",
+      "labelFrom": "From",
+      "errorSubmit": "Failed to submit. Please try again."
+    }
+  },
+  "admin": {
+    "wordmark": "Taliott",
+    "deadlineLabel": "Deadline:",
+    "responded": "{{responded}} of {{total}} responded",
+    "sectionParticipants": "Participants",
+    "loading": "Loading…",
+    "deleteEvent": "Delete event",
+    "deleteConfirm": "Are you sure? This will permanently delete the event and all participant data.",
+    "deleteError": "Failed to delete event. Please try again.",
+    "errorNotFound": "Dashboard not found.",
+    "finalizedNotice": "This event has been finalized."
+  },
+  "datepicker": {
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "weekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "gridLabel": "Date picker",
+    "pickDate": "Pick a date",
+    "pickStart": "Tap a start date",
+    "pickEnd": "From {{start}} — tap an end date",
+    "rangeStatus": "{{start}} – {{end}}"
+  },
+  "finalize": {
+    "heading": "Finalize Event",
+    "venueLegend": "Venue",
+    "venueRecommended": "Select recommended",
+    "venueCustom": "Enter custom venue",
+    "venueSelected": "Selected: {{name}}",
+    "venueNone": "No venue selected — pick one from the list below.",
+    "venueNameLabel": "Venue name",
+    "venueNamePlaceholder": "e.g. The Blue Note",
+    "venueAddressLabel": "Venue address",
+    "venueAddressPlaceholder": "e.g. 131 W 3rd St, New York",
+    "btnFinalize": "Finalize Event",
+    "btnFinalizing": "Finalizing…",
+    "errorNetwork": "Network error — please try again"
+  },
+  "timeRange": {
+    "earliestStart": "Earliest start",
+    "latestStart": "Latest start",
+    "from": "From",
+    "to": "To"
+  },
+  "language": {
+    "en": "EN",
+    "hu": "HU"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function SlotScoreCard({ slot, rank, selected, onClick }) {
   const start = new Date(slot.starts_at);
@@ -39,6 +40,7 @@ export default function FinalizePanel({
   adminToken, slots, scoredSlots,
   selectedVenueId, selectedVenueName, onFinalized,
 }) {
+  const { t } = useTranslation();
   const [slotId, setSlotId] = useState('');
   const [venueMode, setVenueMode] = useState('recommended');
 
@@ -81,7 +83,7 @@ export default function FinalizePanel({
 
       onFinalized?.();
     } catch {
-      setError('Network error — please try again');
+      setError(t('finalize.errorNetwork'));
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export default function FinalizePanel({
 
   return (
     <section data-testid="finalize-panel" className="finalize-section">
-      <h2>Finalize Event</h2>
+      <h2>{t('finalize.heading')}</h2>
       <form onSubmit={handleFinalize}>
 
         {/* Visual slot scorer — click to select */}
@@ -111,7 +113,7 @@ export default function FinalizePanel({
 
         <div>
           <fieldset className="venue-mode-fieldset">
-            <legend>Venue</legend>
+            <legend>{t('finalize.venueLegend')}</legend>
             <div className="venue-mode-options">
               <label className="venue-mode-option">
                 <input
@@ -121,7 +123,7 @@ export default function FinalizePanel({
                   checked={venueMode === 'recommended'}
                   onChange={() => setVenueMode('recommended')}
                 />
-                Select recommended
+                {t('finalize.venueRecommended')}
               </label>
               <label className="venue-mode-option">
                 <input
@@ -131,7 +133,7 @@ export default function FinalizePanel({
                   checked={venueMode === 'custom'}
                   onChange={() => setVenueMode('custom')}
                 />
-                Enter custom venue
+                {t('finalize.venueCustom')}
               </label>
             </div>
           </fieldset>
@@ -139,8 +141,8 @@ export default function FinalizePanel({
           {venueMode === 'recommended' && (
             <p data-testid="selected-venue-display" className="selected-venue-display">
               {selectedVenueName
-                ? <>Selected: <strong>{selectedVenueName}</strong></>
-                : 'No venue selected — pick one from the list below.'}
+                ? t('finalize.venueSelected', { name: selectedVenueName })
+                : t('finalize.venueNone')}
             </p>
           )}
 
@@ -148,24 +150,24 @@ export default function FinalizePanel({
             <div className="custom-venue-fields">
               <div className="custom-venue-field">
                 <label>
-                  Venue name
+                  {t('finalize.venueNameLabel')}
                   <input
                     type="text"
                     value={venueName}
                     onChange={e => setVenueName(e.target.value)}
-                    placeholder="e.g. The Blue Note"
+                    placeholder={t('finalize.venueNamePlaceholder')}
                     data-testid="custom-venue-name"
                   />
                 </label>
               </div>
               <div className="custom-venue-field">
                 <label>
-                  Venue address
+                  {t('finalize.venueAddressLabel')}
                   <input
                     type="text"
                     value={venueAddress}
                     onChange={e => setVenueAddress(e.target.value)}
-                    placeholder="e.g. 131 W 3rd St, New York"
+                    placeholder={t('finalize.venueAddressPlaceholder')}
                     data-testid="custom-venue-address"
                   />
                 </label>
@@ -178,7 +180,7 @@ export default function FinalizePanel({
 
         <div className="finalize-button-row">
           <button type="submit" className="btn btn-primary" disabled={loading || !slotId}>
-            {loading ? 'Finalizing…' : 'Finalize Event'}
+            {loading ? t('finalize.btnFinalizing') : t('finalize.btnFinalize')}
           </button>
         </div>
       </form>

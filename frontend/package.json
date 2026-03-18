@@ -10,9 +10,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "i18next": "^25.8.18",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^16.5.8",
     "react-leaflet": "^4.2.1"
   },
   "devDependencies": {

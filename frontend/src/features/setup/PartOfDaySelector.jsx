@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './PartOfDaySelector.css';
 
 // Every 30 minutes from 00:00 (0) to 23:30 (1410) — 48 entries total
@@ -21,6 +22,7 @@ const SLIDER_MAX = 1380; // 23:00
 const AXIS_HOURS = [6, 9, 12, 15, 18, 21];
 
 export default function TimeRangeSelector({ startValue, endValue, onStartChange, onEndChange }) {
+  const { t } = useTranslation();
   const span = SLIDER_MAX - SLIDER_MIN;
   const leftPct = ((startValue - SLIDER_MIN) / span) * 100;
   const rightPct = ((endValue - SLIDER_MIN) / span) * 100;
@@ -39,7 +41,7 @@ export default function TimeRangeSelector({ startValue, endValue, onStartChange,
         />
         <input
           type="range"
-          aria-label="Earliest start"
+          aria-label={t('timeRange.earliestStart')}
           className="time-range-input"
           style={{ zIndex: startZ }}
           min={SLIDER_MIN}
@@ -54,7 +56,7 @@ export default function TimeRangeSelector({ startValue, endValue, onStartChange,
         />
         <input
           type="range"
-          aria-label="Latest start"
+          aria-label={t('timeRange.latestStart')}
           className="time-range-input"
           style={{ zIndex: endZ }}
           min={SLIDER_MIN}
@@ -79,8 +81,8 @@ export default function TimeRangeSelector({ startValue, endValue, onStartChange,
       </div>
 
       <div className="time-range-values">
-        <span>From <strong>{minutesToHHMM(startValue)}</strong></span>
-        <span>To <strong>{minutesToHHMM(endValue)}</strong></span>
+        <span>{t('timeRange.from')} <strong>{minutesToHHMM(startValue)}</strong></span>
+        <span>{t('timeRange.to')} <strong>{minutesToHHMM(endValue)}</strong></span>
       </div>
     </div>
   );

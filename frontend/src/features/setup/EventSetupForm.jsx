@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
@@ -22,6 +23,7 @@ function formatDate(iso) {
 }
 
 export default function EventSetupForm({ onCreated }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     organizerEmail: '',
@@ -143,18 +145,18 @@ export default function EventSetupForm({ onCreated }) {
       case 'name':
         return (
           <>
-            <h2>What&apos;s the event called?</h2>
+            <h2>{t('setup.name.heading')}</h2>
             <div className="field">
-              <label htmlFor="event-name" className="field-label">Event name</label>
+              <label htmlFor="event-name" className="field-label">{t('setup.name.label')}</label>
               <input
                 id="event-name"
                 className="wizard-input"
                 type="text"
-                aria-label="Event name"
+                aria-label={t('setup.name.label')}
                 value={formData.name}
                 onChange={e => update('name', e.target.value)}
                 autoFocus
-                placeholder="e.g. Summer meetup"
+                placeholder={t('setup.name.placeholder')}
               />
             </div>
           </>
@@ -163,18 +165,18 @@ export default function EventSetupForm({ onCreated }) {
       case 'organizer_email':
         return (
           <>
-            <h2>What&apos;s your email?</h2>
+            <h2>{t('setup.email.heading')}</h2>
             <div className="field">
-              <label htmlFor="organizer-email" className="field-label">Your email</label>
+              <label htmlFor="organizer-email" className="field-label">{t('setup.email.label')}</label>
               <input
                 id="organizer-email"
                 className="wizard-input"
                 type="email"
-                aria-label="Your email"
+                aria-label={t('setup.email.label')}
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
                 autoFocus
-                placeholder="you@example.com"
+                placeholder={t('setup.email.placeholder')}
               />
             </div>
           </>
@@ -183,30 +185,30 @@ export default function EventSetupForm({ onCreated }) {
       case 'date_and_time':
         return (
           <>
-            <h2>When is it happening?</h2>
+            <h2>{t('setup.dateTime.heading')}</h2>
             <div className="toggle-group">
               <ToggleBlock
                 name="dt_pref"
                 value="flexible"
                 checked={!formData.isDateTimeFixed}
                 onChange={() => update('isDateTimeFixed', false)}
-                title="We need to find a time that works"
-                description="Participants vote on their availability"
+                title={t('setup.dateTime.flexible.title')}
+                description={t('setup.dateTime.flexible.description')}
               />
               <ToggleBlock
                 name="dt_pref"
                 value="fixed"
                 checked={formData.isDateTimeFixed}
                 onChange={() => update('isDateTimeFixed', true)}
-                title="The date and time are already set"
-                description="You just need location and RSVPs"
+                title={t('setup.dateTime.fixed.title')}
+                description={t('setup.dateTime.fixed.description')}
               />
             </div>
 
             {formData.isDateTimeFixed ? (
               <>
                 <fieldset className="wizard-fieldset">
-                  <legend>Date</legend>
+                  <legend>{t('setup.dateTime.dateLabel')}</legend>
                   <DateRangePicker
                     singleDate
                     value={formData.fixedDate}
@@ -214,7 +216,7 @@ export default function EventSetupForm({ onCreated }) {
                   />
                 </fieldset>
                 <div className="field">
-                  <label htmlFor="fixed-time" className="field-label">Start time ({timezone})</label>
+                  <label htmlFor="fixed-time" className="field-label">{t('setup.dateTime.startTimeLabel', { timezone })}</label>
                   <input
                     id="fixed-time"
                     type="time"
@@ -228,14 +230,14 @@ export default function EventSetupForm({ onCreated }) {
             ) : (
               <>
                 <fieldset className="wizard-fieldset">
-                  <legend>Date range</legend>
+                  <legend>{t('setup.dateTime.dateRange')}</legend>
                   <DateRangePicker
                     value={formData.dateRange}
                     onChange={v => update('dateRange', v)}
                   />
                 </fieldset>
                 <fieldset className="wizard-fieldset" ref={timeRangeRef}>
-                  <legend>Start time window ({timezone})</legend>
+                  <legend>{t('setup.dateTime.startTimeWindow', { timezone })}</legend>
                   <TimeRangeSelector
                     startValue={formData.timeRangeStart}
                     endValue={formData.timeRangeEnd}
@@ -251,9 +253,9 @@ export default function EventSetupForm({ onCreated }) {
       case 'deadline':
         return (
           <>
-            <h2>When&apos;s the voting deadline?</h2>
+            <h2>{t('setup.deadline.heading')}</h2>
             <fieldset className="wizard-fieldset">
-              <legend>Deadline date</legend>
+              <legend>{t('setup.deadline.dateLabel')}</legend>
               <DateRangePicker
                 singleDate
                 value={formData.deadlineDate}
@@ -261,7 +263,7 @@ export default function EventSetupForm({ onCreated }) {
               />
             </fieldset>
             <div className="field">
-              <label htmlFor="deadline-time" className="field-label">Deadline time ({timezone})</label>
+              <label htmlFor="deadline-time" className="field-label">{t('setup.deadline.timeLabel', { timezone })}</label>
               <input
                 id="deadline-time"
                 type="time"
@@ -277,34 +279,34 @@ export default function EventSetupForm({ onCreated }) {
       case 'invite_mode':
         return (
           <>
-            <h2>How do you want to invite people?</h2>
+            <h2>{t('setup.inviteMode.heading')}</h2>
             <div className="toggle-group">
               <ToggleBlock
                 name="invite_mode"
                 value="shared_link"
                 checked={formData.inviteMode === 'shared_link'}
                 onChange={() => update('inviteMode', 'shared_link')}
-                title="Share a join link"
-                description="Anyone with the link can join and vote"
+                title={t('setup.inviteMode.sharedLink.title')}
+                description={t('setup.inviteMode.sharedLink.description')}
               />
               <ToggleBlock
                 name="invite_mode"
                 value="email_invites"
                 checked={formData.inviteMode === 'email_invites'}
                 onChange={() => update('inviteMode', 'email_invites')}
-                title="Send email invites"
-                description="Invitations go directly to each person"
+                title={t('setup.inviteMode.email.title')}
+                description={t('setup.inviteMode.email.description')}
               />
             </div>
             {formData.inviteMode === 'email_invites' && (
               <div className="field">
                 <label htmlFor="participant-emails" className="field-label">
-                  Participant emails <span style={{ textTransform: 'none', fontWeight: 400 }}>(one per line)</span>
+                  {t('setup.inviteMode.emailsLabel')} <span style={{ textTransform: 'none', fontWeight: 400 }}>{t('setup.inviteMode.emailsOnePerLine')}</span>
                 </label>
                 <textarea
                   id="participant-emails"
                   className="wizard-input"
-                  aria-label="Participant emails"
+                  aria-label={t('setup.inviteMode.emailsLabel')}
                   value={formData.participantEmails}
                   onChange={e => update('participantEmails', e.target.value)}
                   placeholder={'jamie@example.com\nsam@example.com'}
@@ -320,44 +322,44 @@ export default function EventSetupForm({ onCreated }) {
           : [];
         return (
           <>
-            <h2>Ready to create your event?</h2>
+            <h2>{t('setup.review.heading')}</h2>
             <div className="review-ticket">
               <div className="review-ticket-row">
-                <span className="review-ticket-label">Name</span>
+                <span className="review-ticket-label">{t('setup.review.labelName')}</span>
                 <span className="review-ticket-value">{formData.name}</span>
               </div>
               <div className="review-ticket-row">
-                <span className="review-ticket-label">Org.</span>
+                <span className="review-ticket-label">{t('setup.review.labelOrg')}</span>
                 <span className="review-ticket-value">{formData.organizerEmail}</span>
               </div>
               {formData.isDateTimeFixed ? (
                 <div className="review-ticket-row">
-                  <span className="review-ticket-label">When</span>
-                  <span className="review-ticket-value">{formatDate(formData.fixedDate)} at {formData.fixedTime} ({timezone})</span>
+                  <span className="review-ticket-label">{t('setup.review.labelWhen')}</span>
+                  <span className="review-ticket-value">{formatDate(formData.fixedDate)} {t('setup.review.at')} {formData.fixedTime} ({timezone})</span>
                 </div>
               ) : (
                 <>
                   <div className="review-ticket-row">
-                    <span className="review-ticket-label">Dates</span>
+                    <span className="review-ticket-label">{t('setup.review.labelDates')}</span>
                     <span className="review-ticket-value">{formatDate(formData.dateRange.start)} – {formatDate(formData.dateRange.end)}</span>
                   </div>
                   <div className="review-ticket-row">
-                    <span className="review-ticket-label">Time</span>
+                    <span className="review-ticket-label">{t('setup.review.labelTime')}</span>
                     <span className="review-ticket-value">{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)} ({timezone})</span>
                   </div>
                 </>
               )}
               <div className="review-ticket-row">
-                <span className="review-ticket-label">By</span>
-                <span className="review-ticket-value">{formatDate(formData.deadlineDate)} at {formData.deadlineTime} ({timezone})</span>
+                <span className="review-ticket-label">{t('setup.review.labelBy')}</span>
+                <span className="review-ticket-value">{formatDate(formData.deadlineDate)} {t('setup.review.at')} {formData.deadlineTime} ({timezone})</span>
               </div>
               <div className="review-ticket-row">
-                <span className="review-ticket-label">Via</span>
-                <span className="review-ticket-value">{formData.inviteMode === 'email_invites' ? 'Email invites' : 'Shared link'}</span>
+                <span className="review-ticket-label">{t('setup.review.labelVia')}</span>
+                <span className="review-ticket-value">{formData.inviteMode === 'email_invites' ? t('setup.review.viaEmail') : t('setup.review.viaLink')}</span>
               </div>
               {emails.length > 0 && (
                 <div className="review-ticket-row">
-                  <span className="review-ticket-label">To</span>
+                  <span className="review-ticket-label">{t('setup.review.labelTo')}</span>
                   <span className="review-ticket-value">
                     <ul className="review-ticket-email-list">
                       {emails.map(email => <li key={email}>{email}</li>)}
@@ -367,10 +369,8 @@ export default function EventSetupForm({ onCreated }) {
               )}
             </div>
             <p className="review-privacy">
-              By creating this event you confirm that any participant emails you have provided were
-              collected with their knowledge. Emails are used solely to send event invitations and
-              notifications. See our{' '}
-              <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+              {t('setup.review.privacyText')}{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer">{t('setup.review.privacyLink')}</a>.
             </p>
           </>
         );
@@ -386,7 +386,7 @@ export default function EventSetupForm({ onCreated }) {
   return (
     <form className="wizard" onSubmit={handleNext} aria-label="Event setup">
       <header className="wizard-header">
-        <h1 className="wizard-wordmark">Taliott</h1>
+        <h1 className="wizard-wordmark">{t('wizard.wordmark')}</h1>
         <StepRoute stepLabels={STEP_LABELS} current={step} />
       </header>
 
@@ -400,7 +400,7 @@ export default function EventSetupForm({ onCreated }) {
 
       <footer className="wizard-footer">
         {step > 0 && (
-          <button className="btn btn-ghost" type="button" onClick={handleBack}>← Back</button>
+          <button className="btn btn-ghost" type="button" onClick={handleBack}>{t('wizard.btn.back')}</button>
         )}
         <div className="wizard-footer-right">
           <button
@@ -409,15 +409,15 @@ export default function EventSetupForm({ onCreated }) {
             disabled={!canAdvance() || submitting}
           >
             {isLastStep
-              ? (submitting ? 'Creating…' : 'Create Event')
-              : 'Continue →'}
+              ? (submitting ? t('wizard.btn.creating') : t('wizard.btn.createEvent'))
+              : t('wizard.btn.continue')}
           </button>
           {step === 0 && (
             <p className="wizard-consent">
-              By continuing you agree to our{' '}
-              <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>
-              {' '}and{' '}
-              <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+              {t('wizard.consentPrefix')}{' '}
+              <a href="/terms" target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
+              {' '}{t('wizard.and')}{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
             </p>
           )}
         </div>

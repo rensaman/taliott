@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FinalizePanel from './FinalizePanel.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 const SLOTS = [
   { id: 'slot-1', starts_at: '2025-06-15T09:00:00.000Z', ends_at: '2025-06-15T10:00:00.000Z' },
@@ -120,5 +122,18 @@ describe('FinalizePanel', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('Event is already finalized')
     );
+  });
+
+  describe('i18n', () => {
+    afterEach(() => {
+      i18n.removeResourceBundle('en', 'common');
+      i18n.addResourceBundle('en', 'common', enCommon, true, true);
+    });
+
+    it('uses i18n for the heading', () => {
+      i18n.addResourceBundle('en', 'common', { finalize: { heading: '__FINALIZE_HEADING_TEST__' } }, true, true);
+      render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__FINALIZE_HEADING_TEST__');
+    });
   });
 });

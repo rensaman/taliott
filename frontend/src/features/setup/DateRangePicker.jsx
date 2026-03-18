@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './DateRangePicker.css';
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'];
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 function getDaysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate();
@@ -21,13 +16,18 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function fmtDate(iso) {
+function fmtDate(iso, monthsShort) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-').map(Number);
-  return `${d} ${MONTHS_SHORT[m - 1]} ${y}`;
+  return `${d} ${monthsShort[m - 1]} ${y}`;
 }
 
 export default function DateRangePicker({ value, onChange, singleDate = false }) {
+  const { t } = useTranslation();
+  const MONTHS = t('datepicker.months', { returnObjects: true });
+  const MONTHS_SHORT = t('datepicker.monthsShort', { returnObjects: true });
+  const WEEKDAYS = t('datepicker.weekdays', { returnObjects: true });
+
   // In singleDate mode value is an ISO string; normalise to internal {start, end}
   const { start, end } = singleDate
     ? { start: value || '', end: value || '' }
@@ -93,24 +93,24 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
   }
 
   const statusText = singleDate
-    ? (start ? fmtDate(start) : 'Pick a date')
+    ? (start ? fmtDate(start, MONTHS_SHORT) : t('datepicker.pickDate'))
     : (!start
-        ? 'Tap a start date'
+        ? t('datepicker.pickStart')
         : !end
-          ? `From ${fmtDate(start)} — tap an end date`
-          : `${fmtDate(start)} – ${fmtDate(end)}`);
+          ? t('datepicker.pickEnd', { start: fmtDate(start, MONTHS_SHORT) })
+          : t('datepicker.rangeStatus', { start: fmtDate(start, MONTHS_SHORT), end: fmtDate(end, MONTHS_SHORT) }));
 
   return (
     <div className="drp">
       {/* Month navigation */}
       <div className="drp-nav">
-        <button type="button" className="drp-nav-btn" onClick={prevMonth} aria-label="Previous month">‹</button>
+        <button type="button" className="drp-nav-btn" onClick={prevMonth} aria-label={t('datepicker.prevMonth')}>‹</button>
         <span className="drp-month-label">{MONTHS[displayMonth]} {displayYear}</span>
-        <button type="button" className="drp-nav-btn" onClick={nextMonth} aria-label="Next month">›</button>
+        <button type="button" className="drp-nav-btn" onClick={nextMonth} aria-label={t('datepicker.nextMonth')}>›</button>
       </div>
 
       {/* Calendar grid */}
-      <div className="drp-grid" role="grid" aria-label="Date picker">
+      <div className="drp-grid" role="grid" aria-label={t('datepicker.gridLabel')}>
         {WEEKDAYS.map(d => (
           <div key={d} className="drp-weekday" role="columnheader">{d}</div>
         ))}

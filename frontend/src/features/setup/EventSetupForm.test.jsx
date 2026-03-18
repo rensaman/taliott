@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import EventSetupForm from './EventSetupForm.jsx';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 // Navigate through the wizard up to (and including) the step named by `stopAt`,
 // or all the way to the review step if `stopAt` is omitted.
@@ -357,5 +359,18 @@ describe('EventSetupForm', () => {
 
     resolvePromise({ ok: true, json: async () => ({}) });
     await waitFor(() => expect(screen.getByRole('button', { name: /create event/i })).toBeEnabled());
+  });
+
+  describe('i18n', () => {
+    afterEach(() => {
+      i18n.removeResourceBundle('en', 'common');
+      i18n.addResourceBundle('en', 'common', enCommon, true, true);
+    });
+
+    it('uses i18n for the name step heading', () => {
+      i18n.addResourceBundle('en', 'common', { setup: { name: { heading: '__HEADING_TEST__' } } }, true, true);
+      render(<EventSetupForm />);
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__HEADING_TEST__');
+    });
   });
 });

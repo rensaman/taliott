@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import TravelModeSelector, { TRAVEL_MODE_LABELS } from './TravelModeSelector.jsx';
@@ -19,6 +20,7 @@ export default function ResponseWizard({
   initialTravelMode = 'transit',
   onComplete,
 }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
@@ -55,10 +57,10 @@ export default function ResponseWizard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude: loc.lat, longitude: loc.lng, address_label: loc.label ?? null }),
       });
-      if (!res.ok) setLocationError('Failed to save location. Please try again.');
+      if (!res.ok) setLocationError(t('participate.location.errorSave'));
       else setLocationError(null);
     } catch {
-      setLocationError('Failed to save location. Please try again.');
+      setLocationError(t('participate.location.errorSave'));
     }
   }
 
@@ -82,12 +84,12 @@ export default function ResponseWizard({
     try {
       const res = await fetch(`/api/participate/${participantId}/confirm`, { method: 'PATCH' });
       if (!res.ok) {
-        setSubmitError('Failed to submit. Please try again.');
+        setSubmitError(t('participate.review.errorSubmit'));
         return;
       }
       onComplete();
     } catch {
-      setSubmitError('Failed to submit. Please try again.');
+      setSubmitError(t('participate.review.errorSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +100,7 @@ export default function ResponseWizard({
     if (currentStep === 'name') {
       const ok = await saveName();
       if (!ok) {
-        setNameError('Failed to save name. Please try again.');
+        setNameError(t('participate.name.errorSave'));
         return;
       }
       setNameError(null);
@@ -125,9 +127,9 @@ export default function ResponseWizard({
       case 'name':
         return (
           <>
-            <h2>What&apos;s your name?</h2>
+            <h2>{t('participate.name.heading')}</h2>
             <div className="field">
-              <label htmlFor="participant-name" className="field-label">Your name</label>
+              <label htmlFor="participant-name" className="field-label">{t('participate.name.label')}</label>
               <input
                 id="participant-name"
                 className="wizard-input"
@@ -135,7 +137,7 @@ export default function ResponseWizard({
                 value={nameValue}
                 onChange={e => setNameValue(e.target.value)}
                 autoFocus
-                placeholder="e.g. Alex"
+                placeholder={t('participate.name.placeholder')}
                 data-testid="name-input"
               />
             </div>
@@ -146,10 +148,10 @@ export default function ResponseWizard({
       case 'travel_location':
         return (
           <>
-            <h2>Where are you coming from?</h2>
+            <h2>{t('participate.location.heading')}</h2>
             <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
             <fieldset className="wizard-fieldset" ref={locationFieldsetRef}>
-              <legend>Your starting location</legend>
+              <legend>{t('participate.location.legend')}</legend>
               <AddressSearchInput onSelect={saveLocation} />
               {location && (
                 <p className="rw-selected-address" data-testid="selected-address">{location.label}</p>
@@ -162,12 +164,12 @@ export default function ResponseWizard({
       case 'dates':
         return (
           <>
-            <h2>When can you make it?</h2>
+            <h2>{t('participate.dates.heading')}</h2>
             <div className="rw-legend">
-              <span className="rw-legend-chip rw-legend-yes">Yes</span>
-              <span className="rw-legend-chip rw-legend-maybe">Maybe</span>
-              <span className="rw-legend-chip rw-legend-no">No</span>
-              <span className="rw-legend-hint">Tap to toggle</span>
+              <span className="rw-legend-chip rw-legend-yes">{t('participate.dates.legendYes')}</span>
+              <span className="rw-legend-chip rw-legend-maybe">{t('participate.dates.legendMaybe')}</span>
+              <span className="rw-legend-chip rw-legend-no">{t('participate.dates.legendNo')}</span>
+              <span className="rw-legend-hint">{t('participate.dates.legendHint')}</span>
             </div>
             <AvailabilityGrid
               participantId={participantId}
@@ -181,21 +183,21 @@ export default function ResponseWizard({
       case 'review':
         return (
           <>
-            <h2>Ready to submit?</h2>
+            <h2>{t('participate.review.heading')}</h2>
             <div className="review-ticket">
               {nameValue.trim() && (
                 <div className="review-ticket-row">
-                  <span className="review-ticket-label">Name</span>
+                  <span className="review-ticket-label">{t('participate.review.labelName')}</span>
                   <span className="review-ticket-value">{nameValue.trim()}</span>
                 </div>
               )}
               <div className="review-ticket-row">
-                <span className="review-ticket-label">Travel</span>
+                <span className="review-ticket-label">{t('participate.review.labelTravel')}</span>
                 <span className="review-ticket-value">{TRAVEL_MODE_LABELS[travelMode] ?? travelMode}</span>
               </div>
               {location?.label && (
                 <div className="review-ticket-row">
-                  <span className="review-ticket-label">From</span>
+                  <span className="review-ticket-label">{t('participate.review.labelFrom')}</span>
                   <span className="review-ticket-value">{location.label}</span>
                 </div>
               )}
@@ -212,7 +214,7 @@ export default function ResponseWizard({
   return (
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
-        <h1 className="wizard-wordmark">Taliott</h1>
+        <h1 className="wizard-wordmark">{t('wizard.wordmark')}</h1>
         <StepRoute stepLabels={STEP_LABELS} current={step} />
       </header>
 
@@ -226,15 +228,15 @@ export default function ResponseWizard({
       <footer className="wizard-footer rw-footer">
         <div className="rw-footer-legal">
           <p className="rw-consent">
-            By continuing you agree to our{' '}
-            <a href="/terms" target="_blank" rel="noreferrer">Terms of Service</a>
-            {' '}and{' '}
-            <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+            {t('wizard.consentPrefix')}{' '}
+            <a href="/terms" target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
+            {' '}{t('wizard.and')}{' '}
+            <a href="/privacy" target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
           </p>
         </div>
         <div className="rw-footer-actions">
           {step > 0 && (
-            <button className="btn btn-ghost" type="button" onClick={handleBack}>← Back</button>
+            <button className="btn btn-ghost" type="button" onClick={handleBack}>{t('wizard.btn.back')}</button>
           )}
           <button
             className="btn btn-primary"
@@ -242,7 +244,7 @@ export default function ResponseWizard({
             disabled={!canAdvance() || submitting}
             data-testid={isLastStep ? 'submit-btn' : undefined}
           >
-            {isLastStep ? (submitting ? 'Submitting…' : 'Submit →') : 'Continue →'}
+            {isLastStep ? (submitting ? t('wizard.btn.submitting') : t('wizard.btn.submit')) : t('wizard.btn.continue')}
           </button>
         </div>
       </footer>

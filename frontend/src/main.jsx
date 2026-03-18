@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
+import i18n from './i18n.js';
+import { I18nextProvider } from 'react-i18next';
 
 // Inject Umami analytics if configured. Cookieless, GDPR-compliant by default.
 // Set VITE_UMAMI_WEBSITE_ID (and optionally VITE_UMAMI_SCRIPT_URL) in your .env.
@@ -15,6 +17,8 @@ if (import.meta.env.VITE_UMAMI_WEBSITE_ID) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <I18nextProvider i18n={i18n}>
+      <App />
+    </I18nextProvider>
   </React.StrictMode>
 );

@@ -1,5 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import i18n from '../../i18n.js';
+import enCommon from '../../locales/en/common.json';
 
 vi.mock('./AvailabilityGrid.jsx', () => ({
   default: vi.fn(() => <div data-testid="availability-grid" />),
@@ -213,5 +215,18 @@ describe('ResponseWizard', () => {
     renderWizard({ initialName: 'Alex', initialStep: 1 });
     fireEvent.click(screen.getByRole('button', { name: /select address/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+  });
+
+  describe('i18n', () => {
+    afterEach(() => {
+      i18n.removeResourceBundle('en', 'common');
+      i18n.addResourceBundle('en', 'common', enCommon, true, true);
+    });
+
+    it('uses i18n for the name step heading', () => {
+      i18n.addResourceBundle('en', 'common', { participate: { name: { heading: '__PARTICIPATE_HEADING_TEST__' } } }, true, true);
+      renderWizard();
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__PARTICIPATE_HEADING_TEST__');
+    });
   });
 });
