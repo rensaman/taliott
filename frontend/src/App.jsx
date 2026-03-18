@@ -7,6 +7,8 @@ import JoinView from './features/join/JoinView.jsx';
 import ResendLinkView from './features/resend/ResendLinkView.jsx';
 import PrivacyPolicyView from './features/legal/PrivacyPolicyView.jsx';
 import TermsView from './features/legal/TermsView.jsx';
+import PrivacyPolicyViewHu from './features/legal/PrivacyPolicyViewHu.jsx';
+import TermsViewHu from './features/legal/TermsViewHu.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
 import LandingPage from './features/landing/LandingPage.jsx';
 import FeedbackForm from './features/feedback/FeedbackForm.jsx';
@@ -119,6 +121,14 @@ function isTermsPage() {
   return window.location.pathname === '/terms';
 }
 
+function isPrivacyHuPage() {
+  return window.location.pathname === '/privacy/hu';
+}
+
+function isTermsHuPage() {
+  return window.location.pathname === '/terms/hu';
+}
+
 export default function App() {
   const [confirmation, setConfirmation] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -126,6 +136,14 @@ export default function App() {
   const adminToken = getAdminToken();
   const joinToken = getJoinToken();
   const resend = isResendPage();
+
+  if (isPrivacyHuPage()) {
+    return <PrivacyPolicyViewHu />;
+  }
+
+  if (isTermsHuPage()) {
+    return <TermsViewHu />;
+  }
 
   if (isPrivacyPage()) {
     return <PrivacyPolicyView />;

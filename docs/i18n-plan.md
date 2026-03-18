@@ -96,13 +96,22 @@ Notes:
 
 ---
 
-## Phase 3 — Hungarian Translations (~15k tokens) [ ]
+## Phase 3 — Hungarian Translations (~15k tokens) [x]
 **Goal:** All HU locale files complete and accurate
 
 Tasks:
-- [ ] Fill `frontend/src/locales/hu/*.json` (all domains)
-- [ ] Review dynamic-value strings for Hungarian grammar (use neutral constructions)
-- [ ] Add `/privacy/hu` and `/terms/hu` routes with Hungarian legal pages
+- [x] Fill `frontend/src/locales/hu/*.json` (all domains)
+- [x] Review dynamic-value strings for Hungarian grammar (use neutral constructions)
+- [x] Add `/privacy/hu` and `/terms/hu` routes with Hungarian legal pages
+
+Notes:
+- `hu/common.json` fully mirrors all keys in `en/common.json` (224 leaf keys)
+- `hu/forms.json` and `hu/errors.json` remain `{}` (EN files are also empty)
+- Locale key completeness enforced by `frontend/src/locales/locales.test.js`
+- `PrivacyPolicyViewHu.jsx` and `TermsViewHu.jsx` are separate static components (not in-app translation)
+- HU legal pages link to each other (`/privacy/hu` ↔ `/terms/hu`)
+- NAIH (Hungarian DPA) referenced in HU privacy policy instead of generic EU authority list
+- 4 new tests in `locales.test.js`; 5 tests in each of `PrivacyPolicyViewHu.test.jsx` and `TermsViewHu.test.jsx`; 2 new routing tests in `App.test.jsx`
 
 ---
 
@@ -133,7 +142,7 @@ Tasks:
 | 1a | ~60k | [x] |
 | 1b | ~60k | [x] |
 | 2 | ~30k | [x] |
-| 3 | ~15k | [ ] |
+| 3 | ~15k | [x] |
 | 4 | ~8k | [ ] |
 | 5 | ~25k | [ ] |
 | **Total** | **~210k** | |

@@ -16,6 +16,12 @@ vi.mock('./features/legal/PrivacyPolicyView.jsx', () => ({
 vi.mock('./features/legal/TermsView.jsx', () => ({
   default: () => <div data-testid="terms-view" />,
 }));
+vi.mock('./features/legal/PrivacyPolicyViewHu.jsx', () => ({
+  default: () => <div data-testid="privacy-policy-view-hu" />,
+}));
+vi.mock('./features/legal/TermsViewHu.jsx', () => ({
+  default: () => <div data-testid="terms-view-hu" />,
+}));
 vi.mock('./features/legal/LegalFooter.jsx', () => ({
   default: () => <div data-testid="legal-footer" />,
 }));
@@ -100,6 +106,18 @@ describe('App', () => {
     vi.stubGlobal('location', { ...window.location, pathname: '/terms' });
     render(<App />);
     expect(screen.getByTestId('terms-view')).toBeInTheDocument();
+  });
+
+  it('renders PrivacyPolicyViewHu at /privacy/hu', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/privacy/hu' });
+    render(<App />);
+    expect(screen.getByTestId('privacy-policy-view-hu')).toBeInTheDocument();
+  });
+
+  it('renders TermsViewHu at /terms/hu', () => {
+    vi.stubGlobal('location', { ...window.location, pathname: '/terms/hu' });
+    render(<App />);
+    expect(screen.getByTestId('terms-view-hu')).toBeInTheDocument();
   });
 
   it('renders a LegalFooter when the event form is shown', () => {

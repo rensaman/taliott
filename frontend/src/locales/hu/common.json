@@ -1,1 +1,228 @@
-{}
+{
+  "wizard": {
+    "wordmark": "Taliott",
+    "consentPrefix": "A folytatással elfogadod az",
+    "tos": "Általános szerződési feltételeinket",
+    "and": "és az",
+    "privacyPolicy": "Adatvédelmi tájékoztatónkat",
+    "btn": {
+      "continue": "Tovább →",
+      "back": "← Vissza",
+      "createEvent": "Esemény létrehozása",
+      "creating": "Létrehozás…",
+      "submit": "Küldés →",
+      "submitting": "Küldés…"
+    }
+  },
+  "setup": {
+    "name": {
+      "heading": "Mi az esemény neve?",
+      "label": "Esemény neve",
+      "placeholder": "pl. Nyári összejövetel"
+    },
+    "email": {
+      "heading": "Mi az e-mail-címed?",
+      "label": "E-mail-cím",
+      "placeholder": "te@pelda.hu"
+    },
+    "dateTime": {
+      "heading": "Mikor lesz az esemény?",
+      "flexible": {
+        "title": "Közös időpontot keresünk",
+        "description": "A résztvevők bejelölik, mikor érnek rá"
+      },
+      "fixed": {
+        "title": "Az időpont már meg van határozva",
+        "description": "Csak a helyszín és a részvétel megerősítése szükséges"
+      },
+      "dateLabel": "Dátum",
+      "startTimeLabel": "Kezdési időpont ({{timezone}})",
+      "dateRange": "Dátumtartomány",
+      "startTimeWindow": "Kezdési időpont-ablak ({{timezone}})"
+    },
+    "deadline": {
+      "heading": "Mikor van a szavazás határideje?",
+      "dateLabel": "Határidő dátuma",
+      "timeLabel": "Határidő időpontja ({{timezone}})"
+    },
+    "inviteMode": {
+      "heading": "Hogyan szeretnéd meghívni a résztvevőket?",
+      "sharedLink": {
+        "title": "Csatlakozási link megosztása",
+        "description": "Bárki, akinek megvan a link, csatlakozhat és szavazhat"
+      },
+      "email": {
+        "title": "E-mail meghívók küldése",
+        "description": "A meghívók közvetlenül az egyes személyekhez kerülnek"
+      },
+      "emailsLabel": "Résztvevők e-mail-címei",
+      "emailsOnePerLine": "(soronként egy)"
+    },
+    "review": {
+      "heading": "Készen állsz az esemény létrehozására?",
+      "labelName": "Név",
+      "labelOrg": "Szerv.",
+      "labelWhen": "Mikor",
+      "labelDates": "Dátumok",
+      "labelTime": "Idő",
+      "labelBy": "Általa",
+      "labelVia": "Módja",
+      "labelTo": "Kinek",
+      "at": "ekkor",
+      "viaEmail": "E-mail meghívók",
+      "viaLink": "Megosztott link",
+      "privacyText": "Az esemény létrehozásával megerősíted, hogy az általad megadott résztvevői e-mail-címeket az érintett személyek tudtával gyűjtötted. Az e-mail-címeket kizárólag esemény meghívók és értesítések küldésére használjuk. Lásd az",
+      "privacyLink": "Adatvédelmi tájékoztatónkat"
+    }
+  },
+  "participate": {
+    "name": {
+      "heading": "Mi a neved?",
+      "label": "Neved",
+      "placeholder": "pl. Alex",
+      "errorSave": "Nem sikerült menteni a nevet. Kérjük, próbáld újra."
+    },
+    "location": {
+      "heading": "Honnan érkezel?",
+      "legend": "Indulási helyszín",
+      "errorSave": "Nem sikerült menteni a helyszínt. Kérjük, próbáld újra."
+    },
+    "dates": {
+      "heading": "Mikor érsz rá?",
+      "legendYes": "Igen",
+      "legendMaybe": "Talán",
+      "legendNo": "Nem",
+      "legendHint": "Koppintás a váltáshoz"
+    },
+    "review": {
+      "heading": "Készen állsz a küldésre?",
+      "labelName": "Név",
+      "labelTravel": "Utazás",
+      "labelFrom": "Honnan",
+      "errorSubmit": "Nem sikerült elküldeni. Kérjük, próbáld újra."
+    },
+    "loading": "Betöltés…",
+    "notFound": "A részvételi link nem található.",
+    "downloadData": "Adataim letöltése",
+    "deleteData": "Adataim törlése",
+    "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli a nevedet, helyszínedet és elérhetőségedet erről az eseményről.",
+    "dataErased": "Személyes adataidat töröltük erről az eseményről.",
+    "resultsOnly": "Csak eredmények — a szavazás lezárult.",
+    "eventFinalized": "Esemény véglegesítve",
+    "finalizedWhen": "Mikor: {{date}}",
+    "finalizedWhere": "Hol: {{venue}}"
+  },
+  "admin": {
+    "wordmark": "Taliott",
+    "deadlineLabel": "Határidő:",
+    "responded": "{{responded}} / {{total}} válaszolt",
+    "sectionParticipants": "Résztvevők",
+    "loading": "Betöltés…",
+    "deleteEvent": "Esemény törlése",
+    "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli az eseményt és az összes résztvevői adatot.",
+    "deleteError": "Nem sikerült törölni az eseményt. Kérjük, próbáld újra.",
+    "errorNotFound": "Az irányítópult nem található.",
+    "finalizedNotice": "Ez az esemény véglegesítve lett."
+  },
+  "datepicker": {
+    "months": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
+    "monthsShort": ["Jan", "Feb", "Már", "Ápr", "Máj", "Jún", "Júl", "Aug", "Szep", "Okt", "Nov", "Dec"],
+    "weekdays": ["H", "K", "Sze", "Cs", "P", "Szo", "V"],
+    "prevMonth": "Előző hónap",
+    "nextMonth": "Következő hónap",
+    "gridLabel": "Dátumválasztó",
+    "pickDate": "Válassz egy dátumot",
+    "pickStart": "Koppints a kezdő dátumra",
+    "pickEnd": "{{start}}-tól — koppints a záró dátumra",
+    "rangeStatus": "{{start}} – {{end}}"
+  },
+  "finalize": {
+    "heading": "Esemény véglegesítése",
+    "venueLegend": "Helyszín",
+    "venueRecommended": "Ajánlott kiválasztása",
+    "venueCustom": "Saját helyszín megadása",
+    "venueSelected": "Kiválasztva: {{name}}",
+    "venueNone": "Nincs kiválasztott helyszín — válassz egyet az alábbi listából.",
+    "venueNameLabel": "Helyszín neve",
+    "venueNamePlaceholder": "pl. A Kék Hang",
+    "venueAddressLabel": "Helyszín címe",
+    "venueAddressPlaceholder": "pl. 1051 Budapest, Vörösmarty tér 7.",
+    "btnFinalize": "Esemény véglegesítése",
+    "btnFinalizing": "Véglegesítés…",
+    "errorNetwork": "Hálózati hiba — kérjük, próbálja újra"
+  },
+  "timeRange": {
+    "earliestStart": "Legkorábbi kezdés",
+    "latestStart": "Legkésőbbi kezdés",
+    "from": "Ettől",
+    "to": "Eddig"
+  },
+  "language": {
+    "en": "EN",
+    "hu": "HU"
+  },
+  "confirmation": {
+    "eyebrow": "Esemény létrehozva",
+    "adminLinkLabel": "A rendszergazdai link — mentsd el",
+    "shareLabel": "Oszd meg a résztvevőkkel",
+    "copy": "Másolás",
+    "copied": "Másolva!",
+    "emailNotice": "Meghívó e-mailek kiküldve {{count}} résztvevő részére."
+  },
+  "join": {
+    "loading": "Betöltés…",
+    "invalidLink": "Ez a csatlakozási link érvénytelen vagy lejárt.",
+    "genericError": "Valami hiba történt. Kérjük, próbáld újra később.",
+    "closed": "A szavazás lezárult erre az eseményre.",
+    "deadlineLabel": "Szavazási határidő:",
+    "emailLabel": "E-mail-cím",
+    "emailPlaceholder": "te@pelda.hu",
+    "networkError": "Hálózati hiba, kérjük, próbálja újra",
+    "joining": "Csatlakozás…",
+    "submit": "Csatlakozás az eseményhez →"
+  },
+  "venueList": {
+    "heading": "Helyszín-javaslatok",
+    "noType": "Állíts be helyszíntípust a javaslatok megtekintéséhez.",
+    "loading": "Helyszínek betöltése…",
+    "empty": "Nem található helyszín a következő típushoz: \"{{type}}\".",
+    "failedToLoad": "Nem sikerült betölteni a helyszíneket"
+  },
+  "venueTypeFilter": {
+    "placeholder": "vagy keresd a saját típusodat…",
+    "ariaLabel": "Helyszíntípus",
+    "searchBtn": "Keresés"
+  },
+  "resend": {
+    "heading": "Linkjed visszaállítása",
+    "emailLabel": "E-mail-cím",
+    "emailPlaceholder": "te@pelda.hu",
+    "submit": "Link küldése",
+    "sending": "Küldés…",
+    "successMsg": "Ha találtunk egyező eseményt, elküldtük a linket a postaládádba."
+  },
+  "travelMode": {
+    "legend": "Hogyan jutsz oda?",
+    "transit": { "label": "Tömegközlekedés", "description": "Busz, metró vagy vonat" },
+    "driving": { "label": "Autó", "description": "Saját járművel" },
+    "cycling": { "label": "Kerékpár", "description": "Kerékpár vagy e-bike" },
+    "walking": { "label": "Gyalogos", "description": "Gyalog" }
+  },
+  "feedback": {
+    "question": "Mennyire valószínű, hogy ajánlanád a Taliottot?",
+    "notAtAll": "Egyáltalán nem",
+    "extremely": "Nagyon valószínű",
+    "commentPlaceholder": "Van még valami, amit szeretnél mondani? (nem kötelező)",
+    "send": "Küldés",
+    "noThanks": "Nem, köszönöm",
+    "thanks": "Köszönjük a visszajelzést."
+  },
+  "deadlineBadge": {
+    "closed": "Szavazás lezárva — {{date}}",
+    "deadline": "Szavazási határidő: {{date}}"
+  },
+  "legalFooter": {
+    "privacy": "Adatvédelmi tájékoztató",
+    "terms": "Általános szerződési feltételek"
+  }
+}
