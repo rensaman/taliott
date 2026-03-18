@@ -330,6 +330,57 @@ describe('buildOrganizerFinalizationEmail', () => {
   });
 });
 
+describe('i18n: event.lang is respected', () => {
+  it('buildParticipantInvite uses English when event.lang is "en"', () => {
+    const msg = buildParticipantInvite(event.participants[0], { ...event, lang: 'en' });
+    expect(msg.subject).toContain("You're invited");
+    expect(msg.text).toContain('vote');
+  });
+
+  it('buildParticipantInvite uses Hungarian when event.lang is "hu"', () => {
+    const msg = buildParticipantInvite(event.participants[0], { ...event, lang: 'hu' });
+    expect(msg.subject).toContain('Meghívó');
+    expect(msg.text).toContain('szavazz');
+  });
+
+  it('buildParticipantInvite defaults to English when event.lang is missing', () => {
+    const { lang: _ignored, ...eventNoLang } = { ...event, lang: undefined };
+    const msg = buildParticipantInvite(event.participants[0], eventNoLang);
+    expect(msg.subject).toContain("You're invited");
+  });
+
+  it('buildOrganizerCreationEmail uses Hungarian when event.lang is "hu"', () => {
+    const huEvent = {
+      ...event,
+      lang: 'hu',
+      inviteMode: 'email_invites',
+      joinToken: null,
+      participants: [...event.participants, { id: 'p-org', email: 'organizer@example.com' }],
+    };
+    const msg = buildOrganizerCreationEmail(huEvent);
+    expect(msg.subject).not.toContain('Your event');
+    expect(msg.subject).toContain('Summer Meetup');
+  });
+
+  it('buildJoinConfirmation uses Hungarian when event.lang is "hu"', () => {
+    const participant = { id: 'p-join-1', email: 'joiner@example.com', name: 'Jo' };
+    const msg = buildJoinConfirmation(participant, { ...event, lang: 'hu' });
+    expect(msg.subject).toContain('Regisztráltál');
+  });
+
+  it('buildFinalizationEmail uses Hungarian when event.lang is "hu"', () => {
+    const participant = { id: 'p-uuid-1', email: 'alice@example.com', name: 'Alice' };
+    const msg = buildFinalizationEmail(participant, { ...event, lang: 'hu' }, slot, venue);
+    expect(msg.subject).toContain('véglegesítve');
+  });
+
+  it('buildOrganizerFinalizationEmail uses Hungarian when event.lang is "hu"', () => {
+    const msg = buildOrganizerFinalizationEmail({ ...event, lang: 'hu' }, slot, venue);
+    expect(msg.subject).toContain('véglegesítve');
+    expect(msg.text).toContain('Véglegesítetted');
+  });
+});
+
 describe('sendFinalizationNotifications', () => {
   it('calls sendEmail for each non-organizer participant + organizer', async () => {
     await sendFinalizationNotifications(event, slot, venue);

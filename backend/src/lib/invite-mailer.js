@@ -1,5 +1,6 @@
 import { sendEmail } from './mailer.js';
 import { generateICS } from './ics.js';
+import { t } from './t.js';
 
 const DEFAULT_BASE_URL = 'http://localhost:3000';
 
@@ -12,21 +13,26 @@ function sanitizeField(value) {
   return value.replace(/[\r\n]+/g, ' ').trim();
 }
 
+function lang(event) {
+  return event.lang ?? 'en';
+}
+
 export function buildParticipantInvite(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);
+  const l = lang(event);
   return {
     to: participant.email,
-    subject: `You're invited: ${eventName}`,
+    subject: t(l, 'participantInvite.subject', { eventName }),
     text: [
-      `Hi,`,
+      t(l, 'participantInvite.greeting'),
       ``,
-      `You have been invited to vote for a time to meet up: "${eventName}".`,
+      t(l, 'participantInvite.invited', { eventName }),
       ``,
-      `Cast your vote here:`,
+      t(l, 'participantInvite.castVoteHere'),
       `${baseUrl}/participate/${participant.id}`,
       ``,
-      `Voting deadline: ${new Date(event.deadline).toUTCString()}`,
+      t(l, 'participantInvite.deadline', { deadline: new Date(event.deadline).toUTCString() }),
     ].join('\n'),
   };
 }
@@ -41,20 +47,21 @@ export async function sendEventInvites(event) {
 export function buildOrganizerConfirmation(event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);
+  const l = lang(event);
   return {
     to: event.organizerEmail,
-    subject: `Your event "${eventName}" is ready`,
+    subject: t(l, 'organizerConfirmation.subject', { eventName }),
     text: [
-      `Hi,`,
+      t(l, 'organizerConfirmation.greeting'),
       ``,
-      `Your event "${eventName}" has been created successfully.`,
+      t(l, 'organizerConfirmation.created', { eventName }),
       ``,
-      `Manage your event here (keep this link private):`,
+      t(l, 'organizerConfirmation.manageLink'),
       `${baseUrl}/admin/${event.adminToken}`,
       ``,
-      `Voting deadline: ${new Date(event.deadline).toUTCString()}`,
+      t(l, 'organizerConfirmation.deadline', { deadline: new Date(event.deadline).toUTCString() }),
       ``,
-      `Participants have been sent their individual voting links.`,
+      t(l, 'organizerConfirmation.participantsSent'),
     ].join('\n'),
   };
 }
@@ -66,34 +73,35 @@ export async function sendOrganizerConfirmation(event) {
 export function buildOrganizerCreationEmail(event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);
+  const l = lang(event);
   const organizerParticipant = event.participants.find(p => p.email === event.organizerEmail);
 
   const lines = [
-    `Hi,`,
+    t(l, 'organizerCreation.greeting'),
     ``,
-    `Your event "${eventName}" has been created successfully.`,
+    t(l, 'organizerCreation.created', { eventName }),
     ``,
-    `Manage your event here (keep this link private):`,
+    t(l, 'organizerCreation.manageLink'),
     `${baseUrl}/admin/${event.adminToken}`,
   ];
 
   if (event.inviteMode === 'shared_link' && event.joinToken) {
-    lines.push(``, `Share this link for others to join:`, `${baseUrl}/join/${event.joinToken}`);
+    lines.push(``, t(l, 'organizerCreation.shareLink'), `${baseUrl}/join/${event.joinToken}`);
   }
 
   if (organizerParticipant) {
-    lines.push(``, `Your voting link:`, `${baseUrl}/participate/${organizerParticipant.id}`);
+    lines.push(``, t(l, 'organizerCreation.yourVotingLink'), `${baseUrl}/participate/${organizerParticipant.id}`);
   }
 
   if (event.inviteMode === 'email_invites') {
-    lines.push(``, `Participants have been sent their individual voting links.`);
+    lines.push(``, t(l, 'organizerCreation.participantsSent'));
   }
 
-  lines.push(``, `Voting deadline: ${new Date(event.deadline).toUTCString()}`);
+  lines.push(``, t(l, 'organizerCreation.deadline', { deadline: new Date(event.deadline).toUTCString() }));
 
   return {
     to: event.organizerEmail,
-    subject: `Your event "${eventName}" is ready`,
+    subject: t(l, 'organizerCreation.subject', { eventName }),
     text: lines.join('\n'),
   };
 }
@@ -106,18 +114,22 @@ export function buildJoinConfirmation(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);
   const participantName = participant.name ? sanitizeField(participant.name) : null;
+  const l = lang(event);
+  const greeting = participantName
+    ? t(l, 'joinConfirmation.greetingNamed', { name: participantName })
+    : t(l, 'joinConfirmation.greeting');
   return {
     to: participant.email,
-    subject: `You're registered: ${eventName}`,
+    subject: t(l, 'joinConfirmation.subject', { eventName }),
     text: [
-      `Hi${participantName ? ` ${participantName}` : ''},`,
+      greeting,
       ``,
-      `You've successfully registered for "${eventName}".`,
+      t(l, 'joinConfirmation.registered', { eventName }),
       ``,
-      `Access your personal voting link here:`,
+      t(l, 'joinConfirmation.accessLink'),
       `${baseUrl}/participate/${participant.id}`,
       ``,
-      `Voting deadline: ${new Date(event.deadline).toUTCString()}`,
+      t(l, 'joinConfirmation.deadline', { deadline: new Date(event.deadline).toUTCString() }),
     ].join('\n'),
   };
 }
@@ -129,18 +141,19 @@ export async function sendJoinConfirmation(participant, event) {
 export function buildOrganizerJoinNotification(participant, event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);
+  const l = lang(event);
   const participantLabel = participant.name
     ? `${sanitizeField(participant.name)} (${participant.email})`
     : participant.email;
   return {
     to: event.organizerEmail,
-    subject: `New participant joined: ${eventName}`,
+    subject: t(l, 'organizerJoinNotification.subject', { eventName }),
     text: [
-      `Hi,`,
+      t(l, 'organizerJoinNotification.greeting'),
       ``,
-      `${participantLabel} has just registered for your event "${eventName}".`,
+      t(l, 'organizerJoinNotification.joined', { participantLabel, eventName }),
       ``,
-      `View your dashboard:`,
+      t(l, 'organizerJoinNotification.viewDashboard'),
       `${baseUrl}/admin/${event.adminToken}`,
     ].join('\n'),
   };
@@ -171,9 +184,11 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
   const venueInfo = resolveVenueInfo(venue, event);
   const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
   const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
+  const l = lang(event);
+
   const venueLine = venueInfo
-    ? `Venue: ${safeAddress ? `${safeName}, ${safeAddress}` : safeName}`
-    : 'Venue: TBD';
+    ? t(l, 'finalizationEmail.venueKnown', { venue: safeAddress ? `${safeName}, ${safeAddress}` : safeName })
+    : t(l, 'finalizationEmail.venueTBD');
   const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
 
   let icsContent = null;
@@ -183,18 +198,22 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
     console.error('[invite-mailer] ICS generation failed:', err);
   }
 
+  const greeting = recipientName
+    ? t(l, 'finalizationEmail.greetingNamed', { name: recipientName })
+    : t(l, 'finalizationEmail.greeting');
+
   return {
     to: recipient.email,
-    subject: `Event finalized: ${eventName}`,
+    subject: t(l, 'finalizationEmail.subject', { eventName }),
     text: [
-      `Hi${recipientName ? ` ${recipientName}` : ''},`,
+      greeting,
       ``,
-      `"${eventName}" has been finalized!`,
+      t(l, 'finalizationEmail.finalized', { eventName }),
       ``,
-      `When: ${slotStart}`,
+      t(l, 'finalizationEmail.when', { slot: slotStart }),
       venueLine,
       ``,
-      `A calendar invite is attached.`,
+      t(l, 'finalizationEmail.calendarAttached'),
     ].join('\n'),
     attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
@@ -207,9 +226,11 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
   const venueInfo = resolveVenueInfo(venue, event);
   const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
   const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
+  const l = lang(event);
+
   const venueLine = venueInfo
-    ? `Venue: ${safeAddress ? `${safeName}, ${safeAddress}` : safeName}`
-    : 'Venue: TBD';
+    ? t(l, 'organizerFinalizationEmail.venueKnown', { venue: safeAddress ? `${safeName}, ${safeAddress}` : safeName })
+    : t(l, 'organizerFinalizationEmail.venueTBD');
   const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
 
   let icsContent = null;
@@ -221,18 +242,18 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
 
   return {
     to: event.organizerEmail,
-    subject: `Event finalized: ${eventName}`,
+    subject: t(l, 'organizerFinalizationEmail.subject', { eventName }),
     text: [
-      `Hi,`,
+      t(l, 'organizerFinalizationEmail.greeting'),
       ``,
-      `You've finalized "${eventName}".`,
+      t(l, 'organizerFinalizationEmail.finalized', { eventName }),
       ``,
-      `When: ${slotStart}`,
+      t(l, 'organizerFinalizationEmail.when', { slot: slotStart }),
       venueLine,
       ``,
-      `Manage your event: ${baseUrl}/admin/${event.adminToken}`,
+      t(l, 'organizerFinalizationEmail.manageEvent', { adminUrl: `${baseUrl}/admin/${event.adminToken}` }),
       ``,
-      `A calendar invite is attached.`,
+      t(l, 'organizerFinalizationEmail.calendarAttached'),
     ].join('\n'),
     attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };

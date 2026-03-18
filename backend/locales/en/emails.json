@@ -1,0 +1,61 @@
+{
+  "participantInvite": {
+    "subject": "You're invited: {{eventName}}",
+    "greeting": "Hi,",
+    "invited": "You have been invited to vote for a time to meet up: \"{{eventName}}\".",
+    "castVoteHere": "Cast your vote here:",
+    "deadline": "Voting deadline: {{deadline}}"
+  },
+  "organizerConfirmation": {
+    "subject": "Your event \"{{eventName}}\" is ready",
+    "greeting": "Hi,",
+    "created": "Your event \"{{eventName}}\" has been created successfully.",
+    "manageLink": "Manage your event here (keep this link private):",
+    "deadline": "Voting deadline: {{deadline}}",
+    "participantsSent": "Participants have been sent their individual voting links."
+  },
+  "organizerCreation": {
+    "subject": "Your event \"{{eventName}}\" is ready",
+    "greeting": "Hi,",
+    "created": "Your event \"{{eventName}}\" has been created successfully.",
+    "manageLink": "Manage your event here (keep this link private):",
+    "shareLink": "Share this link for others to join:",
+    "yourVotingLink": "Your voting link:",
+    "participantsSent": "Participants have been sent their individual voting links.",
+    "deadline": "Voting deadline: {{deadline}}"
+  },
+  "joinConfirmation": {
+    "subject": "You're registered: {{eventName}}",
+    "greeting": "Hi,",
+    "greetingNamed": "Hi {{name}},",
+    "registered": "You've successfully registered for \"{{eventName}}\".",
+    "accessLink": "Access your personal voting link here:",
+    "deadline": "Voting deadline: {{deadline}}"
+  },
+  "organizerJoinNotification": {
+    "subject": "New participant joined: {{eventName}}",
+    "greeting": "Hi,",
+    "joined": "{{participantLabel}} has just registered for your event \"{{eventName}}\".",
+    "viewDashboard": "View your dashboard:"
+  },
+  "finalizationEmail": {
+    "subject": "Event finalized: {{eventName}}",
+    "greeting": "Hi,",
+    "greetingNamed": "Hi {{name}},",
+    "finalized": "\"{{eventName}}\" has been finalized!",
+    "when": "When: {{slot}}",
+    "venueKnown": "Venue: {{venue}}",
+    "venueTBD": "Venue: TBD",
+    "calendarAttached": "A calendar invite is attached."
+  },
+  "organizerFinalizationEmail": {
+    "subject": "Event finalized: {{eventName}}",
+    "greeting": "Hi,",
+    "finalized": "You've finalized \"{{eventName}}\".",
+    "when": "When: {{slot}}",
+    "venueKnown": "Venue: {{venue}}",
+    "venueTBD": "Venue: TBD",
+    "manageEvent": "Manage your event: {{adminUrl}}",
+    "calendarAttached": "A calendar invite is attached."
+  }
+}

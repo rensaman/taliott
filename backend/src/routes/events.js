@@ -32,6 +32,7 @@ router.post('/', async (req, res) => {
     time_range_end = 1320,
     timezone,
     deadline,
+    lang = 'en',
   } = req.body;
 
   if (!name || !organizer_email || !date_range_start || !date_range_end || !deadline) {
@@ -90,6 +91,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `invite_mode must be one of: ${validInviteModes.join(', ')}` });
   }
 
+  const validLangs = ['en', 'hu'];
+  if (!validLangs.includes(lang)) {
+    return res.status(400).json({ error: `lang must be one of: ${validLangs.join(', ')}` });
+  }
+
   const slotData = generateSlots(date_range_start, date_range_end, time_range_start, time_range_end, timezone);
 
   const isSharedLink = invite_mode === 'shared_link';
@@ -114,6 +120,7 @@ router.post('/', async (req, res) => {
         timeRangeEnd: time_range_end,
         timezone,
         deadline: new Date(deadline),
+        lang,
         status: 'open',
         slots: { create: slotData },
         participants: { create: participantEmails.map(email => ({ email })) },

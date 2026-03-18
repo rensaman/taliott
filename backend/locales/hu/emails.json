@@ -1,0 +1,61 @@
+{
+  "participantInvite": {
+    "subject": "Meghívó: {{eventName}}",
+    "greeting": "Szia,",
+    "invited": "Meghívtak, hogy szavazz egy találkozó időpontjára: \"{{eventName}}\".",
+    "castVoteHere": "Szavazz itt:",
+    "deadline": "Szavazás határideje: {{deadline}}"
+  },
+  "organizerConfirmation": {
+    "subject": "Az eseményed \"{{eventName}}\" készen áll",
+    "greeting": "Szia,",
+    "created": "Az eseményed \"{{eventName}}\" sikeresen létrejött.",
+    "manageLink": "Kezeld az eseményed itt (ezt a linket tartsd titokban):",
+    "deadline": "Szavazás határideje: {{deadline}}",
+    "participantsSent": "A résztvevők megkapták egyéni szavazási linkjeiket."
+  },
+  "organizerCreation": {
+    "subject": "Az eseményed \"{{eventName}}\" készen áll",
+    "greeting": "Szia,",
+    "created": "Az eseményed \"{{eventName}}\" sikeresen létrejött.",
+    "manageLink": "Kezeld az eseményed itt (ezt a linket tartsd titokban):",
+    "shareLink": "Oszd meg ezt a linket, hogy csatlakozzanak mások:",
+    "yourVotingLink": "A te szavazási linked:",
+    "participantsSent": "A résztvevők megkapták egyéni szavazási linkjeiket.",
+    "deadline": "Szavazás határideje: {{deadline}}"
+  },
+  "joinConfirmation": {
+    "subject": "Regisztráltál: {{eventName}}",
+    "greeting": "Szia,",
+    "greetingNamed": "Szia {{name}},",
+    "registered": "Sikeresen regisztráltál a következő eseményre: \"{{eventName}}\".",
+    "accessLink": "Nyisd meg a személyes szavazási linkedet itt:",
+    "deadline": "Szavazás határideje: {{deadline}}"
+  },
+  "organizerJoinNotification": {
+    "subject": "Új résztvevő csatlakozott: {{eventName}}",
+    "greeting": "Szia,",
+    "joined": "{{participantLabel}} épp most regisztrált az eseményedre: \"{{eventName}}\".",
+    "viewDashboard": "Nézd meg az irányítópultod:"
+  },
+  "finalizationEmail": {
+    "subject": "Az esemény véglegesítve: {{eventName}}",
+    "greeting": "Szia,",
+    "greetingNamed": "Szia {{name}},",
+    "finalized": "\"{{eventName}}\" véglegesítve!",
+    "when": "Mikor: {{slot}}",
+    "venueKnown": "Helyszín: {{venue}}",
+    "venueTBD": "Helyszín: Még nem meghatározott",
+    "calendarAttached": "A naptármeghívó csatolva van."
+  },
+  "organizerFinalizationEmail": {
+    "subject": "Az esemény véglegesítve: {{eventName}}",
+    "greeting": "Szia,",
+    "finalized": "Véglegesítetted a(z) \"{{eventName}}\" eseményt.",
+    "when": "Mikor: {{slot}}",
+    "venueKnown": "Helyszín: {{venue}}",
+    "venueTBD": "Helyszín: Még nem meghatározott",
+    "manageEvent": "Kezeld az eseményedet: {{adminUrl}}",
+    "calendarAttached": "A naptármeghívó csatolva van."
+  }
+}

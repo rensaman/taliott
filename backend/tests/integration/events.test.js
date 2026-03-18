@@ -250,6 +250,30 @@ describe('POST /api/events', () => {
     expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email.toLowerCase());
   });
 
+  it('stores lang "hu" on event when provided', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, lang: 'hu' });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const stored = await prisma.event.findUnique({ where: { id: res.body.event_id } });
+    expect(stored.lang).toBe('hu');
+  });
+
+  it('defaults lang to "en" when not provided', async () => {
+    const res = await request(app).post('/api/events').send(BASE_BODY);
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const stored = await prisma.event.findUnique({ where: { id: res.body.event_id } });
+    expect(stored.lang).toBe('en');
+  });
+
+  it('returns 400 for an unsupported lang value', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, lang: 'xx' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/lang/i);
+  });
+
   it('generates slots at correct UTC offsets across a DST boundary (Europe/Helsinki spring-forward)', async () => {
     // 2025-03-30: Helsinki clocks spring forward (EET UTC+2 → EEST UTC+3) at 03:00 local.
     // 08:00 on 2025-03-29 (EET = UTC+2) → 06:00 UTC

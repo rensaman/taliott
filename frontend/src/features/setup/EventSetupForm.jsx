@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
@@ -113,6 +114,7 @@ export default function EventSetupForm({ onCreated }) {
         body: JSON.stringify({
           name: formData.name,
           organizer_email: formData.organizerEmail,
+          lang: i18next.language ?? 'en',
           invite_mode: formData.inviteMode,
           participant_emails: formData.inviteMode === 'email_invites'
             ? formData.participantEmails.split('\n').map(s => s.trim()).filter(Boolean)

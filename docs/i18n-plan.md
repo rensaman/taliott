@@ -78,16 +78,21 @@ Notes:
 
 ---
 
-## Phase 2 — Backend Email Localization (~30k tokens) [ ]
+## Phase 2 — Backend Email Localization (~30k tokens) [x]
 **Goal:** Emails sent in the language chosen at event creation
 
 Tasks:
-- [ ] Add `lang` field (String, default `"en"`) to `Event` model via Prisma migration
-- [ ] Pass `lang` from frontend event creation form (summary step) → `POST /api/events`
-- [ ] Create `backend/src/lib/t.js` — `t(lang, key, vars)` helper with JSON locale loading
-- [ ] Rewrite `backend/src/lib/invite-mailer.js` to use locale files
-- [ ] Create `backend/locales/en/emails.json` (7 email types)
-- [ ] Create `backend/locales/hu/emails.json` (Hungarian translations)
+- [x] Add `lang` field (String, default `"en"`) to `Event` model via Prisma migration
+- [x] Pass `lang` from frontend event creation form (summary step) → `POST /api/events`
+- [x] Create `backend/src/lib/t.js` — `t(lang, key, vars)` helper with JSON locale loading
+- [x] Rewrite `backend/src/lib/invite-mailer.js` to use locale files
+- [x] Create `backend/locales/en/emails.json` (7 email types)
+- [x] Create `backend/locales/hu/emails.json` (Hungarian translations)
+
+Notes:
+- `t()` caches locale files in-process; falls back to EN if lang unrecognised or key missing
+- `POST /api/events` validates `lang` — only `'en'` | `'hu'` accepted (400 otherwise)
+- 9 new unit tests in `t.test.js`; 7 new i18n tests in `invite-mailer.test.js`; 3 new integration tests in `events.test.js`
 
 ---
 
@@ -127,7 +132,7 @@ Tasks:
 | 0 | ~12k | [x] |
 | 1a | ~60k | [x] |
 | 1b | ~60k | [x] |
-| 2 | ~30k | [ ] |
+| 2 | ~30k | [x] |
 | 3 | ~15k | [ ] |
 | 4 | ~8k | [ ] |
 | 5 | ~25k | [ ] |

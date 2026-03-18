@@ -51,6 +51,7 @@ model Event {
   finalVenueId     String?
   finalVenueName   String?
   finalVenueAddress String?
+  lang             String      @default("en")
   createdAt        DateTime    @default(now())
 
   slots            Slot[]
