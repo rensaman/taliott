@@ -131,6 +131,23 @@
   color: var(--ink);
 }
 
+.donate-nudge {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.donate-nudge a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.donate-nudge a:hover {
+  color: var(--ink);
+}
+
 @media (min-width: 600px) {
   .confirmation-body {
     padding: 2.5rem 2rem;

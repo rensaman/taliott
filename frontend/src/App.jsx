@@ -90,6 +90,13 @@ function ConfirmationView({ confirmation }) {
         )}
 
         <FeedbackForm context="organizer" />
+
+        <p className="donate-nudge">
+          {t('donate.text')}{' '}
+          <a href="https://www.donably.com/taliott" target="_blank" rel="noopener noreferrer">
+            {t('donate.link')}
+          </a>
+        </p>
       </main>
     </div>
   );

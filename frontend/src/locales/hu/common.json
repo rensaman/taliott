@@ -247,6 +247,10 @@
     "cycling": { "label": "Kerékpár", "description": "Kerékpár vagy e-bike" },
     "walking": { "label": "Gyalogos", "description": "Gyalog" }
   },
+  "donate": {
+    "text": "Segíts életben tartani a szolgáltatást —",
+    "link": "vegyél nekünk egy kávét ☕"
+  },
   "feedback": {
     "question": "Mennyire valószínű, hogy ajánlanád a Taliottot?",
     "notAtAll": "Egyáltalán nem",

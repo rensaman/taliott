@@ -247,6 +247,10 @@
     "cycling": { "label": "Cycling", "description": "Bike or e-bike" },
     "walking": { "label": "Walking", "description": "On foot" }
   },
+  "donate": {
+    "text": "Help keep the service alive —",
+    "link": "buy us a coffee ☕"
+  },
   "feedback": {
     "question": "How likely are you to recommend Taliott?",
     "notAtAll": "Not at all",
