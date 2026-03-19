@@ -235,5 +235,13 @@ describe('ResponseWizard', () => {
       expect(screen.getByText('Kerékpár')).toBeInTheDocument();
       await i18n.changeLanguage('en');
     });
+
+    it('renders step labels in Hungarian', async () => {
+      await i18n.changeLanguage('hu');
+      renderWizard();
+      const nav = screen.getByRole('navigation', { name: /progress/i });
+      expect(nav).toHaveTextContent('Helyszín');
+      await i18n.changeLanguage('en');
+    });
   });
 });

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AddressSearchInput from './AddressSearchInput.jsx';
+import i18n from '../../i18n.js';
 
 const RESULTS = [
   { lat: 51.5074, lng: -0.1278, label: 'London, Greater London, England, United Kingdom' },
@@ -52,6 +53,23 @@ describe('AddressSearchInput', () => {
   it('shows a disclosure note about location data processing', () => {
     render(<AddressSearchInput onSelect={vi.fn()} />);
     expect(screen.getByText(/openrouteservice/i)).toBeInTheDocument();
+  });
+
+  describe('i18n HU', () => {
+    afterEach(async () => { await i18n.changeLanguage('en'); });
+
+    it('renders label and placeholder in Hungarian', async () => {
+      await i18n.changeLanguage('hu');
+      render(<AddressSearchInput onSelect={vi.fn()} />);
+      expect(screen.getByLabelText(/cím keresése/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/írd be/i)).toBeInTheDocument();
+    });
+
+    it('privacy link points to /privacy/hu', async () => {
+      await i18n.changeLanguage('hu');
+      render(<AddressSearchInput onSelect={vi.fn()} />);
+      expect(screen.getByRole('link', { name: /adatvédelmi/i })).toHaveAttribute('href', '/privacy/hu');
+    });
   });
 
   it('calls onSelect with the result and hides dropdown on selection', async () => {

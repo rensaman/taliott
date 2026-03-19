@@ -98,6 +98,12 @@
     }
   },
   "participate": {
+    "steps": {
+      "name": "Name",
+      "location": "Location",
+      "dates": "Dates",
+      "review": "Review"
+    },
     "name": {
       "heading": "What's your name?",
       "label": "Your name",
@@ -107,7 +113,12 @@
     "location": {
       "heading": "Where are you coming from?",
       "legend": "Your starting location",
-      "errorSave": "Failed to save location. Please try again."
+      "errorSave": "Failed to save location. Please try again.",
+      "searchLabel": "Search address",
+      "searchPlaceholder": "Type your address…",
+      "suggestions": "Address suggestions",
+      "hintBefore": "Your location is used only to calculate a fair meeting point. Coordinates may be processed by OpenRouteService to estimate travel times. See our ",
+      "hintPrivacy": "Privacy Policy"
     },
     "dates": {
       "heading": "When can you make it?",

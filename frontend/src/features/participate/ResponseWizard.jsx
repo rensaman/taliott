@@ -8,7 +8,6 @@ import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
 
 const STEPS = ['name', 'travel_location', 'dates', 'review'];
-const STEP_LABELS = ['Name', 'Location', 'Dates', 'Review'];
 
 export default function ResponseWizard({
   participantId,
@@ -21,6 +20,13 @@ export default function ResponseWizard({
   onComplete,
 }) {
   const { t } = useTranslation();
+
+  const STEP_LABELS = [
+    t('participate.steps.name'),
+    t('participate.steps.location'),
+    t('participate.steps.dates'),
+    t('participate.steps.review'),
+  ];
   const [step, setStep] = useState(initialStep);
   const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);

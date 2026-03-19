@@ -98,6 +98,12 @@
     }
   },
   "participate": {
+    "steps": {
+      "name": "Név",
+      "location": "Helyszín",
+      "dates": "Dátumok",
+      "review": "Áttekintés"
+    },
     "name": {
       "heading": "Mi a neved?",
       "label": "Neved",
@@ -107,7 +113,12 @@
     "location": {
       "heading": "Honnan érkezel?",
       "legend": "Indulási helyszín",
-      "errorSave": "Nem sikerült menteni a helyszínt. Kérjük, próbáld újra."
+      "errorSave": "Nem sikerült menteni a helyszínt. Kérjük, próbáld újra.",
+      "searchLabel": "Cím keresése",
+      "searchPlaceholder": "Írd be a címed…",
+      "suggestions": "Cím-javaslatok",
+      "hintBefore": "A tartózkodási helyed kizárólag a méltányos találkozási pont kiszámításához szükséges. A koordinátákat az OpenRouteService dolgozhatja fel az utazási idők becsléséhez. Lásd az ",
+      "hintPrivacy": "Adatvédelmi tájékoztatónkat"
     },
     "dates": {
       "heading": "Mikor érsz rá?",
