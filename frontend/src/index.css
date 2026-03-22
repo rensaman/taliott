@@ -42,6 +42,32 @@ h1, h2, h3 {
   letter-spacing: -0.01em;
 }
 
+/* ── Beta badge ───────────────────────────────────────────────────────────── */
+.beta-badge,
+.wizard-wordmark::after,
+.landing-wordmark::after,
+.confirmation-wordmark::after {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.15em 0.35em;
+  margin-left: 0.5em;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.wizard-wordmark::after,
+.landing-wordmark::after,
+.confirmation-wordmark::after {
+  content: 'beta';
+}
+
 /* Global language switcher */
 .lang-corner {
   position: fixed;

@@ -53,13 +53,36 @@ export default function EventSetupForm({ onCreated }) {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const timeRangeRef = useRef(null);
+  const fixedTimeRef = useRef(null);
+  const deadlineTimeRef = useRef(null);
 
-  // Scroll to time range selector once the date range is fully defined
+  // Scroll to time range once the date range is fully defined (flexible mode)
   useEffect(() => {
     if (formData.dateRange.start && formData.dateRange.end && timeRangeRef.current?.scrollIntoView) {
-      timeRangeRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+      timeRangeRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [formData.dateRange.start, formData.dateRange.end]);
+
+  // Scroll to fixed time input once a fixed date is picked
+  useEffect(() => {
+    if (formData.isDateTimeFixed && formData.fixedDate && fixedTimeRef.current?.scrollIntoView) {
+      fixedTimeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [formData.fixedDate, formData.isDateTimeFixed]);
+
+  // Scroll to deadline time input once deadline date is picked
+  useEffect(() => {
+    if (formData.deadlineDate && deadlineTimeRef.current?.scrollIntoView) {
+      deadlineTimeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [formData.deadlineDate]);
+
+  // Scroll to top when entering the deadline step
+  useEffect(() => {
+    if (STEPS[step] === 'deadline') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
 
   const currentStep = STEPS[step];
   const totalSteps = STEPS.length;
@@ -241,6 +264,7 @@ export default function EventSetupForm({ onCreated }) {
                   <label htmlFor="fixed-time" className="field-label">{t('setup.dateTime.startTimeLabel', { timezone })}</label>
                   <input
                     id="fixed-time"
+                    ref={fixedTimeRef}
                     type="time"
                     className="wizard-input"
                     aria-label="Start time"
@@ -288,6 +312,7 @@ export default function EventSetupForm({ onCreated }) {
               <label htmlFor="deadline-time" className="field-label">{t('setup.deadline.timeLabel', { timezone })}</label>
               <input
                 id="deadline-time"
+                ref={deadlineTimeRef}
                 type="time"
                 className="wizard-input"
                 aria-label="Deadline time"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './DateRangePicker.css';
 
@@ -28,7 +28,6 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
   const MONTHS_SHORT = t('datepicker.monthsShort', { returnObjects: true });
   const WEEKDAYS = t('datepicker.weekdays', { returnObjects: true });
 
-  // In singleDate mode value is an ISO string; normalise to internal {start, end}
   const { start, end } = singleDate
     ? { start: value || '', end: value || '' }
     : (value || { start: '', end: '' });
@@ -38,12 +37,23 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
   const [displayYear, setDisplayYear] = useState(() => initDate.getFullYear());
   const [displayMonth, setDisplayMonth] = useState(() => initDate.getMonth());
   const [hoverDate, setHoverDate] = useState(null);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
 
-  // Two-click flow only in range mode
   const pickingEnd = singleDate ? false : !!(start && !end);
-
-  // For hover preview while picking end
   const previewEnd = pickingEnd && hoverDate && hoverDate >= start ? hoverDate : end;
+
+  // Close on outside mousedown
+  useEffect(() => {
+    if (!open) return;
+    function onMouseDown(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [open]);
 
   function prevMonth() {
     if (displayMonth === 0) { setDisplayYear(y => y - 1); setDisplayMonth(11); }
@@ -57,18 +67,17 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
   function handleDayClick(iso) {
     if (singleDate) {
       onChange(iso);
+      setOpen(false);
       return;
     }
     if (!start || !pickingEnd) {
-      // Start fresh: set start, clear end
       onChange({ start: iso, end: '' });
     } else {
-      // Picking end
       if (iso < start) {
-        // Clicked before start — reset with this as new start
         onChange({ start: iso, end: '' });
       } else {
         onChange({ start, end: iso });
+        setOpen(false);
       }
     }
   }
@@ -92,6 +101,7 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
     return cls;
   }
 
+  const hasValue = singleDate ? !!start : !!(start && end);
   const statusText = singleDate
     ? (start ? fmtDate(start, MONTHS_SHORT) : t('datepicker.pickDate'))
     : (!start
@@ -101,46 +111,60 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
           : t('datepicker.rangeStatus', { start: fmtDate(start, MONTHS_SHORT), end: fmtDate(end, MONTHS_SHORT) }));
 
   return (
-    <div className="drp">
-      {/* Month navigation */}
-      <div className="drp-nav">
-        <button type="button" className="drp-nav-btn" onClick={prevMonth} aria-label={t('datepicker.prevMonth')}>‹</button>
-        <span className="drp-month-label">{MONTHS[displayMonth]} {displayYear}</span>
-        <button type="button" className="drp-nav-btn" onClick={nextMonth} aria-label={t('datepicker.nextMonth')}>›</button>
-      </div>
+    <div className="drp" ref={containerRef}>
+      {/* Collapsed trigger — always visible */}
+      <button
+        type="button"
+        className={`drp-trigger${hasValue ? ' drp-trigger--filled' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        data-testid="drp-trigger"
+      >
+        <span className="drp-trigger-text">{statusText}</span>
+        <span className="drp-trigger-icon" aria-hidden="true">{open ? '▴' : '▾'}</span>
+      </button>
 
-      {/* Calendar grid */}
-      <div className="drp-grid" role="grid" aria-label={t('datepicker.gridLabel')}>
-        {WEEKDAYS.map(d => (
-          <div key={d} className="drp-weekday" role="columnheader">{d}</div>
-        ))}
-        {Array.from({ length: firstWeekday }, (_, i) => (
-          <div key={`e${i}`} className="drp-cell drp-cell--empty" role="gridcell" />
-        ))}
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const d = i + 1;
-          const iso = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          return (
-            <button
-              key={iso}
-              type="button"
-              role="gridcell"
-              className={classFor(iso)}
-              onClick={() => handleDayClick(iso)}
-              onMouseEnter={() => pickingEnd && setHoverDate(iso)}
-              onMouseLeave={() => pickingEnd && setHoverDate(null)}
-              aria-label={iso}
-            >
-              <span className="drp-num">{d}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Calendar panel — visible when open */}
+      {open && (
+        <div className="drp-panel">
+          <div className="drp-nav">
+            <button type="button" className="drp-nav-btn" onClick={prevMonth} aria-label={t('datepicker.prevMonth')}>‹</button>
+            <span className="drp-month-label">{MONTHS[displayMonth]} {displayYear}</span>
+            <button type="button" className="drp-nav-btn" onClick={nextMonth} aria-label={t('datepicker.nextMonth')}>›</button>
+          </div>
 
-      {/* Status hint */}
-      <p className="drp-status" aria-live="polite">{statusText}</p>
+          <div className="drp-grid" role="grid" aria-label={t('datepicker.gridLabel')}>
+            {WEEKDAYS.map(d => (
+              <div key={d} className="drp-weekday" role="columnheader">{d}</div>
+            ))}
+            {Array.from({ length: firstWeekday }, (_, i) => (
+              <div key={`e${i}`} className="drp-cell drp-cell--empty" role="gridcell" />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const d = i + 1;
+              const iso = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+              return (
+                <button
+                  key={iso}
+                  type="button"
+                  role="gridcell"
+                  className={classFor(iso)}
+                  onClick={() => handleDayClick(iso)}
+                  onMouseEnter={() => pickingEnd && setHoverDate(iso)}
+                  onMouseLeave={() => pickingEnd && setHoverDate(null)}
+                  aria-label={iso}
+                >
+                  <span className="drp-num">{d}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Sr-only hidden inputs — keep existing label API for tests */}
+          <p className="drp-status" aria-live="polite">{statusText}</p>
+        </div>
+      )}
+
+      {/* Sr-only hidden inputs — always in DOM for tests/accessibility */}
       {singleDate ? (
         <input
           type="date"

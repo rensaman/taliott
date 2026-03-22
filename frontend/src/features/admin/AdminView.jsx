@@ -76,7 +76,7 @@ export default function AdminView({ adminToken }) {
   return (
     <div className="admin-page">
       <header className="admin-header">
-        <a href="/" className="admin-wordmark">{t('admin.wordmark')}</a>
+        <a href="/" className="admin-wordmark">{t('admin.wordmark')}<span className="beta-badge">beta</span></a>
         <h1 className="admin-event-name">{data.name}</h1>
         <span className={`admin-status-badge admin-status-badge--${data.status}`}>
           {data.status}

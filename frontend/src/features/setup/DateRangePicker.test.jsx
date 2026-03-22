@@ -6,8 +6,12 @@ import enCommon from '../../locales/en/common.json';
 
 const DEFAULT_VALUE = { start: '', end: '' };
 
+function openPicker() {
+  fireEvent.click(screen.getByTestId('drp-trigger'));
+}
+
 describe('DateRangePicker', () => {
-  it('renders From and To date inputs', () => {
+  it('renders From and To date inputs (sr-only)', () => {
     render(<DateRangePicker value={DEFAULT_VALUE} onChange={() => {}} />);
     expect(screen.getByLabelText(/from/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/to/i)).toBeInTheDocument();
@@ -42,16 +46,28 @@ describe('DateRangePicker', () => {
     expect(screen.getByLabelText(/to/i)).toHaveAttribute('min', '2025-06-01');
   });
 
+  it('renders collapsed by default (no calendar grid visible)', () => {
+    render(<DateRangePicker value={DEFAULT_VALUE} onChange={() => {}} />);
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+  });
+
+  it('expands calendar when trigger is clicked', () => {
+    render(<DateRangePicker value={DEFAULT_VALUE} onChange={() => {}} />);
+    openPicker();
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+  });
+
   it('navigates to previous month when prev button is clicked', () => {
     render(<DateRangePicker value={DEFAULT_VALUE} onChange={() => {}} />);
+    openPicker();
     const before = screen.getByRole('button', { name: /previous month/i });
     fireEvent.click(before);
-    // After click the calendar re-renders — just ensure it doesn't throw
     expect(before).toBeInTheDocument();
   });
 
   it('navigates to next month when next button is clicked', () => {
     render(<DateRangePicker value={DEFAULT_VALUE} onChange={() => {}} />);
+    openPicker();
     const next = screen.getByRole('button', { name: /next month/i });
     fireEvent.click(next);
     expect(next).toBeInTheDocument();
@@ -60,6 +76,7 @@ describe('DateRangePicker', () => {
   it('calls onChange when a day cell is clicked (sets start)', () => {
     const onChange = vi.fn();
     render(<DateRangePicker value={DEFAULT_VALUE} onChange={onChange} />);
+    openPicker();
     const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
     fireEvent.click(dayBtns[0]);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ end: '' }));
@@ -68,10 +85,20 @@ describe('DateRangePicker', () => {
   it('calls onChange with end date when second day is clicked after start is set', () => {
     const onChange = vi.fn();
     render(<DateRangePicker value={{ start: '2025-06-01', end: '' }} onChange={onChange} />);
+    openPicker();
     const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
-    // Click a day that comes after the 1st
     fireEvent.click(dayBtns[4]);
     expect(onChange).toHaveBeenCalled();
+  });
+
+  it('collapses after a single date is selected in singleDate mode', () => {
+    const onChange = vi.fn();
+    render(<DateRangePicker singleDate value="" onChange={onChange} />);
+    openPicker();
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
+    fireEvent.click(dayBtns[0]);
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
   });
 
   describe('i18n', () => {
@@ -83,6 +110,7 @@ describe('DateRangePicker', () => {
     it('uses i18n for the previous month aria-label', () => {
       i18n.addResourceBundle('en', 'common', { datepicker: { prevMonth: '__PREV_MONTH_TEST__' } }, true, true);
       render(<DateRangePicker value={{ start: '', end: '' }} onChange={() => {}} />);
+      openPicker();
       expect(screen.getByRole('button', { name: '__PREV_MONTH_TEST__' })).toBeInTheDocument();
     });
   });

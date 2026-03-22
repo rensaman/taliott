@@ -2,8 +2,56 @@
 .drp {
   width: 100%;
   user-select: none;
-  /* Range fill colour */
+  position: relative;
   --drp-fill: #f0dbd9;
+}
+
+/* ── Trigger (collapsed one-liner) ─────────────── */
+.drp-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--muted);
+  padding: 0.65rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.12s;
+}
+
+.drp-trigger:hover,
+.drp-trigger[aria-expanded="true"] {
+  border-color: var(--ink);
+}
+
+.drp-trigger--filled {
+  color: var(--ink);
+}
+
+.drp-trigger-text {
+  flex: 1;
+}
+
+.drp-trigger-icon {
+  font-size: 0.6rem;
+  color: var(--muted);
+  margin-left: 0.5em;
+  flex-shrink: 0;
+}
+
+/* ── Panel (expanded calendar) ─────────────────── */
+.drp-panel {
+  border: 1px solid var(--ink);
+  border-top: none;
+  background: var(--paper);
+  padding: 0.65rem 0.75rem 0.75rem;
 }
 
 /* ── Nav ───────────────────────────────────────── */
@@ -11,26 +59,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .drp-month-label {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink);
 }
 
 .drp-nav-btn {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   line-height: 1;
   background: none;
   border: 1px solid var(--rule);
   color: var(--ink);
-  width: 2rem;
-  height: 2rem;
+  width: 1.65rem;
+  height: 1.65rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,13 +101,13 @@
 }
 
 .drp-weekday {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--muted);
   text-align: center;
-  padding: 0.25rem 0 0.6rem;
+  padding: 0.15rem 0 0.35rem;
 }
 
 /* ── Cells ─────────────────────────────────────── */
@@ -86,13 +134,13 @@
 .drp-num {
   position: relative;
   z-index: 1;
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   color: var(--ink);
   font-family: var(--font-body);
   transition: background 0.08s;
@@ -102,21 +150,14 @@
   background: var(--field-bg);
 }
 
-/* Today dot */
-.drp-cell--today .drp-num::after {
-  content: '';
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--red);
+/* Today emphasis */
+.drp-cell--today .drp-num {
+  box-shadow: inset 0 0 0 1.5px var(--red);
+  color: var(--red);
+  font-weight: 600;
 }
 
 /* ── Range fill (behind the number circle) ─────── */
-/* The fill occupies the full cell height but half or full cell width */
 .drp-cell--range::before {
   content: '';
   position: absolute;
@@ -152,10 +193,10 @@
 
 /* ── Status ────────────────────────────────────── */
 .drp-status {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--muted);
   text-align: center;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   min-height: 1.2em;
 }
 
