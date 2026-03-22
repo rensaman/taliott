@@ -20,6 +20,11 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       APP_BASE_URL: ${APP_BASE_URL}
     ports: !reset []
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otp:
+        condition: service_started
 
   frontend:
     ports: !reset []
