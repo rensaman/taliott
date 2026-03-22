@@ -413,6 +413,28 @@
   gap: 0.35rem;
 }
 
+.venue-load-more {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.45rem 0.75rem;
+  border: 1.5px solid var(--rule);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s;
+  line-height: 1;
+  margin-top: 0.6rem;
+  display: block;
+}
+
+.venue-load-more:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
 .venue-card-block {
   border: 1.5px solid var(--rule);
   padding: 0.65rem 0.75rem;

@@ -226,8 +226,9 @@
     "heading": "Helyszín-javaslatok",
     "noType": "Állíts be helyszíntípust a javaslatok megtekintéséhez.",
     "loading": "Helyszínek betöltése…",
-    "empty": "Nem található helyszín a következő típushoz: \"{{type}}\".",
-    "failedToLoad": "Nem sikerült betölteni a helyszíneket"
+    "empty": "Nem található helyszín.",
+    "failedToLoad": "Nem sikerült betölteni a helyszíneket",
+    "loadMore": "Több betöltése"
   },
   "venueTypeFilter": {
     "placeholder": "vagy keresd a saját típusodat…",

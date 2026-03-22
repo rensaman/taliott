@@ -2,20 +2,36 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const PRESET_TYPES = ['Restaurant', 'Bar', 'Cafe', 'Pub', 'Park', 'Museum'];
+const PRESET_LOWER_SET = new Set(PRESET_TYPES.map(t => t.toLowerCase()));
 
 export default function VenueTypeFilter({ defaultValue, onSearch }) {
   const { t } = useTranslation();
-  const [value, setValue] = useState(defaultValue || '');
+  const initLower = defaultValue?.trim().toLowerCase() || '';
+  const [selected, setSelected] = useState(() =>
+    initLower ? new Set([initLower]) : new Set()
+  );
+  const [extraTypes, setExtraTypes] = useState(() =>
+    initLower && !PRESET_LOWER_SET.has(initLower) ? [initLower] : []
+  );
+  const [customInput, setCustomInput] = useState('');
+
+  function toggle(lower) {
+    const next = new Set(selected);
+    if (next.has(lower)) next.delete(lower);
+    else next.add(lower);
+    setSelected(next);
+    onSearch([...next]);
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (value.trim()) onSearch(value.trim());
-  }
-
-  function handleChip(type) {
-    const lower = type.toLowerCase();
-    setValue(lower);
-    onSearch(lower);
+    const lower = customInput.trim().toLowerCase();
+    if (!lower) return;
+    if (!PRESET_LOWER_SET.has(lower) && !extraTypes.includes(lower)) {
+      setExtraTypes(prev => [...prev, lower]);
+    }
+    toggle(lower);
+    setCustomInput('');
   }
 
   return (
@@ -25,8 +41,18 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
           <button
             key={type}
             type="button"
-            className={`venue-type-chip${value.toLowerCase() === type.toLowerCase() ? ' venue-type-chip--active' : ''}`}
-            onClick={() => handleChip(type)}
+            className={`venue-type-chip${selected.has(type.toLowerCase()) ? ' venue-type-chip--active' : ''}`}
+            onClick={() => toggle(type.toLowerCase())}
+          >
+            {type}
+          </button>
+        ))}
+        {extraTypes.map(type => (
+          <button
+            key={type}
+            type="button"
+            className={`venue-type-chip${selected.has(type) ? ' venue-type-chip--active' : ''}`}
+            onClick={() => toggle(type)}
           >
             {type}
           </button>
@@ -38,8 +64,8 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
           type="text"
           className="venue-filter-input"
           data-testid="venue-type-input"
-          value={value}
-          onChange={e => setValue(e.target.value)}
+          value={customInput}
+          onChange={e => setCustomInput(e.target.value)}
           placeholder={t('venueTypeFilter.placeholder')}
           aria-label={t('venueTypeFilter.ariaLabel')}
         />

@@ -3,64 +3,98 @@ import { useTranslation } from 'react-i18next';
 import VenueCard from './VenueCard.jsx';
 import VenueTypeFilter from './VenueTypeFilter.jsx';
 
+const PAGE_SIZE = 10;
+
 export default function VenueList({ adminToken, defaultVenueType, onVenuesLoaded, onSelectVenue }) {
   const { t } = useTranslation();
+  const [venueTypes, setVenueTypes] = useState(
+    defaultVenueType ? [defaultVenueType] : []
+  );
   const [venues, setVenues] = useState(null);
-  const [venueType, setVenueType] = useState(defaultVenueType || '');
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const venueTypesKey = venueTypes.join(',');
 
   useEffect(() => {
-    if (!venueType) return;
+    if (venueTypes.length === 0) return;
     setLoading(true);
     setError(null);
     setSelectedId(null);
+    setVisibleCount(PAGE_SIZE);
     onSelectVenue?.(null);
-    fetch(`/api/events/${adminToken}/venues?venue_type=${encodeURIComponent(venueType)}`)
-      .then(res =>
-        res.ok
-          ? res.json()
-          : res.json().then(d => Promise.reject(d.error || t('venueList.failedToLoad')))
+    Promise.all(
+      venueTypes.map(type =>
+        fetch(`/api/events/${adminToken}/venues?venue_type=${encodeURIComponent(type)}`)
+          .then(res =>
+            res.ok
+              ? res.json()
+              : res.json().then(d => Promise.reject(d.error || t('venueList.failedToLoad')))
+          )
+          .then(data => data.venues)
       )
-      .then(data => {
-        setVenues(data.venues);
-        onVenuesLoaded?.(data.venues);
+    )
+      .then(results => {
+        const seen = new Set();
+        const merged = results.flat().filter(v => {
+          if (seen.has(v.id)) return false;
+          seen.add(v.id);
+          return true;
+        });
+        merged.sort((a, b) => a.distanceM - b.distanceM);
+        setVenues(merged);
+        onVenuesLoaded?.(merged);
         setLoading(false);
       })
       .catch(err => {
         setError(typeof err === 'string' ? err : t('venueList.failedToLoad'));
         setLoading(false);
       });
-  }, [adminToken, venueType]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminToken, venueTypesKey]);
 
   function handleSelect(venue) {
     setSelectedId(venue.id);
     onSelectVenue?.(venue);
   }
 
+  const visibleVenues = venues?.slice(0, visibleCount) ?? [];
+  const hasMore = venues != null && venues.length > visibleCount;
+
   return (
     <section data-testid="venue-list-section" className="venue-list-section">
       <h2>{t('venueList.heading')}</h2>
-      <VenueTypeFilter defaultValue={defaultVenueType} onSearch={setVenueType} />
+      <VenueTypeFilter defaultValue={defaultVenueType} onSearch={setVenueTypes} />
 
-      {!venueType && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.noType')}</p>}
+      {venueTypes.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.noType')}</p>}
       {loading && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.loading')}</p>}
       {error && <p role="alert" style={{ fontSize: '0.8rem', color: 'var(--red)', marginTop: '0.75rem' }}>{error}</p>}
       {venues != null && venues.length === 0 && !loading && (
-        <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.empty', { type: venueType })}</p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.empty')}</p>
       )}
-      {venues != null && venues.length > 0 && (
-        <ul className="venue-card-list" style={{ marginTop: '0.75rem' }}>
-          {venues.map(v => (
-            <VenueCard
-              key={v.id}
-              venue={v}
-              selected={v.id === selectedId}
-              onSelect={handleSelect}
-            />
-          ))}
-        </ul>
+      {visibleVenues.length > 0 && (
+        <>
+          <ul className="venue-card-list" style={{ marginTop: '0.75rem' }}>
+            {visibleVenues.map(v => (
+              <VenueCard
+                key={v.id}
+                venue={v}
+                selected={v.id === selectedId}
+                onSelect={handleSelect}
+              />
+            ))}
+          </ul>
+          {hasMore && (
+            <button
+              className="venue-load-more"
+              onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+            >
+              {t('venueList.loadMore')}
+            </button>
+          )}
+        </>
       )}
     </section>
   );

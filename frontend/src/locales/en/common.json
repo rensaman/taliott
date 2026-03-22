@@ -226,8 +226,9 @@
     "heading": "Venue Recommendations",
     "noType": "Set a venue type to see recommendations.",
     "loading": "Loading venues…",
-    "empty": "No venues found for \"{{type}}\".",
-    "failedToLoad": "Failed to load venues"
+    "empty": "No venues found.",
+    "failedToLoad": "Failed to load venues",
+    "loadMore": "Load more"
   },
   "venueTypeFilter": {
     "placeholder": "or search your own type…",
