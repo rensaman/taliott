@@ -1,0 +1,11 @@
+taliott.hu {
+    reverse_proxy frontend:80
+}
+
+www.taliott.hu {
+    redir https://taliott.hu{uri} permanent
+}
+
+analytics.taliott.hu {
+    reverse_proxy umami:3000
+}

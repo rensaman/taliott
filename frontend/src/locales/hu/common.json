@@ -1,15 +1,15 @@
 {
   "landing": {
-    "headline1": "Csoportos találkozók,",
+    "headline1": "Tali a haverokkal,",
     "headline2": "káosz",
     "headline3": "nélkül.",
-    "sub": "Mindenki megadja, honnan jön. Kiválasztod a legmegfelelőbb helyszínt és időpontot.",
-    "step1": { "label": "Adj meg egy helyszínt", "desc": "Mindenki megadja, honnan indul — semmi macera, semmi táblázat." },
-    "step2": { "label": "Szavazz dátumokra", "desc": "Jelöld be, mikor érsz rá. Az egyezések automatikusan kiemelkednek." },
-    "step3": { "label": "Találkozzatok középen", "desc": "Méltányos helyszín, méltányos időpont. Kész." },
-    "cta": "Esemény létrehozása",
+    "sub": "Megadjátok, honnan jöttök, mikor értek rá. Kiválasztod a megfelelő helyszínt és időpontot.",
+    "step1": { "label": "Adj meg egy helyszínt", "desc": "Megadod, honnan és mivel jössz - semmi macera, semmi táblázat." },
+    "step2": { "label": "Szavazz időpontokra", "desc": "Bejelölöd, mikor érsz rá - nincs ping-pong" },
+    "step3": { "label": "Találkozzatok középen", "desc": "Legjobb helyszín, legjobb időpont. Ennyi." },
+    "cta": "Talizzunk!",
     "recover": "Van már eseményed?",
-    "recoverLink": "Linkjed visszaállítása",
+    "recoverLink": "Link visszaállítása",
     "footerPrivacy": "Adatvédelmi tájékoztató",
     "footerTerms": "Általános szerződési feltételek"
   },
@@ -32,15 +32,15 @@
     "steps": {
       "name": "Név",
       "email": "Email",
-      "dates": "Dátumok",
+      "dates": "Időpontok",
       "deadline": "Határidő",
-      "invites": "Meghívók",
+      "invites": "Meghívás",
       "review": "Áttekintés"
     },
     "name": {
       "heading": "Mi az esemény neve?",
       "label": "Esemény neve",
-      "placeholder": "pl. Nyári összejövetel"
+      "placeholder": "pl. Reggeli kávé"
     },
     "email": {
       "heading": "Mi az e-mail-címed?",
@@ -48,34 +48,34 @@
       "placeholder": "te@pelda.hu"
     },
     "dateTime": {
-      "heading": "Mikor lesz az esemény?",
+      "heading": "Tudod, mikor találkoztok?",
       "flexible": {
         "title": "Közös időpontot keresünk",
         "description": "A résztvevők bejelölik, mikor érnek rá"
       },
       "fixed": {
-        "title": "Az időpont már meg van határozva",
+        "title": "Már tudjuk",
         "description": "Csak a helyszín és a részvétel megerősítése szükséges"
       },
       "dateLabel": "Dátum",
       "startTimeLabel": "Kezdési időpont ({{timezone}})",
-      "dateRange": "Dátumtartomány",
+      "dateRange": "Tartomány",
       "startTimeWindow": "Kezdési időpont-ablak ({{timezone}})"
     },
     "deadline": {
-      "heading": "Mikor van a szavazás határideje?",
-      "dateLabel": "Határidő dátuma",
-      "timeLabel": "Határidő időpontja ({{timezone}})"
+      "heading": "Mikor zárul a szavazás?",
+      "dateLabel": "Nap",
+      "timeLabel": "Időpont ({{timezone}})"
     },
     "inviteMode": {
-      "heading": "Hogyan szeretnéd meghívni a résztvevőket?",
+      "heading": "Hogyan hívod meg a többieket?",
       "sharedLink": {
-        "title": "Csatlakozási link megosztása",
-        "description": "Bárki, akinek megvan a link, csatlakozhat és szavazhat"
+        "title": "Csatlakozási linkkel",
+        "description": "Bárki csatlakozhat és szavazhat a link birtokában"
       },
       "email": {
-        "title": "E-mail meghívók küldése",
-        "description": "A meghívók közvetlenül az egyes személyekhez kerülnek"
+        "title": "E-maillel",
+        "description": "A meghívókat közvetlenül a résztvevők kapják"
       },
       "emailsLabel": "Résztvevők e-mail-címei",
       "emailsOnePerLine": "(soronként egy)"
@@ -83,7 +83,7 @@
     "review": {
       "heading": "Készen állsz az esemény létrehozására?",
       "labelName": "Név",
-      "labelOrg": "Szerv.",
+      "labelOrg": "Szervező",
       "labelWhen": "Mikor",
       "labelDates": "Dátumok",
       "labelTime": "Idő",

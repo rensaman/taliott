@@ -43,7 +43,7 @@ describe('LandingPage — i18n (HU)', () => {
   it('renders the CTA in Hungarian', async () => {
     await i18n.changeLanguage('hu');
     render(<LandingPage onStart={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /esemény létrehozása/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /talizzunk/i })).toBeInTheDocument();
   });
 
   it('footer links point to HU legal pages', async () => {

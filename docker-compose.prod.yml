@@ -1,0 +1,51 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: taliott_prod
+    ports: !reset []
+
+  postgres-umami:
+    environment:
+      POSTGRES_PASSWORD: ${UMAMI_POSTGRES_PASSWORD}
+    ports: !reset []
+
+  backend:
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/taliott_prod
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      APP_BASE_URL: ${APP_BASE_URL}
+    ports: !reset []
+
+  frontend:
+    ports: !reset []
+
+  umami:
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_POSTGRES_PASSWORD}@postgres-umami:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+    ports: !reset []
+
+  mailpit:
+    profiles: ["dev"]
+
+  caddy:
+    image: caddy:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - umami
+
+volumes:
+  caddy_data:
+  caddy_config:

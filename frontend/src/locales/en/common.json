@@ -83,7 +83,7 @@
     "review": {
       "heading": "Ready to create your event?",
       "labelName": "Name",
-      "labelOrg": "Org.",
+      "labelOrg": "Organizer",
       "labelWhen": "When",
       "labelDates": "Dates",
       "labelTime": "Time",
