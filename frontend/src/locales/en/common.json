@@ -26,7 +26,9 @@
     "recover": "Already have an event?",
     "recoverLink": "Find your link",
     "footerPrivacy": "Privacy",
-    "footerTerms": "Terms"
+    "footerTerms": "Terms",
+    "footerSource": "Source code",
+    "footerIssue": "Report an issue"
   },
   "setup": {
     "steps": {
@@ -266,7 +268,9 @@
   },
   "legalFooter": {
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "sourceCode": "Source code",
+    "reportIssue": "Report an issue"
   },
   "errors": {
     "timeRangeOrder": "Start time must be earlier than end time."

@@ -11,7 +11,9 @@
     "recover": "Van már eseményed?",
     "recoverLink": "Link visszaállítása",
     "footerPrivacy": "Adatvédelmi tájékoztató",
-    "footerTerms": "Általános szerződési feltételek"
+    "footerTerms": "Általános szerződési feltételek",
+    "footerSource": "Forráskód",
+    "footerIssue": "Hibabejelentés"
   },
   "wizard": {
     "wordmark": "Taliott",
@@ -266,7 +268,9 @@
   },
   "legalFooter": {
     "privacy": "Adatvédelmi tájékoztató",
-    "terms": "Általános szerződési feltételek"
+    "terms": "Általános szerződési feltételek",
+    "sourceCode": "Forráskód",
+    "reportIssue": "Hibabejelentés"
   },
   "errors": {
     "timeRangeOrder": "A kezdési időpontnak korábbinak kell lennie a zárásnál."

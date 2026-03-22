@@ -56,6 +56,8 @@ export default function LandingPage({ onStart }) {
       <footer className="landing-footer">
         <a href={privacyPath(i18n.language)}>{t('landing.footerPrivacy')}</a>
         <a href={termsPath(i18n.language)}>{t('landing.footerTerms')}</a>
+        <a href="https://github.com/rensaman/taliott" target="_blank" rel="noopener noreferrer">{t('landing.footerSource')}</a>
+        <a href="https://github.com/rensaman/taliott/issues" target="_blank" rel="noopener noreferrer">{t('landing.footerIssue')}</a>
       </footer>
     </div>
   );

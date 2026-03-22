@@ -8,6 +8,8 @@ export default function LegalFooter() {
     <footer className="legal-footer">
       <a href={privacyPath(i18n.language)}>{t('legalFooter.privacy')}</a>
       <a href={termsPath(i18n.language)}>{t('legalFooter.terms')}</a>
+      <a href="https://github.com/rensaman/taliott" target="_blank" rel="noopener noreferrer">{t('legalFooter.sourceCode')}</a>
+      <a href="https://github.com/rensaman/taliott/issues" target="_blank" rel="noopener noreferrer">{t('legalFooter.reportIssue')}</a>
     </footer>
   );
 }
