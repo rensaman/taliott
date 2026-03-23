@@ -184,5 +184,5 @@ test('FinalizePanel has no venue dropdown — finalize works with slot only', as
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
 
-  await expect(page.getByTestId('finalized-notice')).toBeVisible();
+  await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 });

@@ -37,7 +37,7 @@ test('finalize button is disabled until a slot is selected', async ({ page, requ
   await expect(page.getByTestId('finalize-btn')).toBeEnabled();
 });
 
-test('organizer selects a slot and finalizes — finalized notice replaces panel', async ({ page, request }) => {
+test('organizer selects a slot and finalizes — thank-you screen replaces panel', async ({ page, request }) => {
   const body = await createEvent(request);
   await page.goto(`/admin/${body.admin_token}`);
 
@@ -46,19 +46,18 @@ test('organizer selects a slot and finalizes — finalized notice replaces panel
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
 
-  await expect(page.getByTestId('finalized-notice')).toBeVisible();
+  await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
   await expect(page.getByTestId('finalize-panel')).not.toBeVisible();
 });
 
-test('admin dashboard shows "finalized" status after finalization', async ({ page, request }) => {
+test('admin dashboard shows thank-you screen after finalization', async ({ page, request }) => {
   const body = await createEvent(request);
   await page.goto(`/admin/${body.admin_token}`);
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
 
-  await expect(page.getByTestId('finalized-notice')).toBeVisible();
-  await expect(page.locator('.admin-status-badge')).toHaveText('finalized');
+  await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 });
 
 test('organizer finalizes with custom venue — participant view shows final slot and venue', async ({ page, request }) => {
@@ -73,7 +72,7 @@ test('organizer finalizes with custom venue — participant view shows final slo
   await page.getByTestId('custom-venue-address').fill('131 W 3rd St, New York');
   await page.getByTestId('finalize-btn').click();
 
-  await expect(page.getByTestId('finalized-notice')).toBeVisible();
+  await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 
   await page.goto(`/participate/${participant.id}`);
   await expect(page.getByTestId('finalized-banner')).toBeVisible();

@@ -163,7 +163,10 @@
     "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli az eseményt és az összes résztvevői adatot.",
     "deleteError": "Nem sikerült törölni az eseményt. Kérjük, próbáld újra.",
     "errorNotFound": "Az irányítópult nem található.",
-    "finalizedNotice": "Ez az esemény véglegesítve lett."
+    "finalizedNotice": "Ez az esemény véglegesítve lett.",
+    "justFinalizedTitle": "Minden készen áll — élvezzétek a találkozót!",
+    "justFinalizedBody": "Az esemény véglegesítve lett, és a visszaigazoló e-mailek úton vannak. Az admin és a részvételi linkek már nem elérhetők.",
+    "justFinalizedHome": "Vissza a főoldalra"
   },
   "datepicker": {
     "months": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],

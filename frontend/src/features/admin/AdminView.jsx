@@ -31,6 +31,7 @@ export default function AdminView({ adminToken }) {
   const [error, setError] = useState(null);
   const [liveCentroid, setLiveCentroid] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [justFinalized, setJustFinalized] = useState(false);
 
   const loadDashboard = useCallback(() => {
     fetch(`/api/events/${adminToken}`)
@@ -66,6 +67,19 @@ export default function AdminView({ adminToken }) {
     if (!data) return [];
     return scoreSlots(data.slots || [], data.participants || []);
   }, [data]);
+
+  if (justFinalized) return (
+    <div className="admin-page">
+      <header className="admin-header">
+        <a href="/" className="admin-wordmark">{t('admin.wordmark')}<span className="beta-badge">beta</span></a>
+      </header>
+      <div className="finalized-thankyou" data-testid="finalized-thankyou">
+        <h1>{t('admin.justFinalizedTitle')}</h1>
+        <p>{t('admin.justFinalizedBody')}</p>
+        <a href="/" className="btn btn-primary">{t('admin.justFinalizedHome')}</a>
+      </div>
+    </div>
+  );
 
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>{t('admin.loading')}</p>;
@@ -114,7 +128,7 @@ export default function AdminView({ adminToken }) {
               scoredSlots={scoredSlots}
               selectedVenueId={selectedVenue?.id ?? null}
               selectedVenueName={selectedVenue?.name ?? null}
-              onFinalized={loadDashboard}
+              onFinalized={() => setJustFinalized(true)}
             />
           )}
 
