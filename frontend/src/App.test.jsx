@@ -80,7 +80,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'create' }));
     expect(screen.getByRole('heading', { name: 'My Event' })).toBeInTheDocument();
     expect(screen.getByTestId('admin-token')).toHaveAttribute('href', expect.stringContaining('tok-1'));
-    expect(screen.getByTestId('admin-token')).toHaveTextContent('tok-1');
+    expect(screen.getByTestId('admin-token')).toHaveTextContent('/admin/tok-1');
     expect(screen.getByText((_, el) => el?.tagName === 'P' && /2.*participant/i.test(el.textContent))).toBeInTheDocument();
   });
 

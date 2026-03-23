@@ -34,7 +34,7 @@ test('API response contains correct slot count for the submitted date range', as
   expect(responseBody?.slots?.length).toBe(expectedSlots);
 });
 
-test('confirmation shows the admin token returned by the backend', async ({ page }) => {
+test('confirmation shows the admin link returned by the backend', async ({ page }) => {
   // Intercept the response to capture the real admin_token without blocking the request
   let adminToken;
   page.on('response', async res => {
@@ -53,7 +53,7 @@ test('confirmation shows the admin token returned by the backend', async ({ page
   const tokenEl = page.getByTestId('admin-token');
   await expect(tokenEl).toBeVisible();
   const displayed = await tokenEl.textContent();
-  expect(displayed).toBe(adminToken);
+  expect(displayed).toContain(`/admin/${adminToken}`);
 });
 
 test('API response includes organizer and invited participants', async ({ page }) => {

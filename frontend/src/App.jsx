@@ -67,7 +67,7 @@ function ConfirmationView({ confirmation }) {
             className="confirmation-admin-link"
             data-testid="admin-token"
           >
-            {confirmation.admin_token}
+            {adminUrl}
           </a>
         </div>
 

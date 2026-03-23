@@ -9,11 +9,7 @@
     "step3": { "label": "Találkozzatok középen", "desc": "Legjobb helyszín, legjobb időpont. Ennyi." },
     "cta": "Talizzunk!",
     "recover": "Van már eseményed?",
-    "recoverLink": "Link visszaállítása",
-    "footerPrivacy": "Adatvédelmi tájékoztató",
-    "footerTerms": "Általános szerződési feltételek",
-    "footerSource": "Forráskód",
-    "footerIssue": "Hibabejelentés"
+    "recoverLink": "Elveszett link"
   },
   "wizard": {
     "wordmark": "Taliott",
@@ -226,8 +222,8 @@
     "submit": "Csatlakozás az eseményhez →"
   },
   "venueList": {
-    "heading": "Helyszín-javaslatok",
-    "noType": "Állíts be helyszíntípust a javaslatok megtekintéséhez.",
+    "heading": "Helyszínjavaslatok",
+    "noType": "Állíts be típust a javaslatok megtekintéséhez.",
     "loading": "Helyszínek betöltése…",
     "empty": "Nem található helyszín.",
     "failedToLoad": "Nem sikerült betölteni a helyszíneket",
@@ -273,8 +269,8 @@
   "legalFooter": {
     "privacy": "Adatvédelmi tájékoztató",
     "terms": "Általános szerződési feltételek",
-    "sourceCode": "Forráskód",
-    "reportIssue": "Hibabejelentés"
+    "sourceCode": "GitHub",
+    "reportIssue": "Hibajelentés"
   },
   "errors": {
     "timeRangeOrder": "A kezdési időpontnak korábbinak kell lennie a zárásnál."

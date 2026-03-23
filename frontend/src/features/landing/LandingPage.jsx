@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { privacyPath, termsPath } from '../../lib/legalPaths.js';
+import LegalFooter from '../legal/LegalFooter.jsx';
 import './LandingPage.css';
 
 export default function LandingPage({ onStart }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const steps = [
     { label: t('landing.step1.label'), desc: t('landing.step1.desc') },
@@ -53,12 +53,7 @@ export default function LandingPage({ onStart }) {
         {t('landing.recover')} <a href="/resend">{t('landing.recoverLink')}</a>
       </p>
 
-      <footer className="landing-footer">
-        <a href={privacyPath(i18n.language)}>{t('landing.footerPrivacy')}</a>
-        <a href={termsPath(i18n.language)}>{t('landing.footerTerms')}</a>
-        <a href="https://github.com/rensaman/taliott" target="_blank" rel="noopener noreferrer">{t('landing.footerSource')}</a>
-        <a href="https://github.com/rensaman/taliott/issues" target="_blank" rel="noopener noreferrer">{t('landing.footerIssue')}</a>
-      </footer>
+      <LegalFooter className="landing-footer" />
     </div>
   );
 }

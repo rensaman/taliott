@@ -24,11 +24,7 @@
     "step3": { "label": "Meet in the middle", "desc": "A fair spot, a fair time. Done." },
     "cta": "Create an event",
     "recover": "Already have an event?",
-    "recoverLink": "Find your link",
-    "footerPrivacy": "Privacy",
-    "footerTerms": "Terms",
-    "footerSource": "Source code",
-    "footerIssue": "Report an issue"
+    "recoverLink": "Find your link"
   },
   "setup": {
     "steps": {
@@ -85,7 +81,7 @@
     "review": {
       "heading": "Ready to create your event?",
       "labelName": "Name",
-      "labelOrg": "Organizer",
+      "labelOrg": "Org.",
       "labelWhen": "When",
       "labelDates": "Dates",
       "labelTime": "Time",
@@ -273,7 +269,7 @@
   "legalFooter": {
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "sourceCode": "Source code",
+    "sourceCode": "GitHub",
     "reportIssue": "Report an issue"
   },
   "errors": {
