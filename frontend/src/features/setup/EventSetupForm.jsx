@@ -77,11 +77,9 @@ export default function EventSetupForm({ onCreated }) {
     }
   }, [formData.deadlineDate]);
 
-  // Scroll to top when entering the deadline step
+  // Scroll to top on every step change
   useEffect(() => {
-    if (STEPS[step] === 'deadline') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
   const currentStep = STEPS[step];
