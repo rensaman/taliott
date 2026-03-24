@@ -11,6 +11,11 @@ RUN npm ci --workspace=frontend --ignore-scripts
 COPY region.config.js ./
 COPY frontend/ ./frontend/
 
+ARG VITE_UMAMI_WEBSITE_ID
+ARG VITE_UMAMI_SCRIPT_URL
+ENV VITE_UMAMI_WEBSITE_ID=$VITE_UMAMI_WEBSITE_ID
+ENV VITE_UMAMI_SCRIPT_URL=$VITE_UMAMI_SCRIPT_URL
+
 RUN npm run build --workspace=frontend
 
 FROM nginx:alpine
