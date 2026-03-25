@@ -27,6 +27,7 @@ function scoreSlots(slots, participants) {
 export default function AdminView({ adminToken }) {
   const { t, i18n } = useTranslation();
   const [data, setData] = useState(null);
+  const [venues, setVenues] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [error, setError] = useState(null);
   const [liveCentroid, setLiveCentroid] = useState(null);
@@ -52,6 +53,11 @@ export default function AdminView({ adminToken }) {
   useEventStream(adminToken ?? null, msg => {
     if (msg.type === 'location') setLiveCentroid(msg.centroid);
   });
+
+  function handleVenueClick(id) {
+    const venue = venues.find(v => v.id === id) ?? null;
+    setSelectedVenue(venue);
+  }
 
   async function handleDeleteEvent() {
     if (!window.confirm(t('admin.deleteConfirm'))) return;
@@ -103,49 +109,53 @@ export default function AdminView({ adminToken }) {
       </div>
 
       <div className="admin-body">
-        <div className="admin-left">
-          <div className="admin-section">
+        <div className="admin-map-venue-band">
+          <div className="admin-map-col">
             <GroupMap
               centroid={liveCentroid}
               participants={data.participants}
-              selectedVenue={selectedVenue ? { lat: selectedVenue.latitude, lng: selectedVenue.longitude, name: selectedVenue.name } : null}
-            />
-          </div>
-          <div className="admin-section">
-            <div className="admin-section-title">{t('admin.sectionParticipants')}</div>
-            <ParticipantResponseList
-              participants={data.participants}
-              slots={data.slots || []}
-            />
-          </div>
-        </div>
-
-        <div className="admin-right">
-          {data.status !== 'finalized' && (
-            <FinalizePanel
-              adminToken={adminToken}
-              slots={data.slots || []}
-              scoredSlots={scoredSlots}
+              venues={venues}
               selectedVenueId={selectedVenue?.id ?? null}
-              selectedVenueName={selectedVenue?.name ?? null}
-              onFinalized={() => setJustFinalized(true)}
+              onVenueClick={handleVenueClick}
             />
-          )}
-
-          <VenueList
-            adminToken={adminToken}
-            defaultVenueType={data.venue_type || ''}
-            onSelectVenue={setSelectedVenue}
-          />
-
-          {data.status === 'finalized' && (
-            <div className="finalized-notice">
-              <div className="finalized-notice-inner">
-                <p data-testid="finalized-notice"><strong>{t('admin.finalizedNotice')}</strong></p>
-              </div>
-            </div>
-          )}
+          </div>
+          <div className="admin-venue-col">
+            <VenueList
+              adminToken={adminToken}
+              defaultVenueType={data.venue_type || ''}
+              selectedId={selectedVenue?.id ?? null}
+              onSelectVenue={setSelectedVenue}
+              onVenuesLoaded={setVenues}
+            />
+          </div>
         </div>
+
+        <div className="admin-section">
+          <div className="admin-section-title">{t('admin.sectionParticipants')}</div>
+          <ParticipantResponseList
+            participants={data.participants}
+            slots={data.slots || []}
+          />
+        </div>
+
+        {data.status !== 'finalized' && (
+          <FinalizePanel
+            adminToken={adminToken}
+            slots={data.slots || []}
+            scoredSlots={scoredSlots}
+            selectedVenueId={selectedVenue?.id ?? null}
+            selectedVenueName={selectedVenue?.name ?? null}
+            onFinalized={() => setJustFinalized(true)}
+          />
+        )}
+
+        {data.status === 'finalized' && (
+          <div className="finalized-notice">
+            <div className="finalized-notice-inner">
+              <p data-testid="finalized-notice"><strong>{t('admin.finalizedNotice')}</strong></p>
+            </div>
+          </div>
+        )}
       </div>
 
       <footer className="admin-danger" aria-label="Danger zone">

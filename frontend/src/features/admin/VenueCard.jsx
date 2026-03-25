@@ -1,4 +1,4 @@
-export default function VenueCard({ venue, selected, onSelect }) {
+export default function VenueCard({ venue, number, selected, onSelect }) {
   const distance =
     venue.distanceM != null
       ? venue.distanceM >= 1000
@@ -11,6 +11,7 @@ export default function VenueCard({ venue, selected, onSelect }) {
 
   return (
     <li data-testid="venue-card" className={`venue-card-block${selected ? ' venue-card-block--selected' : ''}`}>
+      {number != null && <span className="venue-card-number">{number}</span>}
       <input
         type="radio"
         name="venue-selection"

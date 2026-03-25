@@ -92,24 +92,43 @@
 
 .admin-body {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
 }
 
-@media (min-width: 900px) {
-  .admin-body {
-    grid-template-columns: 1fr 400px;
+/* ─── Map + venue band ────────────────────────────────────────────────────── */
+
+.admin-map-venue-band {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+
+@media (min-width: 768px) {
+  .admin-map-venue-band {
+    grid-template-columns: 1fr 1fr;
     align-items: start;
   }
 }
 
-.admin-left {
-  border-right: 0;
+.admin-map-col {
+  border-bottom: 1px solid var(--rule);
 }
 
-@media (min-width: 900px) {
-  .admin-left {
+@media (min-width: 768px) {
+  .admin-map-col {
+    border-bottom: none;
     border-right: 1px solid var(--rule);
+  }
+}
+
+.admin-venue-col {
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .admin-venue-col {
+    max-height: min(50vw, 600px);
   }
 }
 
@@ -443,6 +462,26 @@
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
+}
+
+.venue-card-number {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 50%;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.15rem;
+  font-family: var(--font-display);
+}
+
+.venue-card-block--selected .venue-card-number {
+  background: var(--ink);
 }
 
 .venue-card-block:hover {

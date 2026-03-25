@@ -11,23 +11,45 @@ vi.mock('../../hooks/useEventStream.js', () => ({
   },
 }));
 
+const MOCK_VENUES_FOR_MAP = [
+  { id: 'mv1', name: 'Mock Venue 1', latitude: 1, longitude: 1 },
+  { id: 'mv2', name: 'Mock Venue 2', latitude: 2, longitude: 2 },
+];
+
 // GroupMap uses Leaflet — mock it for AdminView tests
+let capturedOnVenueClick = null;
 vi.mock('./GroupMap.jsx', () => ({
-  default: ({ centroid, participants }) => (
-    <div data-testid="group-map">
-      {centroid && (
-        <span data-testid="coverage-counter">
-          {centroid.count} of {participants.length} participants included in fair center
-        </span>
-      )}
-    </div>
-  ),
+  default: ({ centroid, participants, venues, onVenueClick, selectedVenueId }) => {
+    capturedOnVenueClick = onVenueClick;
+    return (
+      <div data-testid="group-map" data-selected-venue-id={selectedVenueId ?? ''}>
+        {centroid && (
+          <span data-testid="coverage-counter">
+            {centroid.count} of {participants.length} participants included in fair center
+          </span>
+        )}
+        {venues?.map((v, i) => (
+          <button key={v.id} data-testid={`venue-pin-${i + 1}`} onClick={() => onVenueClick?.(v.id)} />
+        ))}
+      </div>
+    );
+  },
 }));
 
+let capturedOnVenuesLoaded = null;
+let capturedOnSelectVenue = null;
 vi.mock('./VenueList.jsx', () => ({
-  default: ({ defaultVenueType }) => (
-    <div data-testid="venue-list" data-venue-type={defaultVenueType} />
-  ),
+  default: ({ defaultVenueType, onVenuesLoaded, selectedId, onSelectVenue }) => {
+    capturedOnVenuesLoaded = onVenuesLoaded;
+    capturedOnSelectVenue = onSelectVenue;
+    return (
+      <div
+        data-testid="venue-list"
+        data-venue-type={defaultVenueType}
+        data-selected-id={selectedId ?? ''}
+      />
+    );
+  },
 }));
 
 const OPEN_DATA = {
@@ -48,6 +70,9 @@ const OPEN_DATA = {
 describe('AdminView', () => {
   beforeEach(() => {
     capturedSseHandler = null;
+    capturedOnVenueClick = null;
+    capturedOnVenuesLoaded = null;
+    capturedOnSelectVenue = null;
     vi.stubGlobal('fetch', vi.fn());
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -189,6 +214,42 @@ describe('AdminView', () => {
 
     await waitFor(() =>
       expect(screen.getByRole('alert')).toBeInTheDocument()
+    );
+  });
+
+  it('passes venues from VenueList to GroupMap as numbered pins', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByTestId('group-map'));
+
+    act(() => capturedOnVenuesLoaded(MOCK_VENUES_FOR_MAP));
+
+    await waitFor(() => expect(screen.getByTestId('venue-pin-1')).toBeInTheDocument());
+    expect(screen.getByTestId('venue-pin-2')).toBeInTheDocument();
+  });
+
+  it('clicking a map pin updates selectedId passed to VenueList', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByTestId('group-map'));
+
+    act(() => capturedOnVenuesLoaded(MOCK_VENUES_FOR_MAP));
+    await waitFor(() => screen.getByTestId('venue-pin-1'));
+
+    fireEvent.click(screen.getByTestId('venue-pin-1'));
+
+    expect(screen.getByTestId('venue-list')).toHaveAttribute('data-selected-id', 'mv1');
+  });
+
+  it('selecting a venue from VenueList updates selectedVenueId on GroupMap', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByTestId('venue-list'));
+
+    act(() => capturedOnSelectVenue({ id: 'mv2', latitude: 2, longitude: 2, name: 'Mock Venue 2' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('group-map')).toHaveAttribute('data-selected-venue-id', 'mv2')
     );
   });
 

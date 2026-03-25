@@ -25,29 +25,36 @@ const centroidIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
-const venueIcon = L.divIcon({
-  className: '',
-  html: '<div style="width:20px;height:20px;background:#1a6eb5;border:3px solid #fff;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,.5)"></div>',
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
-});
+function makeVenuePinIcon(number, selected) {
+  const bg = selected ? '#1a1a1a' : '#fff';
+  const color = selected ? '#fff' : '#1a1a1a';
+  const border = selected ? '#1a1a1a' : '#1a1a1a';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:24px;height:24px;background:${bg};border:2px solid ${border};border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:10px;font-weight:700;color:${color};font-family:sans-serif">${number}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+}
 
-function MapBounds({ participants, centroid, selectedVenue }) {
+function MapBounds({ participants, centroid, venues }) {
   const map = useMap();
   useEffect(() => {
     const points = participants
       .filter(p => p.latitude != null && p.longitude != null)
       .map(p => [p.latitude, p.longitude]);
     if (centroid) points.push([centroid.lat, centroid.lng]);
-    if (selectedVenue) points.push([selectedVenue.lat, selectedVenue.lng]);
+    if (venues) {
+      for (const v of venues) points.push([v.latitude, v.longitude]);
+    }
     if (points.length > 0) {
       map.fitBounds(points, { padding: [40, 40] });
     }
-  }, [map, participants, centroid, selectedVenue]);
+  }, [map, participants, centroid, venues]);
   return null;
 }
 
-export default function GroupMap({ centroid, participants, selectedVenue }) {
+export default function GroupMap({ centroid, participants, venues = [], selectedVenueId, onVenueClick }) {
   const located = participants.filter(p => p.latitude != null && p.longitude != null);
 
   return (
@@ -55,13 +62,13 @@ export default function GroupMap({ centroid, participants, selectedVenue }) {
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
-        style={{ height: '350px', width: '100%' }}
+        style={{ width: '100%', aspectRatio: '1 / 1' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MapBounds participants={participants} centroid={centroid} selectedVenue={selectedVenue} />
+        <MapBounds participants={participants} centroid={centroid} venues={venues} />
         {located.map(p => (
           <Marker
             key={p.id}
@@ -76,13 +83,15 @@ export default function GroupMap({ centroid, participants, selectedVenue }) {
             data-testid="centroid-marker"
           />
         )}
-        {selectedVenue && (
+        {venues.map((v, i) => (
           <Marker
-            position={[selectedVenue.lat, selectedVenue.lng]}
-            icon={venueIcon}
-            data-testid="venue-marker"
+            key={v.id}
+            position={[v.latitude, v.longitude]}
+            icon={makeVenuePinIcon(i + 1, v.id === selectedVenueId)}
+            eventHandlers={{ click: () => onVenueClick?.(v.id) }}
+            data-testid={`venue-pin-${i + 1}`}
           />
-        )}
+        ))}
       </MapContainer>
       {/* coverage-counter kept as hidden node for test compatibility */}
       {centroid && (

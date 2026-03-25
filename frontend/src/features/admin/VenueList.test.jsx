@@ -117,7 +117,7 @@ describe('VenueList', () => {
     expect(urls.some(u => u.includes('venue_type=cafe'))).toBe(true);
   });
 
-  it('shows load more button when there are more than 10 venues', async () => {
+  it('caps display at 10 venues and never shows a load more button', async () => {
     const manyVenues = Array.from({ length: 12 }, (_, i) => ({
       id: `v${i}`, name: `Venue ${i}`, distanceM: i * 100, rating: null,
       latitude: 51.5, longitude: -0.1,
@@ -125,20 +125,16 @@ describe('VenueList', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: manyVenues }) });
     render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(10));
-    expect(screen.getByRole('button', { name: /load more/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /load more/i })).not.toBeInTheDocument();
   });
 
-  it('loads more venues when load more button is clicked', async () => {
-    const manyVenues = Array.from({ length: 12 }, (_, i) => ({
-      id: `v${i}`, name: `Venue ${i}`, distanceM: i * 100, rating: null,
-      latitude: 51.5, longitude: -0.1,
-    }));
-    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: manyVenues }) });
-    render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
-    await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(10));
-    fireEvent.click(screen.getByRole('button', { name: /load more/i }));
-    expect(screen.getAllByTestId('venue-card')).toHaveLength(12);
-    expect(screen.queryByRole('button', { name: /load more/i })).not.toBeInTheDocument();
+  it('marks the venue matching selectedId prop as selected', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" selectedId="v2" onSelectVenue={vi.fn()} />);
+    await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(2));
+    const cards = screen.getAllByTestId('venue-card');
+    expect(cards[0]).not.toHaveClass('venue-card-block--selected');
+    expect(cards[1]).toHaveClass('venue-card-block--selected');
   });
 
   it('merges and deduplicates venues from multiple types sorted by distance', async () => {

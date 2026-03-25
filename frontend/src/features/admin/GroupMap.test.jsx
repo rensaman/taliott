@@ -1,12 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { forwardRef } from 'react';
 
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => null,
-  Marker: forwardRef(({ children, 'data-testid': testid }, _ref) => (
-    <div data-testid={testid ?? 'marker'}>{children}</div>
+  Marker: forwardRef(({ children, 'data-testid': testid, eventHandlers }, _ref) => (
+    <div data-testid={testid ?? 'marker'} onClick={() => eventHandlers?.click?.()}>{children}</div>
   )),
   useMap: () => ({ fitBounds: vi.fn(), flyTo: vi.fn() }),
 }));
@@ -28,6 +28,10 @@ const PARTICIPANTS = [
   { id: 'p-1', latitude: 0, longitude: 0 },
   { id: 'p-2', latitude: 2, longitude: 2 },
   { id: 'p-3', latitude: null, longitude: null },
+];
+const VENUES = [
+  { id: 'v1', name: 'Place A', latitude: 1.1, longitude: 1.1 },
+  { id: 'v2', name: 'Place B', latitude: 1.2, longitude: 1.2 },
 ];
 
 describe('GroupMap', () => {
@@ -61,5 +65,23 @@ describe('GroupMap', () => {
   it('does not show coverage counter when centroid is null', () => {
     render(<GroupMap centroid={null} participants={[]} />);
     expect(screen.queryByTestId('coverage-counter')).not.toBeInTheDocument();
+  });
+
+  it('renders a numbered pin marker for each venue', () => {
+    render(<GroupMap centroid={null} participants={[]} venues={VENUES} />);
+    expect(screen.getByTestId('venue-pin-1')).toBeInTheDocument();
+    expect(screen.getByTestId('venue-pin-2')).toBeInTheDocument();
+  });
+
+  it('does not render venue pins when venues prop is empty', () => {
+    render(<GroupMap centroid={null} participants={[]} venues={[]} />);
+    expect(screen.queryByTestId('venue-pin-1')).not.toBeInTheDocument();
+  });
+
+  it('calls onVenueClick with venue id when a venue pin is clicked', () => {
+    const onVenueClick = vi.fn();
+    render(<GroupMap centroid={null} participants={[]} venues={VENUES} onVenueClick={onVenueClick} />);
+    fireEvent.click(screen.getByTestId('venue-pin-1'));
+    expect(onVenueClick).toHaveBeenCalledWith('v1');
   });
 });
