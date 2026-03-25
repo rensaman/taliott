@@ -11,20 +11,7 @@ backend/node_modules/
 # Playwright
 playwright-report/
 test-results/
-screenshots/*
-!screenshots/create-01-landing.png
-!screenshots/create-02-event-name.png
-!screenshots/create-03-organizer-email.png
-!screenshots/create-04-date-and-time.png
-!screenshots/create-05-deadline.png
-!screenshots/create-06-invite-mode.png
-!screenshots/create-07-review.png
-!screenshots/create-08-confirmation.png
-!screenshots/participate-01-name.png
-!screenshots/participate-02-location.png
-!screenshots/participate-03-availability.png
-!screenshots/participate-04-review.png
-!screenshots/participate-05-done.png
+screenshots/
 
 # Vite
 frontend/dist/

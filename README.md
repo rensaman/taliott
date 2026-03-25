@@ -16,44 +16,7 @@ No accounts needed for participants.
 
 ---
 
-<!-- screenshots:start -->
-## Screenshots
-
-### Creating an event
-
-<table>
-<tr>
-<td align="center"><img src="screenshots/create-01-landing.png" width="200"/><br/><sub>Landing</sub></td>
-<td align="center"><img src="screenshots/create-02-event-name.png" width="200"/><br/><sub>Event name</sub></td>
-<td align="center"><img src="screenshots/create-03-organizer-email.png" width="200"/><br/><sub>Organizer</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="screenshots/create-04-date-and-time.png" width="200"/><br/><sub>Date & time</sub></td>
-<td align="center"><img src="screenshots/create-05-deadline.png" width="200"/><br/><sub>Deadline</sub></td>
-<td align="center"><img src="screenshots/create-06-invite-mode.png" width="200"/><br/><sub>Invite mode</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="screenshots/create-07-review.png" width="200"/><br/><sub>Review</sub></td>
-<td align="center"><img src="screenshots/create-08-confirmation.png" width="200"/><br/><sub>Confirmation</sub></td>
-</tr>
-</table>
-
-
-### Participating
-
-<table>
-<tr>
-<td align="center"><img src="screenshots/participate-01-name.png" width="200"/><br/><sub>Name</sub></td>
-<td align="center"><img src="screenshots/participate-02-location.png" width="200"/><br/><sub>Location</sub></td>
-<td align="center"><img src="screenshots/participate-03-availability.png" width="200"/><br/><sub>Availability</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="screenshots/participate-04-review.png" width="200"/><br/><sub>Review</sub></td>
-<td align="center"><img src="screenshots/participate-05-done.png" width="200"/><br/><sub>Done</sub></td>
-</tr>
-</table>
-
-<!-- screenshots:end -->
+Live at **[taliott.hu](https://taliott.hu)**
 
 ---
 
