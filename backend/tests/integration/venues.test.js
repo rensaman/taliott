@@ -141,4 +141,65 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res.status).toBe(200);
     expect(res.body.venue_type).toBeNull();
   });
+
+  it('recalculates distanceM from the updated centroid when a new participant provides a location', async () => {
+    // Venues near Budapest — one close to P1, one close to P2
+    const MOCK_VENUES = {
+      elements: [
+        { id: 301, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'restaurant' } },
+        { id: 302, lat: 47.590, lon: 19.140, tags: { name: 'Near P2', amenity: 'restaurant' } },
+      ],
+    };
+
+    // Only participant 1 has a location → centroid = P1's exact coords
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_VENUES }));
+    const { admin_token, participants } = await createEvent({ participant_emails: ['p2-stale@example.com'] });
+    await giveLocation(participants[0].id, 47.500, 19.050);
+
+    const res1 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
+    expect(res1.status).toBe(200);
+    const distances1 = res1.body.venues.map(v => v.distanceM);
+
+    // Set the throw-stub BEFORE the PATCH so the async SSE broadcast uses it too
+    // (Navitia calls will throw → haversine fallback; Overpass must not be called)
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
+    await giveLocation(participants[1].id, 47.600, 19.150);
+
+    const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
+    // 200 proves cache was hit (an Overpass miss would have returned 502 or thrown)
+    expect(res2.status).toBe(200);
+    // Same venue set returned (DB cache), but distances must differ because centroid shifted
+    expect(res2.body.venues.map(v => v.name)).toEqual(expect.arrayContaining(['Near P1', 'Near P2']));
+    const distances2 = res2.body.venues.map(v => v.distanceM);
+    expect(distances2).not.toEqual(distances1);
+  });
+
+  it('reflects the updated sort order when the centroid shifts after a new participant responds', async () => {
+    // P1 location: (47.500, 19.050) — Near P1 venue at (47.501, 19.051) is ~134 m away
+    // P2 location: (47.600, 19.150) — Near P2 venue at (47.590, 19.140) is ~1.3 km away from P1
+    // After P2 joins, centroid ≈ midpoint (47.550, 19.100):
+    //   dist to Near P1 ≈ 6 580 m, dist to Near P2 ≈ 5 370 m  → order reverses
+    const MOCK_ORDER_VENUES = {
+      elements: [
+        { id: 401, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'cafe' } },
+        { id: 402, lat: 47.590, lon: 19.140, tags: { name: 'Near P2', amenity: 'cafe' } },
+      ],
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_ORDER_VENUES }));
+    const { admin_token, participants } = await createEvent({ participant_emails: ['p2-order@example.com'] });
+    await giveLocation(participants[0].id, 47.500, 19.050);
+
+    const res1 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=cafe`);
+    expect(res1.status).toBe(200);
+    expect(res1.body.venues[0].name).toBe('Near P1');
+
+    // Participant 2 joins far away → centroid shifts toward midpoint
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
+    await giveLocation(participants[1].id, 47.600, 19.150);
+
+    const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=cafe`);
+    expect(res2.status).toBe(200);
+    expect(res2.body.venues[0].name).toBe('Near P2');
+  });
 });
