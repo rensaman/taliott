@@ -4,6 +4,8 @@ import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import TravelModeSelector from './TravelModeSelector.jsx';
 import StepRoute from '../setup/StepRoute.jsx';
+import UnsavedChangesDialog from '../UnsavedChangesDialog.jsx';
+import { useNavigationGuard } from '../../hooks/useNavigationGuard.js';
 import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
 
@@ -36,6 +38,10 @@ export default function ResponseWizard({
   const [locationError, setLocationError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  const isDirty = !confirmed && (step > 0 || nameValue.trim() !== (initialName ?? '').trim());
+  const { showDialog, confirmLeave, cancelLeave } = useNavigationGuard(isDirty);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -97,6 +103,7 @@ export default function ResponseWizard({
         setSubmitError(t('participate.review.errorSubmit'));
         return;
       }
+      setConfirmed(true);
       onComplete();
     } catch {
       setSubmitError(t('participate.review.errorSubmit'));
@@ -222,6 +229,8 @@ export default function ResponseWizard({
   }
 
   return (
+    <>
+    {showDialog && <UnsavedChangesDialog onStay={cancelLeave} onLeave={confirmLeave} />}
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
         <h1 className="wizard-wordmark">{t('wizard.wordmark')}</h1>
@@ -259,5 +268,6 @@ export default function ResponseWizard({
         </div>
       </footer>
     </form>
+    </>
   );
 }

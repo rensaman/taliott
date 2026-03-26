@@ -274,5 +274,11 @@
   },
   "errors": {
     "timeRangeOrder": "Start time must be earlier than end time."
+  },
+  "navGuard": {
+    "title": "Unsaved changes",
+    "body": "If you leave now, your progress will be lost.",
+    "stay": "Stay",
+    "leave": "Leave anyway"
   }
 }

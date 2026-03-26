@@ -274,5 +274,11 @@
   },
   "errors": {
     "timeRangeOrder": "A kezdési időpontnak korábbinak kell lennie a zárásnál."
+  },
+  "navGuard": {
+    "title": "Nem mentett változások",
+    "body": "Ha most elhagyod az oldalt, az eddigi munkád elveszik.",
+    "stay": "Maradok",
+    "leave": "Elhagyom"
   }
 }

@@ -5,6 +5,8 @@ import TimeRangeSelector from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
 import ToggleBlock from './ToggleBlock.jsx';
+import UnsavedChangesDialog from '../UnsavedChangesDialog.jsx';
+import { useNavigationGuard } from '../../hooks/useNavigationGuard.js';
 import { privacyPath, termsPath } from '../../lib/legalPaths.js';
 import { localizeTimezone } from '../../lib/localizeTimezone.js';
 import './EventSetupForm.css';
@@ -52,6 +54,10 @@ export default function EventSetupForm({ onCreated }) {
   const [step, setStep] = useState(0);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const isDirty = !submitted && (step > 0 || formData.name.trim() !== '');
+  const { showDialog, confirmLeave, cancelLeave } = useNavigationGuard(isDirty);
   const timeRangeRef = useRef(null);
   const fixedTimeRef = useRef(null);
   const deadlineTimeRef = useRef(null);
@@ -164,6 +170,7 @@ export default function EventSetupForm({ onCreated }) {
         throw new Error(body.error || 'Failed to create event');
       }
       const result = await res.json();
+      setSubmitted(true);
       onCreated?.(result);
     } catch (err) {
       const msg = err.message;
@@ -432,6 +439,8 @@ export default function EventSetupForm({ onCreated }) {
   const isLastStep = currentStep === 'review';
 
   return (
+    <>
+    {showDialog && <UnsavedChangesDialog onStay={cancelLeave} onLeave={confirmLeave} />}
     <form className="wizard" onSubmit={handleNext} aria-label="Event setup">
       <header className="wizard-header">
         <h1 className="wizard-wordmark">{t('wizard.wordmark')}</h1>
@@ -472,5 +481,6 @@ export default function EventSetupForm({ onCreated }) {
         </div>
       </footer>
     </form>
+    </>
   );
 }
