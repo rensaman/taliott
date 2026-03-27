@@ -149,6 +149,7 @@
     "deleteData": "Delete my data",
     "deleteConfirm": "Are you sure? This will permanently erase your name, location, and availability from this event.",
     "dataErased": "Your personal data has been erased from this event.",
+    "sectionSlots": "Time votes",
     "resultsOnly": "Results only — voting has closed.",
     "eventFinalized": "Event finalized",
     "finalizedWhen": "When: {{date}}",

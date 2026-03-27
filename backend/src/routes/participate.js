@@ -36,7 +36,15 @@ router.get('/:participantId', async (req, res) => {
     computeHeatmap(getPrisma(), participant.event.id),
     getPrisma().participant.findMany({
       where: { eventId: participant.event.id },
-      select: { latitude: true, longitude: true, travelMode: true },
+      select: {
+        id: true,
+        name: true,
+        latitude: true,
+        longitude: true,
+        travelMode: true,
+        respondedAt: true,
+        availability: { select: { slotId: true, state: true } },
+      },
     }),
   ]);
   const centroid = await computeCentroid(allParticipants, { prisma: getPrisma() });
@@ -88,6 +96,14 @@ router.get('/:participantId', async (req, res) => {
     availability: participant.availability.map(a => ({
       slot_id: a.slotId,
       state: a.state,
+    })),
+    participants: allParticipants.map(p => ({
+      id: p.id,
+      name: p.name,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      responded_at: p.respondedAt,
+      availability: p.availability.map(a => ({ slot_id: a.slotId, state: a.state })),
     })),
     heatmap,
     centroid,

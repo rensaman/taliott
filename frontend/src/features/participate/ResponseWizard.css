@@ -357,3 +357,20 @@
   border-left: 3px solid var(--rule);
 }
 
+/* ── Post-participation result sections ──────────────────────────────────── */
+.pv-group-map-wrap {
+  border-bottom: 1px solid var(--rule);
+}
+
+.pv-next-steps-list {
+  margin: 0.5rem 0 0 1.25rem;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.pv-next-steps-list li + li {
+  margin-top: 0.25rem;
+}
+

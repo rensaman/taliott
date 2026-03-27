@@ -5,9 +5,11 @@ import enCommon from '../../locales/en/common.json';
 
 vi.mock('./ResponseWizard.jsx', () => ({ default: vi.fn() }));
 vi.mock('./ResponseSummary.jsx', () => ({ default: vi.fn() }));
+vi.mock('./ParticipationResult.jsx', () => ({ default: vi.fn() }));
 
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
+import ParticipationResult from './ParticipationResult.jsx';
 import ParticipateView from './ParticipateView.jsx';
 
 const BASE_PARTICIPANT = {
@@ -29,6 +31,7 @@ const OPEN_RESPONSE = {
     locked: false,
   },
   participant: BASE_PARTICIPANT,
+  participants: [],
   slots: [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }],
   availability: [],
   heatmap: null,
@@ -60,6 +63,7 @@ describe('ParticipateView', () => {
     ResponseSummary.mockImplementation(({ onUpdate }) => (
       <button data-testid="summary-update" onClick={onUpdate}>update response</button>
     ));
+    ParticipationResult.mockImplementation(() => <div data-testid="participation-result" />);
   });
   afterEach(() => vi.unstubAllGlobals());
 
@@ -226,6 +230,53 @@ describe('ParticipateView', () => {
     fireEvent.click(screen.getByTestId('wizard-complete'));
     await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
   });
+
+  // ─── ParticipationResult ──────────────────────────────────────────────────
+
+  it('shows ParticipationResult when participant has responded', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
+  });
+
+  it('hides ParticipationResult when participant has not responded', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    expect(screen.queryByTestId('participation-result')).not.toBeInTheDocument();
+  });
+
+  it('passes showNextSteps=true when event is open', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
+    const [call] = ParticipationResult.mock.calls.slice(-1);
+    expect(call[0].showNextSteps).toBe(true);
+  });
+
+  it('passes showNextSteps=false when event is finalized', async () => {
+    const FINALIZED_RESPONSE = {
+      ...RESPONDED_RESPONSE,
+      event: { ...RESPONDED_RESPONSE.event, status: 'finalized' },
+      finalSlot: { id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' },
+      finalVenue: null,
+    };
+    fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
+    const [call] = ParticipationResult.mock.calls.slice(-1);
+    expect(call[0].showNextSteps).toBe(false);
+  });
+
+  it('shows ParticipationResult after wizard completes and re-fetch succeeds', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => RESPONDED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    fireEvent.click(screen.getByTestId('wizard-complete'));
+    await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
+  });
 });
 
 describe('i18n', () => {
@@ -237,6 +288,7 @@ describe('i18n', () => {
     ResponseSummary.mockImplementation(({ onUpdate }) => (
       <button data-testid="summary-update" onClick={onUpdate}>update response</button>
     ));
+    ParticipationResult.mockImplementation(() => <div data-testid="participation-result" />);
   });
   afterEach(() => {
     vi.unstubAllGlobals();

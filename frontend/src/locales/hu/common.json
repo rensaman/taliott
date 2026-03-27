@@ -149,6 +149,7 @@
     "deleteData": "Adataim törlése",
     "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli a nevedet, helyszínedet és elérhetőségedet erről az eseményről.",
     "dataErased": "Személyes adataidat töröltük erről az eseményről.",
+    "sectionSlots": "Időszavazatok",
     "resultsOnly": "Csak eredmények — a szavazás lezárult.",
     "eventFinalized": "Esemény véglegesítve",
     "finalizedWhen": "Mikor: {{date}}",

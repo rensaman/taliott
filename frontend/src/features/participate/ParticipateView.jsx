@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
+import ParticipationResult from './ParticipationResult.jsx';
 import FeedbackForm from '../feedback/FeedbackForm.jsx';
 import { track } from '../../lib/analytics.js';
 import './ResponseWizard.css';
@@ -106,49 +107,62 @@ export default function ParticipateView({ participantId }) {
   }
 
   return (
-    <main className="pv-main">
-      <h1 className="pv-event-title">{event.name}</h1>
-      <DeadlineBadge deadline={event.deadline} locked={event.locked} />
+    <main>
+      <div className="pv-main">
+        <h1 className="pv-event-title">{event.name}</h1>
+        <DeadlineBadge deadline={event.deadline} locked={event.locked} />
 
-      {event.locked && (
-        <p role="status" data-testid="results-only-status">{t('participate.resultsOnly')}</p>
+        {event.locked && (
+          <p role="status" data-testid="results-only-status">{t('participate.resultsOnly')}</p>
+        )}
+
+        {finalSlot && (
+          <section aria-label="Event result" data-testid="finalized-banner">
+            <h2>{t('participate.eventFinalized')}</h2>
+            <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
+            {finalVenue && (
+              <p>
+                {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
+              </p>
+            )}
+          </section>
+        )}
+
+        <ResponseSummary
+          participantId={participantId}
+          name={participant.name}
+          slots={slots}
+          availability={availability}
+          location={location}
+          travelMode={travelMode}
+          locked={event.locked}
+          onUpdate={() => setUpdating(true)}
+        />
+      </div>
+
+      {participant.responded_at && (
+        <ParticipationResult
+          participants={data.participants || []}
+          slots={slots}
+          centroid={data.centroid}
+          showNextSteps={event.status !== 'finalized'}
+        />
       )}
 
-      {finalSlot && (
-        <section aria-label="Event result" data-testid="finalized-banner">
-          <h2>{t('participate.eventFinalized')}</h2>
-          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
-          {finalVenue && (
-            <p>
-              {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
-            </p>
-          )}
-        </section>
-      )}
+      <div className="pv-main">
+        {justCompleted && <FeedbackForm context="participant" />}
 
-      <ResponseSummary
-        participantId={participantId}
-        name={participant.name}
-        slots={slots}
-        availability={availability}
-        location={location}
-        travelMode={travelMode}
-        locked={event.locked}
-        onUpdate={() => setUpdating(true)}
-      />
+        {justCompleted && (
+          <p className="donate-nudge">
+            {t('donate.text')}{' '}
+            <a href="https://www.donably.com/taliott" target="_blank" rel="noopener noreferrer">
+              {t('donate.link')}
+            </a>
+          </p>
+        )}
 
-      {justCompleted && <FeedbackForm context="participant" />}
-
-      {justCompleted && (
-        <p className="donate-nudge">
-          {t('donate.text')}{' '}
-          <a href="https://www.donably.com/taliott" target="_blank" rel="noopener noreferrer">
-            {t('donate.link')}
-          </a>
-        </p>
-      )}
-
-      {dataRightsSection}
+        {dataRightsSection}
+      </div>
     </main>
   );
 }
