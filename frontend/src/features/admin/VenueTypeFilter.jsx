@@ -7,11 +7,12 @@ const PRESET_LOWER_SET = new Set(PRESET_TYPES.map(t => t.toLowerCase()));
 export default function VenueTypeFilter({ defaultValue, onSearch }) {
   const { t } = useTranslation();
   const initLower = defaultValue?.trim().toLowerCase() || '';
+
+  // Non-preset defaultValue gets a single extra chip; custom searches never become chips
+  const extraChip = initLower && !PRESET_LOWER_SET.has(initLower) ? initLower : null;
+
   const [selected, setSelected] = useState(() =>
     initLower ? new Set([initLower]) : new Set()
-  );
-  const [extraTypes, setExtraTypes] = useState(() =>
-    initLower && !PRESET_LOWER_SET.has(initLower) ? [initLower] : []
   );
   const [customInput, setCustomInput] = useState('');
 
@@ -20,6 +21,7 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
     if (next.has(lower)) next.delete(lower);
     else next.add(lower);
     setSelected(next);
+    setCustomInput('');
     onSearch([...next]);
   }
 
@@ -27,11 +29,9 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
     e.preventDefault();
     const lower = customInput.trim().toLowerCase();
     if (!lower) return;
-    if (!PRESET_LOWER_SET.has(lower) && !extraTypes.includes(lower)) {
-      setExtraTypes(prev => [...prev, lower]);
-    }
-    toggle(lower);
-    setCustomInput('');
+    setSelected(new Set());
+    setCustomInput(lower);
+    onSearch([lower]);
   }
 
   return (
@@ -47,16 +47,15 @@ export default function VenueTypeFilter({ defaultValue, onSearch }) {
             {type}
           </button>
         ))}
-        {extraTypes.map(type => (
+        {extraChip && (
           <button
-            key={type}
             type="button"
-            className={`venue-type-chip${selected.has(type) ? ' venue-type-chip--active' : ''}`}
-            onClick={() => toggle(type)}
+            className={`venue-type-chip${selected.has(extraChip) ? ' venue-type-chip--active' : ''}`}
+            onClick={() => toggle(extraChip)}
           >
-            {type}
+            {extraChip}
           </button>
-        ))}
+        )}
       </div>
       <div className="venue-filter-custom">
         <input

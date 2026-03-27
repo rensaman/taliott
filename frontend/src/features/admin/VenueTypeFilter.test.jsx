@@ -63,21 +63,40 @@ describe('VenueTypeFilter', () => {
     expect(onSearch).toHaveBeenLastCalledWith([]);
   });
 
-  it('adds custom type as a chip and selects it', () => {
+  it('does not add custom search term as a chip', () => {
     render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
     fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Rooftop' } });
     fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    const chip = screen.getByRole('button', { name: 'rooftop' });
-    expect(chip).toBeInTheDocument();
-    expect(chip).toHaveClass('venue-type-chip--active');
+    expect(screen.queryByRole('button', { name: 'rooftop' })).not.toBeInTheDocument();
   });
 
-  it('clears the custom input after submit', () => {
+  it('retains the custom input after submit so the active search is visible', () => {
     render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
     const input = screen.getByLabelText(/venue type/i);
     fireEvent.change(input, { target: { value: 'Club' } });
     fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    expect(input).toHaveValue('');
+    expect(input).toHaveValue('club');
+  });
+
+  it('custom search deactivates all chip selections', () => {
+    const onSearch = vi.fn();
+    render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('venue-type-chip--active');
+    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Club' } });
+    fireEvent.submit(screen.getByTestId('venue-type-filter'));
+    expect(screen.getByRole('button', { name: 'Bar' })).not.toHaveClass('venue-type-chip--active');
+    expect(onSearch).toHaveBeenLastCalledWith(['club']);
+  });
+
+  it('clicking a chip clears the custom input and switches to chip mode', () => {
+    const onSearch = vi.fn();
+    render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
+    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Club' } });
+    fireEvent.submit(screen.getByTestId('venue-type-filter'));
+    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    expect(screen.getByLabelText(/venue type/i)).toHaveValue('');
+    expect(onSearch).toHaveBeenLastCalledWith(['bar']);
   });
 
   describe('i18n', () => {
