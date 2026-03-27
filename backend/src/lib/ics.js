@@ -21,6 +21,19 @@ function toICalLocalDate(date, timezone) {
 }
 
 /**
+ * Escapes text for use in an iCal property value (RFC 5545).
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeICalText(text) {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+}
+
+/**
  * Generates a valid iCal (.ics) string for a finalized event.
  * DTSTART/DTEND include a TZID matching the event timezone.
  *
@@ -28,13 +41,19 @@ function toICalLocalDate(date, timezone) {
  *   slot: { startsAt: Date, endsAt: Date },
  *   venue: { name: string, address?: string }|null,
  *   eventName: string,
- *   timezone?: string
+ *   timezone?: string,
+ *   durationMinutes?: number,
+ *   notes?: string
  * }} opts
  * @returns {string}
  */
-export function generateICS({ slot, venue, eventName, timezone = 'UTC' }) {
-  const dtStart = toICalLocalDate(new Date(slot.startsAt), timezone);
-  const dtEnd = toICalLocalDate(new Date(slot.endsAt), timezone);
+export function generateICS({ slot, venue, eventName, timezone = 'UTC', durationMinutes, notes }) {
+  const startDate = new Date(slot.startsAt);
+  const dtStart = toICalLocalDate(startDate, timezone);
+  const endDate = durationMinutes
+    ? new Date(startDate.getTime() + durationMinutes * 60 * 1000)
+    : new Date(slot.endsAt);
+  const dtEnd = toICalLocalDate(endDate, timezone);
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -52,6 +71,10 @@ export function generateICS({ slot, venue, eventName, timezone = 'UTC' }) {
   if (venueName) {
     const location = venueAddress ? `${venueName}, ${venueAddress}` : venueName;
     lines.push(`LOCATION:${location}`);
+  }
+
+  if (notes) {
+    lines.push(`DESCRIPTION:${escapeICalText(notes)}`);
   }
 
   lines.push('END:VEVENT', 'END:VCALENDAR');

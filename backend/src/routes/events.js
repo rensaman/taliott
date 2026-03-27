@@ -276,7 +276,7 @@ router.get('/:adminToken/venues', async (req, res) => {
 
 router.post('/:adminToken/finalize', async (req, res) => {
   const { adminToken } = req.params;
-  const { slot_id, venue_id, venue_name, venue_address } = req.body;
+  const { slot_id, venue_id, venue_name, venue_address, duration_minutes, notes } = req.body;
 
   if (!slot_id) {
     return res.status(400).json({ error: 'slot_id is required' });
@@ -291,6 +291,13 @@ router.post('/:adminToken/finalize', async (req, res) => {
   }
   if (venue_name !== undefined && !trimmedVenueName) {
     return res.status(400).json({ error: 'venue_name must not be empty when provided' });
+  }
+
+  if (duration_minutes !== undefined) {
+    const dm = Number(duration_minutes);
+    if (!Number.isInteger(dm) || dm <= 0) {
+      return res.status(400).json({ error: 'duration_minutes must be a positive integer' });
+    }
   }
 
   let event;
@@ -319,6 +326,7 @@ router.post('/:adminToken/finalize', async (req, res) => {
   }
 
   try {
+    const trimmedNotes = typeof notes === 'string' ? notes.trim() : null;
     const updatedEvent = await getPrisma().event.update({
       where: { id: event.id },
       data: {
@@ -327,11 +335,15 @@ router.post('/:adminToken/finalize', async (req, res) => {
         finalVenueId: venue_id ?? null,
         finalVenueName: trimmedVenueName ?? null,
         finalVenueAddress: trimmedVenueAddress ?? null,
+        finalDurationMinutes: duration_minutes != null ? Number(duration_minutes) : null,
+        finalNotes: trimmedNotes || null,
       },
     });
-    // Attach the updated custom venue fields so notifications can use them
+    // Attach updated fields so notifications can use them
     event.finalVenueName = updatedEvent.finalVenueName;
     event.finalVenueAddress = updatedEvent.finalVenueAddress;
+    event.finalDurationMinutes = updatedEvent.finalDurationMinutes;
+    event.finalNotes = updatedEvent.finalNotes;
   } catch (err) {
     console.error('Failed to finalize event:', err);
     return res.status(500).json({ error: 'Internal server error' });

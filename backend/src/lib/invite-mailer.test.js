@@ -304,6 +304,19 @@ describe('buildFinalizationEmail', () => {
     expect(msg.text).toContain('Custom Hall');
     expect(msg.text).toContain('5 Oak St');
   });
+
+  it('body includes notes when event has finalNotes', () => {
+    const eventWithNotes = { ...event, finalNotes: 'Please bring ID' };
+    const msg = buildFinalizationEmail(participant, eventWithNotes, slot, venue);
+    expect(msg.text).toContain('Please bring ID');
+  });
+
+  it('body omits notes section when event has no finalNotes', () => {
+    const msg = buildFinalizationEmail(participant, event, slot, venue);
+    expect(msg.text).not.toContain('Please bring ID');
+    // no notes label present either
+    expect(msg.text).not.toMatch(/organizer.*note|note.*organizer/i);
+  });
 });
 
 describe('buildOrganizerFinalizationEmail', () => {
@@ -327,6 +340,17 @@ describe('buildOrganizerFinalizationEmail', () => {
     const msg = buildOrganizerFinalizationEmail(event, slot, venue);
     expect(msg.attachments).toBeDefined();
     expect(msg.attachments[0].filename).toBe('event.ics');
+  });
+
+  it('body includes notes when event has finalNotes', () => {
+    const eventWithNotes = { ...event, finalNotes: 'Dress code: smart casual' };
+    const msg = buildOrganizerFinalizationEmail(eventWithNotes, slot, venue);
+    expect(msg.text).toContain('Dress code: smart casual');
+  });
+
+  it('body omits notes section when event has no finalNotes', () => {
+    const msg = buildOrganizerFinalizationEmail(event, slot, venue);
+    expect(msg.text).not.toMatch(/organizer.*note|note.*organizer/i);
   });
 });
 

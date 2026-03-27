@@ -46,6 +46,7 @@
     "when": "Mikor: {{slot}}",
     "venueKnown": "Helyszín: {{venue}}",
     "venueTBD": "Helyszín: Még nem meghatározott",
+    "notes": "Szervező megjegyzése: {{notes}}",
     "calendarAttached": "A naptármeghívó csatolva van."
   },
   "organizerFinalizationEmail": {
@@ -56,6 +57,7 @@
     "venueKnown": "Helyszín: {{venue}}",
     "venueTBD": "Helyszín: Még nem meghatározott",
     "manageEvent": "Kezeld az eseményedet: {{adminUrl}}",
+    "notes": "Szervező megjegyzése: {{notes}}",
     "calendarAttached": "A naptármeghívó csatolva van."
   }
 }

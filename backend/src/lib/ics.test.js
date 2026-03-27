@@ -81,4 +81,45 @@ describe('generateICS', () => {
     const ics = generateICS({ slot, venue, eventName: 'Summer Meetup' });
     expect(ics).toContain('VERSION:2.0');
   });
+
+  describe('durationMinutes', () => {
+    it('uses durationMinutes to compute DTEND when provided', () => {
+      // slot starts 09:00 UTC = 11:00 Europe/Paris; +90 min → 12:30 Europe/Paris
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup', timezone: 'Europe/Paris', durationMinutes: 90 });
+      expect(ics).toContain('DTEND;TZID=Europe/Paris:20250615T123000');
+    });
+
+    it('falls back to slot.endsAt when durationMinutes is not provided', () => {
+      // slot.endsAt = 10:00 UTC = 12:00 Europe/Paris
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup', timezone: 'Europe/Paris' });
+      expect(ics).toContain('DTEND;TZID=Europe/Paris:20250615T120000');
+    });
+
+    it('durationMinutes does not affect DTSTART', () => {
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup', timezone: 'UTC', durationMinutes: 45 });
+      expect(ics).toContain('DTSTART;TZID=UTC:20250615T090000');
+    });
+  });
+
+  describe('notes / DESCRIPTION', () => {
+    it('includes DESCRIPTION when notes provided', () => {
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup', notes: 'Bring a hat' });
+      expect(ics).toContain('DESCRIPTION:Bring a hat');
+    });
+
+    it('omits DESCRIPTION when notes is not provided', () => {
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup' });
+      expect(ics).not.toContain('DESCRIPTION:');
+    });
+
+    it('omits DESCRIPTION when notes is an empty string', () => {
+      const ics = generateICS({ slot, venue, eventName: 'Summer Meetup', notes: '' });
+      expect(ics).not.toContain('DESCRIPTION:');
+    });
+
+    it('escapes backslashes and commas in notes', () => {
+      const ics = generateICS({ slot, venue, eventName: 'Test', notes: 'Bring a coat\\hat, and umbrella' });
+      expect(ics).toContain('DESCRIPTION:Bring a coat\\\\hat\\, and umbrella');
+    });
+  });
 });

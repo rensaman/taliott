@@ -52,6 +52,8 @@ export default function FinalizePanel({
   }, [slots]);
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -69,6 +71,8 @@ export default function FinalizePanel({
         body.venue_name = venueName;
         if (venueAddress) body.venue_address = venueAddress;
       }
+      if (durationMinutes) body.duration_minutes = Number(durationMinutes);
+      if (notes.trim()) body.notes = notes.trim();
 
       const res = await fetch(`/api/events/${adminToken}/finalize`, {
         method: 'POST',
@@ -176,6 +180,35 @@ export default function FinalizePanel({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="finalize-duration-row">
+          <label htmlFor="duration-select">{t('finalize.durationLegend')}</label>
+          <select
+            id="duration-select"
+            value={durationMinutes}
+            onChange={e => setDurationMinutes(e.target.value)}
+            data-testid="duration-select"
+          >
+            <option value="">{t('finalize.durationDefault')}</option>
+            <option value="30">{t('finalize.duration30')}</option>
+            <option value="60">{t('finalize.duration60')}</option>
+            <option value="90">{t('finalize.duration90')}</option>
+            <option value="120">{t('finalize.duration120')}</option>
+            <option value="180">{t('finalize.duration180')}</option>
+          </select>
+        </div>
+
+        <div className="finalize-notes-row">
+          <label htmlFor="finalize-notes">{t('finalize.notesLabel')}</label>
+          <textarea
+            id="finalize-notes"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder={t('finalize.notesPlaceholder')}
+            rows={3}
+            data-testid="finalize-notes"
+          />
         </div>
 
         {error && <p role="alert" className="admin-error-inline">{error}</p>}

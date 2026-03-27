@@ -49,8 +49,10 @@ model Event {
   status           EventStatus @default(open)
   finalSlotId      String?
   finalVenueId     String?
-  finalVenueName   String?
+  finalVenueName    String?
   finalVenueAddress String?
+  finalDurationMinutes Int?
+  finalNotes        String?
   lang             String      @default("en")
   createdAt        DateTime    @default(now())
 

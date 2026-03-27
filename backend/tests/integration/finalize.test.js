@@ -281,6 +281,65 @@ describe('GET /api/participate/:participantId — finalized event returns final 
   });
 });
 
+describe('POST /api/events/:adminToken/finalize — duration and notes', () => {
+  it('stores duration_minutes as finalDurationMinutes on the event', async () => {
+    const { admin_token, slots } = await createEvent();
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id, duration_minutes: 90 });
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalDurationMinutes).toBe(90);
+  });
+
+  it('stores notes as finalNotes on the event', async () => {
+    const { admin_token, slots } = await createEvent();
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id, notes: 'Bring your ID' });
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalNotes).toBe('Bring your ID');
+  });
+
+  it('returns 400 when duration_minutes is not a positive integer', async () => {
+    const { admin_token, slots } = await createEvent();
+    const res = await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id, duration_minutes: -10 });
+    expect(res.status).toBe(400);
+  });
+
+  it('notes appear in finalization email body', async () => {
+    const { admin_token, slots } = await createEvent();
+    vi.clearAllMocks();
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id, notes: 'Please bring ID' });
+    await new Promise(r => setTimeout(r, 50));
+    expect(sendEmail).toHaveBeenCalled();
+    for (const [msg] of sendEmail.mock.calls) {
+      expect(msg.text).toContain('Please bring ID');
+    }
+  });
+
+  it('finalDurationMinutes defaults to null when not provided', async () => {
+    const { admin_token, slots } = await createEvent();
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id });
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalDurationMinutes).toBeNull();
+  });
+
+  it('finalNotes defaults to null when not provided', async () => {
+    const { admin_token, slots } = await createEvent();
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slots[0].id });
+    const event = await prisma.event.findFirst({ where: { adminToken: admin_token } });
+    expect(event.finalNotes).toBeNull();
+  });
+});
+
 describe('GET /api/events/:adminToken returns slots array', () => {
   it('includes slots array in dashboard response', async () => {
     const { admin_token } = await createEvent();

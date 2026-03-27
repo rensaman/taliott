@@ -191,9 +191,16 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
     : t(l, 'finalizationEmail.venueTBD');
   const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
 
+  const safeNotes = event.finalNotes ? sanitizeField(event.finalNotes) : null;
+
   let icsContent = null;
   try {
-    icsContent = generateICS({ slot, venue: icsVenue, eventName, timezone: event.timezone ?? 'UTC' });
+    icsContent = generateICS({
+      slot, venue: icsVenue, eventName,
+      timezone: event.timezone ?? 'UTC',
+      durationMinutes: event.finalDurationMinutes ?? undefined,
+      notes: safeNotes ?? undefined,
+    });
   } catch (err) {
     console.error('[invite-mailer] ICS generation failed:', err);
   }
@@ -202,19 +209,23 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
     ? t(l, 'finalizationEmail.greetingNamed', { name: recipientName })
     : t(l, 'finalizationEmail.greeting');
 
+  const lines = [
+    greeting,
+    ``,
+    t(l, 'finalizationEmail.finalized', { eventName }),
+    ``,
+    t(l, 'finalizationEmail.when', { slot: slotStart }),
+    venueLine,
+  ];
+  if (safeNotes) {
+    lines.push(``, t(l, 'finalizationEmail.notes', { notes: safeNotes }));
+  }
+  lines.push(``, t(l, 'finalizationEmail.calendarAttached'));
+
   return {
     to: recipient.email,
     subject: t(l, 'finalizationEmail.subject', { eventName }),
-    text: [
-      greeting,
-      ``,
-      t(l, 'finalizationEmail.finalized', { eventName }),
-      ``,
-      t(l, 'finalizationEmail.when', { slot: slotStart }),
-      venueLine,
-      ``,
-      t(l, 'finalizationEmail.calendarAttached'),
-    ].join('\n'),
+    text: lines.join('\n'),
     attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
 }
@@ -233,28 +244,42 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
     : t(l, 'organizerFinalizationEmail.venueTBD');
   const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
 
+  const safeNotes = event.finalNotes ? sanitizeField(event.finalNotes) : null;
+
   let icsContent = null;
   try {
-    icsContent = generateICS({ slot, venue: icsVenue, eventName, timezone: event.timezone ?? 'UTC' });
+    icsContent = generateICS({
+      slot, venue: icsVenue, eventName,
+      timezone: event.timezone ?? 'UTC',
+      durationMinutes: event.finalDurationMinutes ?? undefined,
+      notes: safeNotes ?? undefined,
+    });
   } catch (err) {
     console.error('[invite-mailer] ICS generation failed:', err);
   }
 
+  const lines = [
+    t(l, 'organizerFinalizationEmail.greeting'),
+    ``,
+    t(l, 'organizerFinalizationEmail.finalized', { eventName }),
+    ``,
+    t(l, 'organizerFinalizationEmail.when', { slot: slotStart }),
+    venueLine,
+  ];
+  if (safeNotes) {
+    lines.push(``, t(l, 'organizerFinalizationEmail.notes', { notes: safeNotes }));
+  }
+  lines.push(
+    ``,
+    t(l, 'organizerFinalizationEmail.manageEvent', { adminUrl: `${baseUrl}/admin/${event.adminToken}` }),
+    ``,
+    t(l, 'organizerFinalizationEmail.calendarAttached'),
+  );
+
   return {
     to: event.organizerEmail,
     subject: t(l, 'organizerFinalizationEmail.subject', { eventName }),
-    text: [
-      t(l, 'organizerFinalizationEmail.greeting'),
-      ``,
-      t(l, 'organizerFinalizationEmail.finalized', { eventName }),
-      ``,
-      t(l, 'organizerFinalizationEmail.when', { slot: slotStart }),
-      venueLine,
-      ``,
-      t(l, 'organizerFinalizationEmail.manageEvent', { adminUrl: `${baseUrl}/admin/${event.adminToken}` }),
-      ``,
-      t(l, 'organizerFinalizationEmail.calendarAttached'),
-    ].join('\n'),
+    text: lines.join('\n'),
     attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
 }

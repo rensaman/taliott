@@ -46,6 +46,7 @@
     "when": "When: {{slot}}",
     "venueKnown": "Venue: {{venue}}",
     "venueTBD": "Venue: TBD",
+    "notes": "Note from the organizer: {{notes}}",
     "calendarAttached": "A calendar invite is attached."
   },
   "organizerFinalizationEmail": {
@@ -56,6 +57,7 @@
     "venueKnown": "Venue: {{venue}}",
     "venueTBD": "Venue: TBD",
     "manageEvent": "Manage your event: {{adminUrl}}",
+    "notes": "Note from the organizer: {{notes}}",
     "calendarAttached": "A calendar invite is attached."
   }
 }
