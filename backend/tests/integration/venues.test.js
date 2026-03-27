@@ -24,8 +24,9 @@ const BASE_EVENT = {
 
 const MOCK_OVERPASS_RESPONSE = {
   elements: [
-    { id: 111, lat: 51.501, lon: -0.102, tags: { name: 'The Restaurant', amenity: 'restaurant' } },
-    { id: 222, lat: 51.508, lon: -0.115, tags: { name: 'Cafe Bistro', amenity: 'restaurant' } },
+    // centroid ≈ (51.5, -0.1); both venues within 800 m
+    { id: 111, lat: 51.501, lon: -0.102, tags: { name: 'The Restaurant', amenity: 'restaurant' } }, // ~135 m
+    { id: 222, lat: 51.503, lon: -0.106, tags: { name: 'Cafe Bistro', amenity: 'restaurant' } },   // ~476 m
   ],
 };
 
@@ -143,11 +144,11 @@ describe('GET /api/events/:adminToken/venues', () => {
   });
 
   it('recalculates distanceM from the updated centroid when a new participant provides a location', async () => {
-    // Venues near Budapest — one close to P1, one close to P2
+    // P1 and P2 ~960 m apart; both venues within 800 m of every centroid position
     const MOCK_VENUES = {
       elements: [
-        { id: 301, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'restaurant' } },
-        { id: 302, lat: 47.590, lon: 19.140, tags: { name: 'Near P2', amenity: 'restaurant' } },
+        { id: 301, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'restaurant' } }, // ~134 m from P1
+        { id: 302, lat: 47.505, lon: 19.057, tags: { name: 'Near P2', amenity: 'restaurant' } }, // ~733 m from P1, ~301 m from midpoint
       ],
     };
 
@@ -163,7 +164,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     // Set the throw-stub BEFORE the PATCH so the async SSE broadcast uses it too
     // (Navitia calls will throw → haversine fallback; Overpass must not be called)
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
-    await giveLocation(participants[1].id, 47.600, 19.150);
+    await giveLocation(participants[1].id, 47.506, 19.058); // centroid shifts to ~(47.503, 19.054)
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     // 200 proves cache was hit (an Overpass miss would have returned 502 or thrown)
@@ -175,14 +176,14 @@ describe('GET /api/events/:adminToken/venues', () => {
   });
 
   it('reflects the updated sort order when the centroid shifts after a new participant responds', async () => {
-    // P1 location: (47.500, 19.050) — Near P1 venue at (47.501, 19.051) is ~134 m away
-    // P2 location: (47.600, 19.150) — Near P2 venue at (47.590, 19.140) is ~1.3 km away from P1
-    // After P2 joins, centroid ≈ midpoint (47.550, 19.100):
-    //   dist to Near P1 ≈ 6 580 m, dist to Near P2 ≈ 5 370 m  → order reverses
+    // P1: (47.500, 19.050), P2: (47.506, 19.058) — ~960 m apart
+    // Near P1 at (47.499, 19.048): ~176 m from P1-centroid, ~600 m from midpoint (47.503, 19.054)
+    // Near P2 at (47.502, 19.053): ~301 m from P1-centroid, ~130 m from midpoint → order reverses
+    // Both venues stay within 800 m throughout
     const MOCK_ORDER_VENUES = {
       elements: [
-        { id: 401, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'cafe' } },
-        { id: 402, lat: 47.590, lon: 19.140, tags: { name: 'Near P2', amenity: 'cafe' } },
+        { id: 401, lat: 47.499, lon: 19.048, tags: { name: 'Near P1', amenity: 'cafe' } },
+        { id: 402, lat: 47.502, lon: 19.053, tags: { name: 'Near P2', amenity: 'cafe' } },
       ],
     };
 
@@ -194,9 +195,9 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res1.status).toBe(200);
     expect(res1.body.venues[0].name).toBe('Near P1');
 
-    // Participant 2 joins far away → centroid shifts toward midpoint
+    // Participant 2 joins → centroid shifts to ~(47.503, 19.054), Near P2 becomes closer
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
-    await giveLocation(participants[1].id, 47.600, 19.150);
+    await giveLocation(participants[1].id, 47.506, 19.058);
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=cafe`);
     expect(res2.status).toBe(200);

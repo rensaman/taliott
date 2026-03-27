@@ -1,5 +1,5 @@
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-const SEARCH_RADIUS_M = 2000;
+export const MAX_VENUE_DISTANCE_M = Number(process.env.MAX_VENUE_DISTANCE_M) || 800;
 
 export function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -24,7 +24,7 @@ export async function fetchVenuesFromOverpass(venueType, lat, lng, fetchFn = fet
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
 
-  const query = `[out:json];node(around:${SEARCH_RADIUS_M},${lat},${lng})[amenity=${venueType}];out body;`;
+  const query = `[out:json];node(around:${MAX_VENUE_DISTANCE_M},${lat},${lng})[amenity=${venueType}];out body;`;
   try {
     const res = await fetchFn(OVERPASS_URL, {
       method: 'POST',

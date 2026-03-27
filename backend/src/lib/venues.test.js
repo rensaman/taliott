@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { haversineDistance, sortVenues, fetchVenuesFromOverpass } from './venues.js';
+import { haversineDistance, sortVenues, fetchVenuesFromOverpass, MAX_VENUE_DISTANCE_M } from './venues.js';
 
 describe('haversineDistance', () => {
   it('returns 0 for identical points', () => {
@@ -63,7 +63,7 @@ describe('sortVenues', () => {
 });
 
 describe('fetchVenuesFromOverpass', () => {
-  it('calls Overpass with correct query containing venue type and coordinates', async () => {
+  it('calls Overpass with correct query containing venue type, coordinates, and configured radius', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ elements: [] }),
@@ -71,10 +71,12 @@ describe('fetchVenuesFromOverpass', () => {
     await fetchVenuesFromOverpass('restaurant', 51.5, -0.1, mockFetch);
     expect(mockFetch).toHaveBeenCalledOnce();
     const [url, opts] = mockFetch.mock.calls[0];
+    const body = decodeURIComponent(opts.body);
     expect(url).toContain('overpass-api.de');
-    expect(opts.body).toContain('amenity%3Drestaurant');
-    expect(opts.body).toContain('51.5');
-    expect(opts.body).toContain('-0.1');
+    expect(body).toContain('amenity=restaurant');
+    expect(body).toContain('51.5');
+    expect(body).toContain('-0.1');
+    expect(body).toContain(`around:${MAX_VENUE_DISTANCE_M}`);
   });
 
   it('maps Overpass elements to venue objects with computed distance', async () => {

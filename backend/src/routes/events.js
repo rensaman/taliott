@@ -4,7 +4,7 @@ import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
-import { fetchVenuesFromOverpass, sortVenues, haversineDistance } from '../lib/venues.js';
+import { fetchVenuesFromOverpass, sortVenues, haversineDistance, MAX_VENUE_DISTANCE_M } from '../lib/venues.js';
 import { subscribe } from '../lib/sse.js';
 
 const router = Router();
@@ -251,7 +251,8 @@ router.get('/:adminToken/venues', async (req, res) => {
         ...v,
         distanceM: Math.round(haversineDistance(centroid.lat, centroid.lng, v.latitude, v.longitude)),
       }));
-      return res.json({ venues: sortVenues(recalculated.map(toVenueDto)) });
+      const withinRange = recalculated.filter(v => v.distanceM <= MAX_VENUE_DISTANCE_M);
+      return res.json({ venues: sortVenues(withinRange.map(toVenueDto)) });
     }
 
     const fetched = await fetchVenuesFromOverpass(venueType, centroid.lat, centroid.lng);
@@ -265,7 +266,8 @@ router.get('/:adminToken/venues', async (req, res) => {
     const stored = await getPrisma().venue.findMany({
       where: { eventId: event.id, venueType },
     });
-    return res.json({ venues: sortVenues(stored.map(toVenueDto)) });
+    const withinRange = stored.filter(v => v.distanceM <= MAX_VENUE_DISTANCE_M);
+    return res.json({ venues: sortVenues(withinRange.map(toVenueDto)) });
   } catch (err) {
     console.error('Failed to fetch venues:', err);
     return res.status(502).json({ error: 'Venue service unavailable' });
