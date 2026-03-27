@@ -109,6 +109,74 @@ describe('FinalizePanel', () => {
     });
   });
 
+  it('renders the duration selector', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('duration-select')).toBeInTheDocument();
+  });
+
+  it('renders the notes textarea', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('finalize-notes')).toBeInTheDocument();
+  });
+
+  it('submits duration_minutes when a duration is selected', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.change(screen.getByTestId('duration-select'), { target: { value: '90' } });
+    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+
+    await waitFor(() => {
+      const [, options] = fetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.duration_minutes).toBe(90);
+    });
+  });
+
+  it('does not submit duration_minutes when no duration is selected', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+
+    await waitFor(() => {
+      const [, options] = fetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.duration_minutes).toBeUndefined();
+    });
+  });
+
+  it('submits notes when entered', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.change(screen.getByTestId('finalize-notes'), { target: { value: 'Please bring ID' } });
+    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+
+    await waitFor(() => {
+      const [, options] = fetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.notes).toBe('Please bring ID');
+    });
+  });
+
+  it('does not submit notes when textarea is empty', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+
+    await waitFor(() => {
+      const [, options] = fetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.notes).toBeUndefined();
+    });
+  });
+
   it('shows error message when finalization fails', async () => {
     fetch.mockResolvedValue({
       ok: false,
