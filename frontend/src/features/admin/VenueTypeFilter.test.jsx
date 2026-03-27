@@ -5,98 +5,109 @@ import i18n from '../../i18n.js';
 import enCommon from '../../locales/en/common.json';
 
 describe('VenueTypeFilter', () => {
-  it('renders preset type chips', () => {
+  it('renders the three primary chips', () => {
     render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Restaurant' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Bar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pub' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cafe' })).toBeInTheDocument();
   });
 
-  it('renders search button', () => {
+  it('does not render extended chips initially', () => {
     render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Bar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Nightclub' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cinema' })).not.toBeInTheDocument();
   });
 
-  it('renders custom type input with aria-label', () => {
+  it('renders a "Show more" toggle button initially', () => {
     render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-    expect(screen.getByLabelText(/venue type/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /show more categories/i })).toBeInTheDocument();
   });
 
-  it('calls onSearch with array of lowercase values when a chip is clicked', () => {
+  it('shows extended chips after clicking "Show more"', () => {
+    render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /show more categories/i }));
+    expect(screen.getByRole('button', { name: 'Bar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Biergarten' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fast Food' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Food Court' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ice Cream' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nightclub' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cinema' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Theatre' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Library' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Community Centre' })).toBeInTheDocument();
+  });
+
+  it('toggle button label switches to "Show fewer" when expanded', () => {
+    render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /show more categories/i }));
+    expect(screen.getByRole('button', { name: /show fewer categories/i })).toBeInTheDocument();
+  });
+
+  it('hides extended chips after collapsing', () => {
+    render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /show more categories/i }));
+    fireEvent.click(screen.getByRole('button', { name: /show fewer categories/i }));
+    expect(screen.queryByRole('button', { name: 'Bar' })).not.toBeInTheDocument();
+  });
+
+  it('calls onSearch with lowercase value when a primary chip is clicked', () => {
     const onSearch = vi.fn();
     render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
     fireEvent.click(screen.getByRole('button', { name: 'Restaurant' }));
     expect(onSearch).toHaveBeenCalledWith(['restaurant']);
   });
 
-  it('calls onSearch when form is submitted with custom type', () => {
+  it('calls onSearch with lowercase value when an extended chip is clicked', () => {
     const onSearch = vi.fn();
     render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
-    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Club' } });
-    fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    expect(onSearch).toHaveBeenCalledWith(['club']);
+    fireEvent.click(screen.getByRole('button', { name: /show more categories/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fast Food' }));
+    expect(onSearch).toHaveBeenCalledWith(['fast_food']);
   });
 
-  it('applies active class to the selected chip', () => {
-    render(<VenueTypeFilter defaultValue="restaurant" onSearch={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Restaurant' })).toHaveClass('venue-type-chip--active');
-    expect(screen.getByRole('button', { name: 'Bar' })).not.toHaveClass('venue-type-chip--active');
+  it('applies active class to selected chip', () => {
+    render(<VenueTypeFilter defaultValue="cafe" onSearch={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Cafe' })).toHaveClass('venue-type-chip--active');
+    expect(screen.getByRole('button', { name: 'Pub' })).not.toHaveClass('venue-type-chip--active');
   });
 
   it('allows multiple chips to be active (OR logic)', () => {
     const onSearch = vi.fn();
     render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cafe' }));
-    expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('venue-type-chip--active');
+    expect(screen.getByRole('button', { name: 'Pub' })).toHaveClass('venue-type-chip--active');
     expect(screen.getByRole('button', { name: 'Cafe' })).toHaveClass('venue-type-chip--active');
-    expect(onSearch).toHaveBeenLastCalledWith(expect.arrayContaining(['bar', 'cafe']));
+    expect(onSearch).toHaveBeenLastCalledWith(expect.arrayContaining(['pub', 'cafe']));
   });
 
   it('deselects a chip when clicked again', () => {
     const onSearch = vi.fn();
     render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
-    expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('venue-type-chip--active');
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
-    expect(screen.getByRole('button', { name: 'Bar' })).not.toHaveClass('venue-type-chip--active');
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
+    expect(screen.getByRole('button', { name: 'Pub' })).toHaveClass('venue-type-chip--active');
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
+    expect(screen.getByRole('button', { name: 'Pub' })).not.toHaveClass('venue-type-chip--active');
     expect(onSearch).toHaveBeenLastCalledWith([]);
   });
 
-  it('does not add custom search term as a chip', () => {
-    render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Rooftop' } });
-    fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    expect(screen.queryByRole('button', { name: 'rooftop' })).not.toBeInTheDocument();
+  it('pre-selects chip matching defaultValue', () => {
+    render(<VenueTypeFilter defaultValue="restaurant" onSearch={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Restaurant' })).toHaveClass('venue-type-chip--active');
   });
 
-  it('retains the custom input after submit so the active search is visible', () => {
-    render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-    const input = screen.getByLabelText(/venue type/i);
-    fireEvent.change(input, { target: { value: 'Club' } });
-    fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    expect(input).toHaveValue('club');
+  it('pre-selects extended chip matching defaultValue and expands the section', () => {
+    render(<VenueTypeFilter defaultValue="cinema" onSearch={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Cinema' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cinema' })).toHaveClass('venue-type-chip--active');
   });
 
-  it('custom search deactivates all chip selections', () => {
-    const onSearch = vi.fn();
-    render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
-    expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('venue-type-chip--active');
-    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Club' } });
-    fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    expect(screen.getByRole('button', { name: 'Bar' })).not.toHaveClass('venue-type-chip--active');
-    expect(onSearch).toHaveBeenLastCalledWith(['club']);
-  });
-
-  it('clicking a chip clears the custom input and switches to chip mode', () => {
-    const onSearch = vi.fn();
-    render(<VenueTypeFilter defaultValue="" onSearch={onSearch} />);
-    fireEvent.change(screen.getByLabelText(/venue type/i), { target: { value: 'Club' } });
-    fireEvent.submit(screen.getByTestId('venue-type-filter'));
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
-    expect(screen.getByLabelText(/venue type/i)).toHaveValue('');
-    expect(onSearch).toHaveBeenLastCalledWith(['bar']);
+  it('shows an extra chip in primary tier for unknown defaultValue', () => {
+    render(<VenueTypeFilter defaultValue="rooftop_bar" onSearch={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'rooftop_bar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'rooftop_bar' })).toHaveClass('venue-type-chip--active');
   });
 
   describe('i18n', () => {
@@ -105,16 +116,17 @@ describe('VenueTypeFilter', () => {
       i18n.addResourceBundle('en', 'common', enCommon, true, true);
     });
 
-    it('uses i18n for the search button label', () => {
-      i18n.addResourceBundle('en', 'common', { venueTypeFilter: { searchBtn: '__SEARCH_BTN_TEST__' } }, true, true);
+    it('uses i18n for the show more button label', () => {
+      i18n.addResourceBundle('en', 'common', { venueTypeFilter: { showMore: '__SHOW_MORE_TEST__' } }, true, true);
       render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-      expect(screen.getByRole('button', { name: '__SEARCH_BTN_TEST__' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '__SHOW_MORE_TEST__' })).toBeInTheDocument();
     });
 
-    it('uses i18n for the input placeholder', () => {
-      i18n.addResourceBundle('en', 'common', { venueTypeFilter: { placeholder: '__PLACEHOLDER_TEST__' } }, true, true);
+    it('uses i18n for the show fewer button label', () => {
+      i18n.addResourceBundle('en', 'common', { venueTypeFilter: { showMore: '__EXPAND__', showLess: '__SHOW_LESS_TEST__' } }, true, true);
       render(<VenueTypeFilter defaultValue="" onSearch={vi.fn()} />);
-      expect(screen.getByLabelText(/venue type/i)).toHaveAttribute('placeholder', '__PLACEHOLDER_TEST__');
+      fireEvent.click(screen.getByRole('button', { name: '__EXPAND__' }));
+      expect(screen.getByRole('button', { name: '__SHOW_LESS_TEST__' })).toBeInTheDocument();
     });
   });
 });

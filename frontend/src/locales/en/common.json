@@ -253,9 +253,23 @@
     "showMore": "Show {{count}} more"
   },
   "venueTypeFilter": {
-    "placeholder": "or search your own type…",
-    "ariaLabel": "Venue type",
-    "searchBtn": "Search"
+    "showMore": "Show more categories",
+    "showLess": "Show fewer categories",
+    "types": {
+      "restaurant": "Restaurant",
+      "pub": "Pub",
+      "cafe": "Cafe",
+      "bar": "Bar",
+      "biergarten": "Biergarten",
+      "fast_food": "Fast Food",
+      "food_court": "Food Court",
+      "ice_cream": "Ice Cream",
+      "nightclub": "Nightclub",
+      "cinema": "Cinema",
+      "theatre": "Theatre",
+      "library": "Library",
+      "community_centre": "Community Centre"
+    }
   },
   "resend": {
     "heading": "Recover your link",

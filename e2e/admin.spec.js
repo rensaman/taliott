@@ -94,8 +94,8 @@ test('venue list section is visible on the admin dashboard', async ({ page, requ
   await expect(page.getByTestId('venue-list-section')).toBeVisible();
   await expect(page.getByRole('heading', { name: /venue recommendations/i })).toBeVisible();
   await expect(page.getByTestId('venue-type-filter')).toBeVisible();
-  // Filter input starts empty — venue type is entered during finalization
-  await expect(page.getByTestId('venue-type-input')).toHaveValue('');
+  // Primary chips are always visible; no free-text input
+  await expect(page.getByRole('button', { name: 'Restaurant' })).toBeVisible();
 });
 
 test('changing venue type filter triggers a new venue search', async ({ page, request }) => {
@@ -123,11 +123,10 @@ test('changing venue type filter triggers a new venue search', async ({ page, re
     });
   });
 
-  // Change the filter to 'bar' and submit
-  await page.getByTestId('venue-type-input').fill('bar');
-  await page.getByTestId('venue-search-btn').click();
+  // Select a venue type chip to trigger a search
+  await page.getByRole('button', { name: 'Restaurant' }).click();
 
-  await expect(page.getByTestId('venue-card').getByText('Test bar')).toBeVisible();
+  await expect(page.getByTestId('venue-card').getByText('Test restaurant')).toBeVisible();
   await expect(page.getByTestId('venue-card')).toBeVisible();
 });
 

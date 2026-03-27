@@ -99,21 +99,21 @@ describe('VenueList', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
     render(<VenueList adminToken="tok" defaultVenueType="" />);
     expect(fetch).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
     await waitFor(() => expect(screen.getByText('The Restaurant')).toBeInTheDocument());
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch.mock.calls[0][0]).toContain('venue_type=bar');
+    expect(fetch.mock.calls[0][0]).toContain('venue_type=pub');
   });
 
   it('fetches for each selected type when multiple chips are active (OR logic)', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
     render(<VenueList adminToken="tok" defaultVenueType="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: 'Cafe' }));
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
     const urls = fetch.mock.calls.map(c => c[0]);
-    expect(urls.some(u => u.includes('venue_type=bar'))).toBe(true);
+    expect(urls.some(u => u.includes('venue_type=pub'))).toBe(true);
     expect(urls.some(u => u.includes('venue_type=cafe'))).toBe(true);
   });
 
@@ -141,12 +141,12 @@ describe('VenueList', () => {
     expect(screen.getAllByTestId('venue-card')).toHaveLength(15);
     fireEvent.click(screen.getByRole('button', { name: /show 5 more/i }));
     expect(screen.getAllByTestId('venue-card')).toHaveLength(20);
-    expect(screen.queryByRole('button', { name: /show/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /show \d+ more/i })).not.toBeInTheDocument();
   });
 
   it('resets display limit to 10 when venue type filter changes', async () => {
-    const barVenues = Array.from({ length: 12 }, (_, i) => ({
-      id: `b${i}`, name: `Bar ${i}`, distanceM: 200 + i * 50, rating: null,
+    const pubVenues = Array.from({ length: 12 }, (_, i) => ({
+      id: `b${i}`, name: `Pub ${i}`, distanceM: 200 + i * 50, rating: null,
       latitude: 51.5, longitude: -0.1,
     }));
     const cafeVenues = Array.from({ length: 12 }, (_, i) => ({
@@ -154,19 +154,19 @@ describe('VenueList', () => {
       latitude: 51.5, longitude: -0.1,
     }));
     fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: barVenues }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: barVenues }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: pubVenues }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: pubVenues }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: cafeVenues }) });
 
     render(<VenueList adminToken="tok" defaultVenueType="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(10));
-    fireEvent.click(screen.getByRole('button', { name: /show/i }));
-    expect(screen.getAllByTestId('venue-card')).toHaveLength(12); // all bars visible
+    fireEvent.click(screen.getByRole('button', { name: /show \d+ more/i }));
+    expect(screen.getAllByTestId('venue-card')).toHaveLength(12); // all pubs visible
 
     // Adding a second category resets limit to 10
     fireEvent.click(screen.getByRole('button', { name: 'Cafe' }));
-    // 24 total merged (12 bar + 12 cafe), capped back to 10
+    // 24 total merged (12 pub + 12 cafe), capped back to 10
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(10));
   });
 
@@ -180,27 +180,27 @@ describe('VenueList', () => {
   });
 
   it('merges and deduplicates venues from multiple types sorted by distance', async () => {
-    const barVenues = [
-      { id: 'b1', name: 'Far Bar', distanceM: 800, rating: null, latitude: 51.5, longitude: -0.1 },
+    const pubVenues = [
+      { id: 'p1', name: 'Far Pub', distanceM: 800, rating: null, latitude: 51.5, longitude: -0.1 },
     ];
     const cafeVenues = [
       { id: 'c1', name: 'Near Cafe', distanceM: 100, rating: null, latitude: 51.5, longitude: -0.1 },
-      { id: 'b1', name: 'Far Bar', distanceM: 800, rating: null, latitude: 51.5, longitude: -0.1 }, // duplicate
+      { id: 'p1', name: 'Far Pub', distanceM: 800, rating: null, latitude: 51.5, longitude: -0.1 }, // duplicate
     ];
-    // Round 1: bar only (1 fetch). Round 2: bar + cafe (2 fetches in order: bar, cafe)
+    // Round 1: pub only (1 fetch). Round 2: pub + cafe (2 fetches in order: pub, cafe)
     fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: barVenues }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: barVenues }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: pubVenues }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: pubVenues }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ venues: cafeVenues }) });
 
     render(<VenueList adminToken="tok" defaultVenueType="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Bar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pub' }));
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(1));
     fireEvent.click(screen.getByRole('button', { name: 'Cafe' }));
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(2));
     const cards = screen.getAllByTestId('venue-card');
     expect(cards[0]).toHaveTextContent('Near Cafe');
-    expect(cards[1]).toHaveTextContent('Far Bar');
+    expect(cards[1]).toHaveTextContent('Far Pub');
   });
 });
 

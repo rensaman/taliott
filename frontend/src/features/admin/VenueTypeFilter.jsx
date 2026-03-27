@@ -1,75 +1,64 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const PRESET_TYPES = ['Restaurant', 'Bar', 'Cafe', 'Pub', 'Park', 'Museum'];
-const PRESET_LOWER_SET = new Set(PRESET_TYPES.map(t => t.toLowerCase()));
+const PRIMARY_TYPES = ['restaurant', 'pub', 'cafe'];
+const EXTENDED_TYPES = ['bar', 'biergarten', 'fast_food', 'food_court', 'ice_cream', 'nightclub', 'cinema', 'theatre', 'library', 'community_centre'];
+const KNOWN_TYPES = new Set([...PRIMARY_TYPES, ...EXTENDED_TYPES]);
 
 export default function VenueTypeFilter({ defaultValue, onSearch }) {
   const { t } = useTranslation();
   const initLower = defaultValue?.trim().toLowerCase() || '';
+  const isExtended = initLower && EXTENDED_TYPES.includes(initLower);
 
-  // Non-preset defaultValue gets a single extra chip; custom searches never become chips
-  const extraChip = initLower && !PRESET_LOWER_SET.has(initLower) ? initLower : null;
+  const extraChip = initLower && !KNOWN_TYPES.has(initLower) ? initLower : null;
 
   const [selected, setSelected] = useState(() =>
     initLower ? new Set([initLower]) : new Set()
   );
-  const [customInput, setCustomInput] = useState('');
+  const [expanded, setExpanded] = useState(isExtended);
 
-  function toggle(lower) {
+  function toggle(value) {
     const next = new Set(selected);
-    if (next.has(lower)) next.delete(lower);
-    else next.add(lower);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
     setSelected(next);
-    setCustomInput('');
     onSearch([...next]);
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const lower = customInput.trim().toLowerCase();
-    if (!lower) return;
-    setSelected(new Set());
-    setCustomInput(lower);
-    onSearch([lower]);
+  function label(value) {
+    return t(`venueTypeFilter.types.${value}`, { defaultValue: value });
+  }
+
+  function Chip({ value }) {
+    return (
+      <button
+        type="button"
+        className={`venue-type-chip${selected.has(value) ? ' venue-type-chip--active' : ''}`}
+        onClick={() => toggle(value)}
+      >
+        {label(value)}
+      </button>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} data-testid="venue-type-filter">
+    <div data-testid="venue-type-filter" className="venue-type-filter">
       <div className="venue-type-chips">
-        {PRESET_TYPES.map(type => (
-          <button
-            key={type}
-            type="button"
-            className={`venue-type-chip${selected.has(type.toLowerCase()) ? ' venue-type-chip--active' : ''}`}
-            onClick={() => toggle(type.toLowerCase())}
-          >
-            {type}
-          </button>
-        ))}
-        {extraChip && (
-          <button
-            type="button"
-            className={`venue-type-chip${selected.has(extraChip) ? ' venue-type-chip--active' : ''}`}
-            onClick={() => toggle(extraChip)}
-          >
-            {extraChip}
-          </button>
-        )}
+        {PRIMARY_TYPES.map(v => <Chip key={v} value={v} />)}
+        {extraChip && <Chip value={extraChip} />}
       </div>
-      <div className="venue-filter-custom">
-        <input
-          id="venue-type-input"
-          type="text"
-          className="venue-filter-input"
-          data-testid="venue-type-input"
-          value={customInput}
-          onChange={e => setCustomInput(e.target.value)}
-          placeholder={t('venueTypeFilter.placeholder')}
-          aria-label={t('venueTypeFilter.ariaLabel')}
-        />
-        <button type="submit" className="venue-filter-btn" data-testid="venue-search-btn">{t('venueTypeFilter.searchBtn')}</button>
-      </div>
-    </form>
+      {expanded && (
+        <div className="venue-type-chips venue-type-chips--extended">
+          {EXTENDED_TYPES.map(v => <Chip key={v} value={v} />)}
+        </div>
+      )}
+      <button
+        type="button"
+        className="venue-type-toggle"
+        onClick={() => setExpanded(prev => !prev)}
+      >
+        {expanded ? t('venueTypeFilter.showLess') : t('venueTypeFilter.showMore')}
+      </button>
+    </div>
   );
 }

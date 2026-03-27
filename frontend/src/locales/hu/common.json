@@ -253,9 +253,23 @@
     "showMore": "Mutass még {{count}}-t"
   },
   "venueTypeFilter": {
-    "placeholder": "vagy keresd a saját típusodat…",
-    "ariaLabel": "Helyszíntípus",
-    "searchBtn": "Keresés"
+    "showMore": "Több kategória",
+    "showLess": "Kevesebb kategória",
+    "types": {
+      "restaurant": "Étterem",
+      "pub": "Kocsma",
+      "cafe": "Kávézó",
+      "bar": "Bár",
+      "biergarten": "Sörkert",
+      "fast_food": "Gyorsbüfé",
+      "food_court": "Ételudvar",
+      "ice_cream": "Fagylalt",
+      "nightclub": "Éjszakai klub",
+      "cinema": "Mozi",
+      "theatre": "Színház",
+      "library": "Könyvtár",
+      "community_centre": "Közösségi ház"
+    }
   },
   "resend": {
     "heading": "Linkjed visszaállítása",

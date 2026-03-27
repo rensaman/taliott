@@ -93,8 +93,7 @@ test('venue cards have radio buttons and OSM links for venue names', async ({ pa
   await page.goto(`/admin/${body.admin_token}`);
 
   // Trigger venue search via the filter
-  await page.getByTestId('venue-type-input').fill('restaurant');
-  await page.getByTestId('venue-search-btn').click();
+  await page.getByRole('button', { name: 'Restaurant' }).click();
 
   const cards = page.getByTestId('venue-card');
   await expect(cards).toHaveCount(2);
@@ -131,8 +130,7 @@ test('selecting a venue radio updates the FinalizePanel selected venue display',
   await page.goto(`/admin/${body.admin_token}`);
 
   // Trigger venue search via the filter
-  await page.getByTestId('venue-type-input').fill('restaurant');
-  await page.getByTestId('venue-search-btn').click();
+  await page.getByRole('button', { name: 'Restaurant' }).click();
 
   await expect(page.getByTestId('venue-card')).toBeVisible();
 
@@ -172,8 +170,7 @@ test('FinalizePanel has no venue dropdown — finalize works with slot only', as
   await page.goto(`/admin/${body.admin_token}`);
 
   // Trigger venue search via the filter
-  await page.getByTestId('venue-type-input').fill('restaurant');
-  await page.getByTestId('venue-search-btn').click();
+  await page.getByRole('button', { name: 'Restaurant' }).click();
 
   await expect(page.getByTestId('venue-card')).toBeVisible();
 
