@@ -2,7 +2,9 @@
 # .hooks/pre-commit
 #
 # Runs all tests before every commit.
-# Use `git commit --no-verify` to bypass when needed.
+# Tests are skipped when the staged tree and this hook file are byte-for-byte
+# identical to the last successful run (cache stored in .git/test-pass-cache).
+# Use `git commit --no-verify` to bypass entirely when needed.
 
 set -euo pipefail
 
@@ -14,6 +16,21 @@ for _d in "$HOME/.nvm/versions/node"/*/bin "$HOME/.volta/bin" /opt/homebrew/bin 
   [ -x "$_d/npm" ] && export PATH="$_d:$PATH" && break
 done
 unset _d
+
+# ── Test-result cache ────────────────────────────────────────────────────────
+# Cache key = SHA of staged index (all tracked files as they will be committed)
+#           + SHA of this hook file (detects local edits not yet staged)
+# .git/ is never committed, so the cache is machine-local only.
+CACHE_FILE=".git/test-pass-cache"
+TREE_HASH=$(git write-tree)
+HOOK_HASH=$(git hash-object .hooks/pre-commit)
+CACHE_KEY="${TREE_HASH}:${HOOK_HASH}"
+
+if [[ -f "$CACHE_FILE" ]] && [[ "$(cat "$CACHE_FILE" 2>/dev/null)" == "$CACHE_KEY" ]]; then
+  echo "[tests] ✓ Sources and settings unchanged since last passing run — skipping tests."
+  exit 0
+fi
+# ────────────────────────────────────────────────────────────────────────────
 
 run_tests() {
   local label="$1"
@@ -30,6 +47,9 @@ run_tests() {
 run_tests "unit tests"        "npm run test:coverage --silent"
 run_tests "integration tests" "npm run test:integration"
 run_tests "e2e tests"         "npm run test:e2e"
+
+# All tests passed — persist the cache key
+echo "$CACHE_KEY" > "$CACHE_FILE"
 
 # AI code review (optional — runs only if claude is installed)
 if command -v claude &> /dev/null; then
