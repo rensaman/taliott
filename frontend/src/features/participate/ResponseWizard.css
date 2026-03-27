@@ -357,11 +357,81 @@
   border-left: 3px solid var(--rule);
 }
 
-/* ── Post-participation result sections ──────────────────────────────────── */
-.pv-group-map-wrap {
+/* ── Confirmation strip (post-submission) ────────────────────────────────── */
+.pv-confirmation {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.pv-confirmation-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.pv-confirmation-text {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.pv-update-link {
+  display: inline;
+  margin-top: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pv-update-link:hover {
+  color: var(--ink);
+}
+
+/* ── Post-participation overview band (map + slots) ──────────────────────── */
+.pv-overview-band {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
 }
 
+@media (min-width: 768px) {
+  .pv-overview-band {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.pv-overview-map {
+  border-bottom: 1px solid var(--rule);
+}
+
+@media (min-width: 768px) {
+  .pv-overview-map {
+    border-bottom: none;
+    border-right: 1px solid var(--rule);
+  }
+}
+
+.pv-overview-slots {
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .pv-overview-slots {
+    max-height: min(50vw, 600px);
+  }
+}
+
+/* ── Next steps list ─────────────────────────────────────────────────────── */
 .pv-next-steps-list {
   margin: 0.5rem 0 0 1.25rem;
   padding: 0;

@@ -21,29 +21,18 @@ function scoreSlots(slots, participants) {
     .sort((a, b) => (b.yes * 2 + b.maybe) - (a.yes * 2 + a.maybe));
 }
 
-export default function ParticipationResult({ participants, slots, centroid, showNextSteps }) {
+export default function ParticipationResult({ participants, slots, centroid }) {
   const { t } = useTranslation();
   const scoredSlots = useMemo(() => scoreSlots(slots, participants), [slots, participants]);
 
   return (
-    <>
-      {showNextSteps && (
-        <section className="admin-section" data-testid="pv-next-steps">
-          <div className="admin-section-title">{t('participate.review.nextHeading')}</div>
-          <ol className="pv-next-steps-list">
-            <li>{t('participate.review.next1')}</li>
-            <li>{t('participate.review.next2')}</li>
-            <li>{t('participate.review.next3')}</li>
-          </ol>
-        </section>
-      )}
-
-      <div className="pv-group-map-wrap" data-testid="pv-group-map">
+    <div className="pv-overview-band" data-testid="pv-overview-band">
+      <div className="pv-overview-map" data-testid="pv-group-map">
         <GroupMap centroid={centroid} participants={participants} />
       </div>
 
       {scoredSlots.length > 0 && (
-        <section className="admin-section" data-testid="pv-slot-scores">
+        <section className="pv-overview-slots" data-testid="pv-slot-scores">
           <div className="admin-section-title">{t('participate.sectionSlots')}</div>
           <div className="slot-scorer">
             {scoredSlots.map((s, i) => (
@@ -52,6 +41,6 @@ export default function ParticipationResult({ participants, slots, centroid, sho
           </div>
         </section>
       )}
-    </>
+    </div>
   );
 }

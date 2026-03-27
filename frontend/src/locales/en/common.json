@@ -138,9 +138,7 @@
       "next3": "You'll receive a confirmation email with the event details."
     },
     "summary": {
-      "labelName": "Name",
-      "labelAvailability": "Availability",
-      "labelGettingThere": "Getting there",
+      "confirmed": "Your time, location and travel preferences have been recorded.",
       "updateResponse": "← Update response"
     },
     "loading": "Loading…",

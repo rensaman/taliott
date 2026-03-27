@@ -1,30 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import i18n from '../../i18n.js';
 
-vi.mock('./AvailabilityGrid.jsx', () => ({
-  default: vi.fn(),
-}));
-vi.mock('./LocationMap.jsx', () => ({
-  default: vi.fn(),
-}));
-
-import AvailabilityGrid from './AvailabilityGrid.jsx';
-import LocationMap from './LocationMap.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
 
-const SLOTS = [{ id: 's-1', starts_at: '2025-06-01T08:00:00Z', ends_at: '2025-06-01T09:00:00Z' }];
-const LOCATION = { lat: 47.5, lng: 19.0, label: 'Budapest' };
-
-function renderSummary({ name = 'Jamie', location = null, travelMode = null, locked = false, onUpdate } = {}) {
+function renderSummary({ name = 'Jamie', locked = false, onUpdate } = {}) {
   return render(
     <ResponseSummary
-      participantId="p-1"
       name={name}
-      slots={SLOTS}
-      availability={[]}
-      location={location}
-      travelMode={travelMode}
       locked={locked}
       onUpdate={onUpdate ?? vi.fn()}
     />
@@ -32,11 +15,6 @@ function renderSummary({ name = 'Jamie', location = null, travelMode = null, loc
 }
 
 describe('ResponseSummary', () => {
-  beforeEach(() => {
-    AvailabilityGrid.mockImplementation(() => <div data-testid="availability-grid" />);
-    LocationMap.mockImplementation(() => <div data-testid="location-map" />);
-  });
-
   it('shows the participant name', () => {
     renderSummary();
     expect(screen.getByTestId('summary-name')).toHaveTextContent('Jamie');
@@ -47,52 +25,9 @@ describe('ResponseSummary', () => {
     expect(screen.queryByTestId('summary-name')).not.toBeInTheDocument();
   });
 
-  it('renders AvailabilityGrid with locked=true for read-only display', () => {
-    let capturedLocked;
-    AvailabilityGrid.mockImplementation(({ locked }) => {
-      capturedLocked = locked;
-      return <div data-testid="availability-grid" />;
-    });
+  it('shows the confirmation text', () => {
     renderSummary();
-    expect(screen.getByTestId('availability-grid')).toBeInTheDocument();
-    expect(capturedLocked).toBe(true);
-  });
-
-  it('shows address label and LocationMap when location is set', () => {
-    renderSummary({ location: LOCATION });
-    expect(screen.getByTestId('summary-address')).toHaveTextContent('Budapest');
-    expect(screen.getByTestId('location-map')).toBeInTheDocument();
-  });
-
-  it('does not show address or map when location is null', () => {
-    renderSummary({ location: null });
-    expect(screen.queryByTestId('summary-address')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('location-map')).not.toBeInTheDocument();
-  });
-
-  it('passes readonly=true to LocationMap', () => {
-    let capturedReadonly;
-    LocationMap.mockImplementation(({ readonly }) => {
-      capturedReadonly = readonly;
-      return <div data-testid="location-map" />;
-    });
-    renderSummary({ location: LOCATION });
-    expect(capturedReadonly).toBe(true);
-  });
-
-  it('shows the travel mode label when travelMode is set', () => {
-    renderSummary({ travelMode: 'cycling' });
-    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Cycling');
-  });
-
-  it('shows transit label for transit mode', () => {
-    renderSummary({ travelMode: 'transit' });
-    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Transit');
-  });
-
-  it('does not show travel mode element when travelMode is null', () => {
-    renderSummary({ travelMode: null });
-    expect(screen.queryByTestId('summary-travel-mode')).not.toBeInTheDocument();
+    expect(screen.getByTestId('summary-confirmed')).toBeInTheDocument();
   });
 
   it('shows "Update response" button when not locked', () => {
@@ -104,24 +39,18 @@ describe('ResponseSummary', () => {
     renderSummary({ locked: true });
     expect(screen.queryByTestId('update-response-btn')).not.toBeInTheDocument();
   });
+
+  it('calls onUpdate when the button is clicked', () => {
+    const onUpdate = vi.fn();
+    renderSummary({ onUpdate });
+    screen.getByTestId('update-response-btn').click();
+    expect(onUpdate).toHaveBeenCalledOnce();
+  });
 });
 
 describe('ResponseSummary — i18n HU', () => {
-  beforeEach(() => {
-    AvailabilityGrid.mockImplementation(() => <div data-testid="availability-grid" />);
-    LocationMap.mockImplementation(() => <div data-testid="location-map" />);
-  });
-
   afterEach(async () => {
     await i18n.changeLanguage('en');
-  });
-
-  it('renders section labels in Hungarian', async () => {
-    await i18n.changeLanguage('hu');
-    renderSummary({ travelMode: 'transit', location: LOCATION });
-    expect(screen.getByText('Név')).toBeInTheDocument();
-    expect(screen.getByText('Elérhetőség')).toBeInTheDocument();
-    expect(screen.getByText('Utazás')).toBeInTheDocument();
   });
 
   it('renders Update response button in Hungarian', async () => {
@@ -130,9 +59,9 @@ describe('ResponseSummary — i18n HU', () => {
     expect(screen.getByTestId('update-response-btn')).toHaveTextContent(/Válasz módosítása/i);
   });
 
-  it('renders travel mode label in Hungarian', async () => {
+  it('renders confirmation text in Hungarian', async () => {
     await i18n.changeLanguage('hu');
-    renderSummary({ travelMode: 'cycling' });
-    expect(screen.getByTestId('summary-travel-mode')).toHaveTextContent('Kerékpár');
+    renderSummary();
+    expect(screen.getByTestId('summary-confirmed')).toHaveTextContent(/rögzítve lettek/i);
   });
 });

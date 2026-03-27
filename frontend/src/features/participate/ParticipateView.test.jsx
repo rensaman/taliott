@@ -54,6 +54,11 @@ const LOCKED_RESPONSE = {
   },
 };
 
+const LOCKED_RESPONDED_RESPONSE = {
+  ...LOCKED_RESPONSE,
+  participant: { ...BASE_PARTICIPANT, responded_at: '2025-01-01T12:00:00Z' },
+};
+
 describe('ParticipateView', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
@@ -101,8 +106,8 @@ describe('ParticipateView', () => {
     expect(screen.queryByTestId('wizard-complete')).not.toBeInTheDocument();
   });
 
-  it('shows the summary when the event is locked', async () => {
-    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONSE });
+  it('shows the summary when the event is locked (responded)', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => LOCKED_RESPONDED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() => expect(screen.getByTestId('summary-update')).toBeInTheDocument());
     expect(screen.queryByTestId('wizard-complete')).not.toBeInTheDocument();
@@ -246,15 +251,13 @@ describe('ParticipateView', () => {
     expect(screen.queryByTestId('participation-result')).not.toBeInTheDocument();
   });
 
-  it('passes showNextSteps=true when event is open', async () => {
+  it('shows next steps section when participant has responded and event is open', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => RESPONDED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
-    await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
-    const [call] = ParticipationResult.mock.calls.slice(-1);
-    expect(call[0].showNextSteps).toBe(true);
+    await waitFor(() => expect(screen.getByTestId('pv-next-steps')).toBeInTheDocument());
   });
 
-  it('passes showNextSteps=false when event is finalized', async () => {
+  it('hides next steps section when event is finalized', async () => {
     const FINALIZED_RESPONSE = {
       ...RESPONDED_RESPONSE,
       event: { ...RESPONDED_RESPONSE.event, status: 'finalized' },
@@ -264,8 +267,14 @@ describe('ParticipateView', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_RESPONSE });
     render(<ParticipateView participantId="p-1" />);
     await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
-    const [call] = ParticipationResult.mock.calls.slice(-1);
-    expect(call[0].showNextSteps).toBe(false);
+    expect(screen.queryByTestId('pv-next-steps')).not.toBeInTheDocument();
+  });
+
+  it('hides next steps section when participant has not responded', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    expect(screen.queryByTestId('pv-next-steps')).not.toBeInTheDocument();
   });
 
   it('shows ParticipationResult after wizard completes and re-fetch succeeds', async () => {

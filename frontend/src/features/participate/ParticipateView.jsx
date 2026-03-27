@@ -115,37 +115,48 @@ export default function ParticipateView({ participantId }) {
         {event.locked && (
           <p role="status" data-testid="results-only-status">{t('participate.resultsOnly')}</p>
         )}
-
-        {finalSlot && (
-          <section aria-label="Event result" data-testid="finalized-banner">
-            <h2>{t('participate.eventFinalized')}</h2>
-            <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
-            {finalVenue && (
-              <p>
-                {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
-              </p>
-            )}
-          </section>
-        )}
-
-        <ResponseSummary
-          participantId={participantId}
-          name={participant.name}
-          slots={slots}
-          availability={availability}
-          location={location}
-          travelMode={travelMode}
-          locked={event.locked}
-          onUpdate={() => setUpdating(true)}
-        />
       </div>
+
+      {participant.responded_at && (
+        <div className="pv-main">
+          <ResponseSummary
+            name={participant.name}
+            locked={event.locked}
+            onUpdate={() => setUpdating(true)}
+          />
+        </div>
+      )}
+
+      {participant.responded_at && event.status !== 'finalized' && (
+        <section className="admin-section" data-testid="pv-next-steps">
+          <div className="pv-main">
+            <div className="admin-section-title">{t('participate.review.nextHeading')}</div>
+            <ol className="pv-next-steps-list">
+              <li>{t('participate.review.next1')}</li>
+              <li>{t('participate.review.next2')}</li>
+              <li>{t('participate.review.next3')}</li>
+            </ol>
+          </div>
+        </section>
+      )}
+
+      {finalSlot && (
+        <section aria-label="Event result" data-testid="finalized-banner" className="pv-main">
+          <h2>{t('participate.eventFinalized')}</h2>
+          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
+          {finalVenue && (
+            <p>
+              {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
+            </p>
+          )}
+        </section>
+      )}
 
       {participant.responded_at && (
         <ParticipationResult
           participants={data.participants || []}
           slots={slots}
           centroid={data.centroid}
-          showNextSteps={event.status !== 'finalized'}
         />
       )}
 

@@ -138,9 +138,7 @@
       "next3": "Visszaigazoló e-mailt kapsz az esemény részleteivel."
     },
     "summary": {
-      "labelName": "Név",
-      "labelAvailability": "Elérhetőség",
-      "labelGettingThere": "Utazás",
+      "confirmed": "Az időpontjaid, helyszíned és utazási beállításaid rögzítve lettek.",
       "updateResponse": "← Válasz módosítása"
     },
     "loading": "Betöltés…",

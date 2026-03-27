@@ -59,34 +59,18 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={CENTROID}
-        showNextSteps={false}
       />
     );
     expect(screen.getByTestId('pv-group-map')).toBeInTheDocument();
     expect(screen.getByTestId('map-container')).toBeInTheDocument();
   });
 
-  it('shows the next steps section when showNextSteps is true', () => {
+  it('does not render a next steps section', () => {
     render(
       <ParticipationResult
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={null}
-        showNextSteps={true}
-      />
-    );
-    expect(screen.getByTestId('pv-next-steps')).toBeInTheDocument();
-    expect(screen.getByText(/what happens next/i)).toBeInTheDocument();
-    expect(screen.getByText(/responses are collected/i)).toBeInTheDocument();
-  });
-
-  it('hides the next steps section when showNextSteps is false', () => {
-    render(
-      <ParticipationResult
-        participants={PARTICIPANTS_WITH_RESPONSES}
-        slots={SLOTS}
-        centroid={null}
-        showNextSteps={false}
       />
     );
     expect(screen.queryByTestId('pv-next-steps')).not.toBeInTheDocument();
@@ -98,7 +82,6 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={null}
-        showNextSteps={false}
       />
     );
     expect(screen.getByTestId('pv-slot-scores')).toBeInTheDocument();
@@ -115,7 +98,6 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={null}
-        showNextSteps={false}
       />
     );
     const cards = screen.getAllByRole('button');
@@ -128,7 +110,6 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={null}
-        showNextSteps={false}
       />
     );
     // slot-1: 1 yes, 1 maybe, 0 no
@@ -144,7 +125,6 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={[]}
         centroid={null}
-        showNextSteps={false}
       />
     );
     expect(screen.queryByTestId('pv-slot-scores')).not.toBeInTheDocument();
@@ -156,10 +136,23 @@ describe('ParticipationResult', () => {
         participants={PARTICIPANTS_WITH_RESPONSES}
         slots={SLOTS}
         centroid={CENTROID}
-        showNextSteps={false}
       />
     );
     expect(screen.getByTestId('centroid-marker')).toBeInTheDocument();
+  });
+
+  it('renders map and slot scores side by side in the overview band', () => {
+    render(
+      <ParticipationResult
+        participants={PARTICIPANTS_WITH_RESPONSES}
+        slots={SLOTS}
+        centroid={null}
+      />
+    );
+    const band = screen.getByTestId('pv-overview-band');
+    expect(band).toBeInTheDocument();
+    expect(band).toContainElement(screen.getByTestId('pv-group-map'));
+    expect(band).toContainElement(screen.getByTestId('pv-slot-scores'));
   });
 
   describe('i18n', () => {
@@ -175,23 +168,9 @@ describe('ParticipationResult', () => {
           participants={PARTICIPANTS_WITH_RESPONSES}
           slots={SLOTS}
           centroid={null}
-          showNextSteps={false}
         />
       );
       expect(screen.getByText('__SLOTS_TITLE__')).toBeInTheDocument();
-    });
-
-    it('uses i18n for the next steps heading', () => {
-      i18n.addResourceBundle('en', 'common', { participate: { review: { nextHeading: '__NEXT_HEADING__', next1: 'a', next2: 'b', next3: 'c' } } }, true, true);
-      render(
-        <ParticipationResult
-          participants={[]}
-          slots={[]}
-          centroid={null}
-          showNextSteps={true}
-        />
-      );
-      expect(screen.getByText('__NEXT_HEADING__')).toBeInTheDocument();
     });
   });
 });
