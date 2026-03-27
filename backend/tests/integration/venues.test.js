@@ -143,7 +143,24 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res.body.venue_type).toBeNull();
   });
 
-  it('recalculates distanceM from the updated centroid when a new participant provides a location', async () => {
+  it('invalidates venue cache when a participant provides a location', async () => {
+    const { admin_token, participants } = await createEvent({ participant_emails: ['p2-inv@example.com'] });
+    await giveLocation(participants[0].id);
+
+    // Populate cache
+    const res1 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
+    expect(res1.status).toBe(200);
+
+    // Second participant joins → cache must be invalidated
+    await giveLocation(participants[1].id, 51.502, -0.103);
+
+    // Reject next fetch: if cache were still present it would return 200; 502 confirms re-fetch was attempted
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass unavailable')));
+    const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
+    expect(res2.status).toBe(502);
+  });
+
+  it('re-fetches venues with the updated centroid after cache invalidation', async () => {
     // P1 and P2 ~960 m apart; both venues within 800 m of every centroid position
     const MOCK_VENUES = {
       elements: [
@@ -152,7 +169,6 @@ describe('GET /api/events/:adminToken/venues', () => {
       ],
     };
 
-    // Only participant 1 has a location → centroid = P1's exact coords
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_VENUES }));
     const { admin_token, participants } = await createEvent({ participant_emails: ['p2-stale@example.com'] });
     await giveLocation(participants[0].id, 47.500, 19.050);
@@ -161,16 +177,13 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res1.status).toBe(200);
     const distances1 = res1.body.venues.map(v => v.distanceM);
 
-    // Set the throw-stub BEFORE the PATCH so the async SSE broadcast uses it too
-    // (Navitia calls will throw → haversine fallback; Overpass must not be called)
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
+    // P2 joins → cache invalidated; mock still resolves for the re-fetch
     await giveLocation(participants[1].id, 47.506, 19.058); // centroid shifts to ~(47.503, 19.054)
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
-    // 200 proves cache was hit (an Overpass miss would have returned 502 or thrown)
     expect(res2.status).toBe(200);
-    // Same venue set returned (DB cache), but distances must differ because centroid shifted
     expect(res2.body.venues.map(v => v.name)).toEqual(expect.arrayContaining(['Near P1', 'Near P2']));
+    // Distances differ because Overpass was re-queried with the new centroid
     const distances2 = res2.body.venues.map(v => v.distanceM);
     expect(distances2).not.toEqual(distances1);
   });
@@ -195,8 +208,8 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res1.status).toBe(200);
     expect(res1.body.venues[0].name).toBe('Near P1');
 
-    // Participant 2 joins → centroid shifts to ~(47.503, 19.054), Near P2 becomes closer
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass must not be called')));
+    // Participant 2 joins → cache invalidated; mock still resolves for the re-fetch
+    // New centroid ~(47.503, 19.054) → Near P2 becomes closer
     await giveLocation(participants[1].id, 47.506, 19.058);
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=cafe`);

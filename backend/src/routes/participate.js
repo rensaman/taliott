@@ -242,6 +242,13 @@ router.patch('/:participantId/location', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 
+  // Invalidate venue cache — centroid has shifted, next request re-fetches from Overpass
+  try {
+    await getPrisma().venue.deleteMany({ where: { eventId: participant.event.id } });
+  } catch (err) {
+    console.error('Failed to invalidate venue cache:', err);
+  }
+
   // Broadcast centroid update to all subscribers of this event
   getPrisma().participant.findMany({
     where: { eventId: participant.event.id },
@@ -292,6 +299,13 @@ router.patch('/:participantId/travel-mode', async (req, res) => {
   } catch (err) {
     console.error('Failed to update travel mode:', err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  // Invalidate venue cache — travel mode shifts the centroid, next request re-fetches from Overpass
+  try {
+    await getPrisma().venue.deleteMany({ where: { eventId: participant.event.id } });
+  } catch (err) {
+    console.error('Failed to invalidate venue cache:', err);
   }
 
   // Broadcast centroid update — travel mode affects routing weights
