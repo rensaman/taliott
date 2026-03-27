@@ -227,7 +227,7 @@
     "loading": "Loading venues…",
     "empty": "No venues found.",
     "failedToLoad": "Failed to load venues",
-    "loadMore": "Load more"
+    "showMore": "Show {{count}} more"
   },
   "venueTypeFilter": {
     "placeholder": "or search your own type…",

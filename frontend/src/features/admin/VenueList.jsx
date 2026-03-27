@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import VenueCard from './VenueCard.jsx';
 import VenueTypeFilter from './VenueTypeFilter.jsx';
 
-const MAX_VENUES = 10;
+const DEFAULT_LIMIT = 10;
+const LIMIT_STEP = 5;
 
 export default function VenueList({ adminToken, defaultVenueType, selectedId, onVenuesLoaded, onSelectVenue }) {
   const { t } = useTranslation();
@@ -11,6 +12,7 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
     defaultVenueType ? [defaultVenueType] : []
   );
   const [venues, setVenues] = useState(null);
+  const [displayLimit, setDisplayLimit] = useState(DEFAULT_LIMIT);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -20,6 +22,7 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
     if (venueTypes.length === 0) return;
     setLoading(true);
     setError(null);
+    setDisplayLimit(DEFAULT_LIMIT);
     onSelectVenue?.(null);
     Promise.all(
       venueTypes.map(type =>
@@ -40,9 +43,8 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
           return true;
         });
         merged.sort((a, b) => a.distanceM - b.distanceM);
-        const capped = merged.slice(0, MAX_VENUES);
-        setVenues(capped);
-        onVenuesLoaded?.(capped);
+        setVenues(merged);
+        onVenuesLoaded?.(merged);
         setLoading(false);
       })
       .catch(err => {
@@ -52,6 +54,8 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminToken, venueTypesKey]);
 
+  const displayed = venues?.slice(0, displayLimit) ?? null;
+
   return (
     <section data-testid="venue-list-section" className="venue-list-section">
       <h2>{t('venueList.heading')}</h2>
@@ -60,12 +64,12 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
       {venueTypes.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.noType')}</p>}
       {loading && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.loading')}</p>}
       {error && <p role="alert" style={{ fontSize: '0.8rem', color: 'var(--red)', marginTop: '0.75rem' }}>{error}</p>}
-      {venues != null && venues.length === 0 && !loading && (
+      {displayed != null && displayed.length === 0 && !loading && (
         <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.empty')}</p>
       )}
-      {venues != null && venues.length > 0 && (
+      {displayed != null && displayed.length > 0 && (
         <ul className="venue-card-list" style={{ marginTop: '0.75rem' }}>
-          {venues.map((v, i) => (
+          {displayed.map((v, i) => (
             <VenueCard
               key={v.id}
               venue={v}
@@ -75,6 +79,14 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
             />
           ))}
         </ul>
+      )}
+      {venues != null && venues.length > displayLimit && (
+        <button
+          className="show-more-btn"
+          onClick={() => setDisplayLimit(prev => prev + LIMIT_STEP)}
+        >
+          {t('venueList.showMore', { count: Math.min(LIMIT_STEP, venues.length - displayLimit) })}
+        </button>
       )}
     </section>
   );

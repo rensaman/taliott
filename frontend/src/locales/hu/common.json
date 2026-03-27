@@ -227,7 +227,7 @@
     "loading": "Helyszínek betöltése…",
     "empty": "Nem található helyszín.",
     "failedToLoad": "Nem sikerült betölteni a helyszíneket",
-    "loadMore": "Több betöltése"
+    "showMore": "Mutass még {{count}}-t"
   },
   "venueTypeFilter": {
     "placeholder": "vagy keresd a saját típusodat…",
