@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -24,6 +24,18 @@ const centroidIcon = L.divIcon({
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
+
+function makeParticipantIcon(name) {
+  const initials = name
+    ? name.trim().split(/\s+/).map(w => w[0].toUpperCase()).slice(0, 2).join('')
+    : '?';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:28px;height:28px;background:#3b82f6;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;font-weight:700;color:#fff;font-family:sans-serif">${initials}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+}
 
 function makeVenuePinIcon(number, selected) {
   const bg = selected ? '#1a1a1a' : '#fff';
@@ -69,29 +81,35 @@ export default function GroupMap({ centroid, participants, venues = [], selected
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapBounds participants={participants} centroid={centroid} venues={venues} />
-        {located.map(p => (
-          <Marker
-            key={p.id}
-            position={[p.latitude, p.longitude]}
-            data-testid="participant-marker"
-          />
-        ))}
-        {centroid && (
-          <Marker
-            position={[centroid.lat, centroid.lng]}
-            icon={centroidIcon}
-            data-testid="centroid-marker"
-          />
-        )}
         {venues.map((v, i) => (
           <Marker
             key={v.id}
             position={[v.latitude, v.longitude]}
             icon={makeVenuePinIcon(i + 1, v.id === selectedVenueId)}
+            zIndexOffset={0}
             eventHandlers={{ click: () => onVenueClick?.(v.id) }}
             data-testid={`venue-pin-${i + 1}`}
           />
         ))}
+        {located.map(p => (
+          <Marker
+            key={p.id}
+            position={[p.latitude, p.longitude]}
+            icon={makeParticipantIcon(p.name)}
+            zIndexOffset={500}
+            data-testid="participant-marker"
+          >
+            {p.name && <Tooltip>{p.name}</Tooltip>}
+          </Marker>
+        ))}
+        {centroid && (
+          <Marker
+            position={[centroid.lat, centroid.lng]}
+            icon={centroidIcon}
+            zIndexOffset={1000}
+            data-testid="centroid-marker"
+          />
+        )}
       </MapContainer>
       {/* coverage-counter kept as hidden node for test compatibility */}
       {centroid && (

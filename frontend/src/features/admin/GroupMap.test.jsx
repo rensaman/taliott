@@ -8,6 +8,7 @@ vi.mock('react-leaflet', () => ({
   Marker: forwardRef(({ children, 'data-testid': testid, eventHandlers }, _ref) => (
     <div data-testid={testid ?? 'marker'} onClick={() => eventHandlers?.click?.()}>{children}</div>
   )),
+  Tooltip: ({ children }) => <span role="tooltip">{children}</span>,
   useMap: () => ({ fitBounds: vi.fn(), flyTo: vi.fn() }),
 }));
 vi.mock('leaflet', () => ({
