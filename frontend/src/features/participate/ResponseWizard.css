@@ -41,6 +41,44 @@
   width: 100%;
 }
 
+/* ── Step hint (context below headings) ─────────────────────────────────── */
+.rw-step-hint {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: -0.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Next steps list (review step) ──────────────────────────────────────── */
+.rw-next-steps {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--red);
+}
+
+.rw-next-steps-heading {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.rw-next-steps-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.rw-next-steps-list li + li {
+  margin-top: 0.3rem;
+}
+
 /* ── Selected address pill ───────────────────────────────────────────────── */
 .rw-selected-address {
   font-size: 0.85rem;

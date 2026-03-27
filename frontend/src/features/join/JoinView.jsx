@@ -97,6 +97,7 @@ export default function JoinView({ joinToken }) {
         <p className="join-meta" data-testid="join-deadline">
           {t('join.deadlineLabel')} {new Date(event.deadline).toLocaleString(i18n.language)}
         </p>
+        <p className="join-pitch">{t('join.pitch')}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -112,6 +113,7 @@ export default function JoinView({ joinToken }) {
               placeholder={t('join.emailPlaceholder')}
               autoFocus
             />
+            <p className="join-email-hint">{t('join.emailHint')}</p>
           </div>
           {fieldError && <p className="wizard-error" role="alert">{fieldError}</p>}
           <button className="btn btn-primary" type="submit" disabled={submitting} data-testid="join-submit-btn">

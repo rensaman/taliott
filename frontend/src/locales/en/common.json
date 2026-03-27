@@ -110,6 +110,7 @@
     },
     "location": {
       "heading": "Where are you coming from?",
+      "why": "Your address is used to find a fair meeting point for the whole group. It's never shared with other participants.",
       "legend": "Your starting location",
       "errorSave": "Failed to save location. Please try again.",
       "searchLabel": "Search address",
@@ -130,7 +131,11 @@
       "labelName": "Name",
       "labelTravel": "Travel",
       "labelFrom": "From",
-      "errorSubmit": "Failed to submit. Please try again."
+      "errorSubmit": "Failed to submit. Please try again.",
+      "nextHeading": "What happens next",
+      "next1": "Responses are collected until the voting deadline.",
+      "next2": "The organizer reviews the venue suggestions and picks the best spot and time.",
+      "next3": "You'll receive a confirmation email with the event details."
     },
     "summary": {
       "labelName": "Name",
@@ -215,8 +220,10 @@
     "genericError": "Something went wrong. Please try again later.",
     "closed": "Voting is closed for this event.",
     "deadlineLabel": "Voting deadline:",
+    "pitch": "Share your availability and where you're coming from — Taliott will find a time and meeting spot that works fairly for everyone.",
     "emailLabel": "Your email",
     "emailPlaceholder": "you@example.com",
+    "emailHint": "We'll use this to send you your personal participation link.",
     "networkError": "Network error, please try again",
     "joining": "Joining…",
     "submit": "Join event →"

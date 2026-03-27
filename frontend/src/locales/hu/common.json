@@ -110,6 +110,7 @@
     },
     "location": {
       "heading": "Honnan érkezel?",
+      "why": "A címed arra kell, hogy mindenki számára méltányos találkozási pontot találjunk. A többi résztvevővel nem osztjuk meg.",
       "legend": "Indulási helyszín",
       "errorSave": "Nem sikerült menteni a helyszínt. Kérjük, próbáld újra.",
       "searchLabel": "Cím keresése",
@@ -130,7 +131,11 @@
       "labelName": "Név",
       "labelTravel": "Utazás",
       "labelFrom": "Honnan",
-      "errorSubmit": "Nem sikerült elküldeni. Kérjük, próbáld újra."
+      "errorSubmit": "Nem sikerült elküldeni. Kérjük, próbáld újra.",
+      "nextHeading": "Mi történik ezután?",
+      "next1": "A szavazási határidőig gyűjtjük a válaszokat.",
+      "next2": "A szervező átnézi a helyszínjavaslatokat, és kiválasztja a legjobb helyszínt és időpontot.",
+      "next3": "Visszaigazoló e-mailt kapsz az esemény részleteivel."
     },
     "summary": {
       "labelName": "Név",
@@ -215,8 +220,10 @@
     "genericError": "Valami hiba történt. Kérjük, próbáld újra később.",
     "closed": "A szavazás lezárult erre az eseményre.",
     "deadlineLabel": "Szavazási határidő:",
+    "pitch": "Add meg az elérhetőségedet és azt, honnan érkezel — a Taliott megtalálja a mindenki számára megfelelő időpontot és helyszínt.",
     "emailLabel": "E-mail-cím",
     "emailPlaceholder": "te@pelda.hu",
+    "emailHint": "Erre a címre küldjük a személyes részvételi linkedet.",
     "networkError": "Hálózati hiba, kérjük, próbálja újra",
     "joining": "Csatlakozás…",
     "submit": "Csatlakozás az eseményhez →"

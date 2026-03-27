@@ -166,6 +166,7 @@ export default function ResponseWizard({
         return (
           <>
             <h2>{t('participate.location.heading')}</h2>
+            <p className="rw-step-hint">{t('participate.location.why')}</p>
             <TravelModeSelector value={travelMode} onChange={saveTravelMode} />
             <fieldset className="wizard-fieldset" ref={locationFieldsetRef}>
               <legend>{t('participate.location.legend')}</legend>
@@ -218,6 +219,14 @@ export default function ResponseWizard({
                   <span className="review-ticket-value">{location.label}</span>
                 </div>
               )}
+            </div>
+            <div className="rw-next-steps">
+              <p className="rw-next-steps-heading">{t('participate.review.nextHeading')}</p>
+              <ol className="rw-next-steps-list">
+                <li>{t('participate.review.next1')}</li>
+                <li>{t('participate.review.next2')}</li>
+                <li>{t('participate.review.next3')}</li>
+              </ol>
             </div>
             {submitError && <p className="wizard-error" role="alert">{submitError}</p>}
           </>

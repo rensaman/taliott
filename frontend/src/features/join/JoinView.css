@@ -51,3 +51,20 @@
   color: var(--ink);
   text-decoration: underline;
 }
+
+.join-pitch {
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.55;
+  margin-bottom: 1.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--field-bg);
+  border-left: 3px solid var(--red);
+}
+
+.join-email-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  line-height: 1.4;
+}
