@@ -52,7 +52,7 @@ export default function FinalizePanel({
   }, [slots]);
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('30');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -190,7 +190,6 @@ export default function FinalizePanel({
             onChange={e => setDurationMinutes(e.target.value)}
             data-testid="duration-select"
           >
-            <option value="">{t('finalize.durationDefault')}</option>
             <option value="30">{t('finalize.duration30')}</option>
             <option value="60">{t('finalize.duration60')}</option>
             <option value="90">{t('finalize.duration90')}</option>

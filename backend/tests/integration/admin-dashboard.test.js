@@ -151,4 +151,42 @@ describe('GET /api/events/:adminToken', () => {
     expect(centroid.lng).toBeCloseTo(20);
     expect(centroid.count).toBe(1);
   });
+
+  it('returns name field for each participant', async () => {
+    const { admin_token } = await createEvent();
+    const res = await request(app).get(`/api/events/${admin_token}`);
+    expect(res.status).toBe(200);
+    for (const p of res.body.participants) {
+      expect('name' in p).toBe(true);
+    }
+  });
+
+  it('returns null finalized fields for an open event', async () => {
+    const { admin_token } = await createEvent();
+    const res = await request(app).get(`/api/events/${admin_token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.final_slot_id).toBeNull();
+    expect(res.body.final_venue_name).toBeNull();
+    expect(res.body.final_venue_address).toBeNull();
+    expect(res.body.final_duration_minutes).toBeNull();
+    expect(res.body.final_notes).toBeNull();
+  });
+
+  it('returns finalized fields after event is finalized', async () => {
+    const { admin_token } = await createEvent();
+    const eventRes = await request(app).get(`/api/events/${admin_token}`);
+    const slotId = eventRes.body.slots[0].id;
+
+    await request(app)
+      .post(`/api/events/${admin_token}/finalize`)
+      .send({ slot_id: slotId, venue_name: 'The Spot', venue_address: '1 Main St', duration_minutes: 60, notes: 'Bring ID' });
+
+    const res = await request(app).get(`/api/events/${admin_token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.final_slot_id).toBe(slotId);
+    expect(res.body.final_venue_name).toBe('The Spot');
+    expect(res.body.final_venue_address).toBe('1 Main St');
+    expect(res.body.final_duration_minutes).toBe(60);
+    expect(res.body.final_notes).toBe('Bring ID');
+  });
 });

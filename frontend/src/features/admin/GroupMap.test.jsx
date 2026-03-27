@@ -85,4 +85,16 @@ describe('GroupMap', () => {
     fireEvent.click(screen.getByTestId('venue-pin-1'));
     expect(onVenueClick).toHaveBeenCalledWith('v1');
   });
+
+  it('shows tooltip with participant full name when name is provided', () => {
+    const withName = [{ id: 'p-1', latitude: 0, longitude: 0, name: 'Alice Smith' }];
+    render(<GroupMap centroid={null} participants={withName} />);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Alice Smith');
+  });
+
+  it('does not show tooltip when participant has no name', () => {
+    const noName = [{ id: 'p-1', latitude: 0, longitude: 0, name: null }];
+    render(<GroupMap centroid={null} participants={noName} />);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
 });

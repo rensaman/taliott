@@ -4,6 +4,7 @@ import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
 import VenueList from './VenueList.jsx';
 import FinalizePanel from './FinalizePanel.jsx';
+import FinalizedSummary from './FinalizedSummary.jsx';
 import { useEventStream } from '../../hooks/useEventStream.js';
 import './AdminView.css';
 
@@ -150,11 +151,14 @@ export default function AdminView({ adminToken }) {
         )}
 
         {data.status === 'finalized' && (
-          <div className="finalized-notice">
-            <div className="finalized-notice-inner">
-              <p data-testid="finalized-notice"><strong>{t('admin.finalizedNotice')}</strong></p>
-            </div>
-          </div>
+          <FinalizedSummary
+            slots={data.slots || []}
+            finalSlotId={data.final_slot_id}
+            finalVenueName={data.final_venue_name}
+            finalVenueAddress={data.final_venue_address}
+            finalDurationMinutes={data.final_duration_minutes}
+            finalNotes={data.final_notes}
+          />
         )}
       </div>
 

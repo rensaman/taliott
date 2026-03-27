@@ -27,7 +27,7 @@ const centroidIcon = L.divIcon({
 
 function makeParticipantIcon(name) {
   const initials = name
-    ? name.trim().split(/\s+/).map(w => w[0].toUpperCase()).slice(0, 2).join('')
+    ? name.trim()[0].toUpperCase()
     : '?';
   return L.divIcon({
     className: '',

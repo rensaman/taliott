@@ -114,6 +114,18 @@ describe('FinalizePanel', () => {
     expect(screen.getByTestId('duration-select')).toBeInTheDocument();
   });
 
+  it('defaults the duration selector to 30 minutes', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('duration-select')).toHaveValue('30');
+  });
+
+  it('does not show a "same as slot" option in the duration selector', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    const select = screen.getByTestId('duration-select');
+    const options = Array.from(select.querySelectorAll('option'));
+    expect(options.every(o => o.value !== '')).toBe(true);
+  });
+
   it('renders the notes textarea', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByTestId('finalize-notes')).toBeInTheDocument();
@@ -134,7 +146,7 @@ describe('FinalizePanel', () => {
     });
   });
 
-  it('does not submit duration_minutes when no duration is selected', async () => {
+  it('submits duration_minutes: 30 by default without any user selection', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
@@ -144,7 +156,7 @@ describe('FinalizePanel', () => {
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
       const body = JSON.parse(options.body);
-      expect(body.duration_minutes).toBeUndefined();
+      expect(body.duration_minutes).toBe(30);
     });
   });
 

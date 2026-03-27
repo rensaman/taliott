@@ -12,7 +12,7 @@
   z-index: 10;
   background: var(--paper);
   border-bottom: 1.5px solid var(--ink);
-  padding: 0.65rem 1.25rem;
+  padding: 0.65rem 5.5rem 0.65rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -636,6 +636,62 @@
   border-color: var(--ink);
 }
 
+/* Duration + notes rows */
+.finalize-duration-row,
+.finalize-notes-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.finalize-duration-row label,
+.finalize-notes-row label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.finalize-duration-row select {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.12s;
+  width: 100%;
+}
+
+.finalize-duration-row select:focus {
+  border-color: var(--ink);
+}
+
+.finalize-notes-row textarea {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  background: var(--field-bg);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.12s;
+  width: 100%;
+  resize: vertical;
+}
+
+.finalize-notes-row textarea:focus {
+  border-color: var(--ink);
+}
+
 /* Finalize button + error */
 .finalize-button-row {
   margin-top: 1.25rem;
@@ -663,6 +719,45 @@
   border-left: 3px solid var(--ink);
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+/* ─── Finalized summary (read-only) ──────────────────────────────────────── */
+
+.finalized-summary {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.finalized-summary-heading {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.finalized-summary-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  font-size: 0.875rem;
+}
+
+.finalized-summary-list dt {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding-top: 0.1rem;
+  white-space: nowrap;
+}
+
+.finalized-summary-list dd {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.4;
 }
 
 /* ─── Just-finalized thank-you screen ────────────────────────────────────── */

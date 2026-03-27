@@ -165,6 +165,12 @@
     "deleteError": "Nem sikerült törölni az eseményt. Kérjük, próbáld újra.",
     "errorNotFound": "Az irányítópult nem található.",
     "finalizedNotice": "Ez az esemény véglegesítve lett.",
+    "statusResponded": "Válaszolt",
+    "statusPending": "Függőben",
+    "finalizedSummaryHeading": "Véglegesített adatok",
+    "finalizedWhen": "Mikor",
+    "finalizedVenueNone": "Nincs helyszín megadva",
+    "finalizedDurationUnit": "perc",
     "justFinalizedTitle": "Minden készen áll — élvezzétek a találkozót!",
     "justFinalizedBody": "Az esemény véglegesítve lett, és a visszaigazoló e-mailek úton vannak. Az admin és a részvételi linkek már nem elérhetők.",
     "justFinalizedHome": "Vissza a főoldalra"

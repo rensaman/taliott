@@ -4,7 +4,7 @@ const STATE_SYMBOL = { yes: '✓', maybe: '?', no: '✗', neutral: '—' };
 const DOT_CLASS = { yes: 'avail-dot--yes', maybe: 'avail-dot--maybe', no: 'avail-dot--no', neutral: 'avail-dot--neutral' };
 
 export default function ParticipantResponseList({ participants, slots = [] }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <ul className="participant-list">
       {participants.map(p => {
@@ -18,7 +18,7 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
           >
             <span className="participant-email">{p.email}</span>
             <span className={`participant-status ${responded ? 'participant-status--responded' : 'participant-status--pending'}`}>
-              {responded ? 'Responded' : 'Pending'}
+              {responded ? t('admin.statusResponded') : t('admin.statusPending')}
             </span>
             {responded && slots.length > 0 && (
               <div className="participant-avail-dots">

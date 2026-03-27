@@ -60,11 +60,27 @@ const OPEN_DATA = {
   slot_count: 12,
   venue_type: 'restaurant',
   centroid: { lat: 1, lng: 1, count: 1 },
+  slots: [{ id: 'slot-1', starts_at: '2025-06-15T09:00:00.000Z', ends_at: '2025-06-15T10:00:00.000Z' }],
+  final_slot_id: null,
+  final_venue_name: null,
+  final_venue_address: null,
+  final_duration_minutes: null,
+  final_notes: null,
   participants: [
     { id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z', latitude: 1, longitude: 1 },
     { id: 'p-2', email: 'jamie@example.com', responded_at: null, latitude: null, longitude: null },
     { id: 'p-3', email: 'sam@example.com', responded_at: null, latitude: null, longitude: null },
   ],
+};
+
+const FINALIZED_DATA = {
+  ...OPEN_DATA,
+  status: 'finalized',
+  final_slot_id: 'slot-1',
+  final_venue_name: 'The Blue Note',
+  final_venue_address: '131 W 3rd St',
+  final_duration_minutes: 90,
+  final_notes: 'Please bring ID',
 };
 
 describe('AdminView', () => {
@@ -264,6 +280,23 @@ describe('AdminView', () => {
     await waitFor(() =>
       expect(screen.getByTestId('coverage-counter')).toHaveTextContent('2 of 3')
     );
+  });
+
+  // ─── Finalized summary ────────────────────────────────────────────────────
+
+  it('shows finalized summary with slot, venue, duration, and notes when finalized', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.getByTestId('finalized-summary')).toBeInTheDocument());
+    expect(screen.getByTestId('finalized-summary')).toHaveTextContent('The Blue Note');
+    expect(screen.getByTestId('finalized-summary')).toHaveTextContent('131 W 3rd St');
+    expect(screen.getByTestId('finalized-summary')).toHaveTextContent('Please bring ID');
+  });
+
+  it('does not show the finalize form when event is finalized', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.queryByTestId('finalize-panel')).not.toBeInTheDocument());
   });
 
   describe('i18n', () => {

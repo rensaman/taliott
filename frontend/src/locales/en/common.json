@@ -165,6 +165,12 @@
     "deleteError": "Failed to delete event. Please try again.",
     "errorNotFound": "Dashboard not found.",
     "finalizedNotice": "This event has been finalized.",
+    "statusResponded": "Responded",
+    "statusPending": "Pending",
+    "finalizedSummaryHeading": "Finalized details",
+    "finalizedWhen": "When",
+    "finalizedVenueNone": "No venue set",
+    "finalizedDurationUnit": "min",
     "justFinalizedTitle": "You're all set — enjoy it with your friends!",
     "justFinalizedBody": "The event has been finalized and confirmation emails are on their way. The admin and participation links are no longer active.",
     "justFinalizedHome": "Back to home"
