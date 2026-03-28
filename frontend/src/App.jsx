@@ -102,6 +102,15 @@ function ConfirmationView({ confirmation }) {
           </div>
         )}
 
+        <div className="confirmation-next-steps">
+          <p className="confirmation-next-steps-heading">{t('confirmation.nextSteps.heading')}</p>
+          <ol>
+            <li>{joinUrl ? t('confirmation.nextSteps.step1Shared') : t('confirmation.nextSteps.step1Email')}</li>
+            <li>{t('confirmation.nextSteps.step2')}</li>
+            <li>{t('confirmation.nextSteps.step3')}</li>
+          </ol>
+        </div>
+
         <FeedbackForm context="organizer" />
 
         <p className="donate-nudge">

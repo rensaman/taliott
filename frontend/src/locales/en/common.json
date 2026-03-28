@@ -233,7 +233,14 @@
     "shareLabel": "Share with participants",
     "copy": "Copy",
     "copied": "Copied!",
-    "emailNotice": "Invite emails have been sent to {{count}} participant(s)."
+    "emailNotice": "Invite emails have been sent to {{count}} participant(s).",
+    "nextSteps": {
+      "heading": "What happens next",
+      "step1Shared": "Share the link above — participants fill in their availability.",
+      "step1Email": "Participants will receive their invite email shortly.",
+      "step2": "You'll get an email when the deadline passes.",
+      "step3": "Return via your admin link to pick a time and venue."
+    }
   },
   "join": {
     "loading": "Loading…",

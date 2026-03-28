@@ -131,6 +131,46 @@
   color: var(--ink);
 }
 
+.confirmation-next-steps {
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-next-steps-heading {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.confirmation-next-steps ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: steps;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.confirmation-next-steps li {
+  counter-increment: steps;
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.confirmation-next-steps li::before {
+  content: counter(steps) ".";
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding-top: 0.1rem;
+}
+
 .donate-nudge {
   margin-top: 1.5rem;
   font-size: 0.85rem;

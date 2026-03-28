@@ -233,7 +233,14 @@
     "shareLabel": "Oszd meg a résztvevőkkel",
     "copy": "Másolás",
     "copied": "Másolva!",
-    "emailNotice": "Meghívó e-mailek kiküldve {{count}} résztvevő részére."
+    "emailNotice": "Meghívó e-mailek kiküldve {{count}} résztvevő részére.",
+    "nextSteps": {
+      "heading": "Mi történik ezután",
+      "step1Shared": "Oszd meg a fenti linket — a résztvevők megadják az elérhetőségüket.",
+      "step1Email": "A résztvevők hamarosan megkapják a meghívó e-mailjüket.",
+      "step2": "A határidő lejártakor e-mailt kapsz a véglegesítéshez.",
+      "step3": "Látogass vissza a rendszergazdai linkeden keresztül az időpont és helyszín kiválasztásához."
+    }
   },
   "join": {
     "loading": "Betöltés…",
