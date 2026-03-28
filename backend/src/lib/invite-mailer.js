@@ -288,7 +288,15 @@ export async function sendFinalizationNotifications(event, slot, venue) {
   for (const participant of event.participants) {
     if (!participant.email) continue;
     if (participant.email === event.organizerEmail) continue;
-    await sendEmail(buildFinalizationEmail(participant, event, slot, venue));
+    try {
+      await sendEmail(buildFinalizationEmail(participant, event, slot, venue));
+    } catch (err) {
+      console.error('[invite-mailer] Failed to send finalization email to', participant.email, err);
+    }
   }
-  await sendEmail(buildOrganizerFinalizationEmail(event, slot, venue));
+  try {
+    await sendEmail(buildOrganizerFinalizationEmail(event, slot, venue));
+  } catch (err) {
+    console.error('[invite-mailer] Failed to send organizer finalization email:', err);
+  }
 }
