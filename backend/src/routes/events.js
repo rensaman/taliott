@@ -76,6 +76,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'date_range_end must be on or after date_range_start' });
   }
 
+  const deadlineObj = new Date(deadline);
+  if (isNaN(deadlineObj.getTime())) {
+    return res.status(400).json({ error: 'deadline is not a valid date' });
+  }
+
   if (!Number.isInteger(time_range_start) || time_range_start < 0 || time_range_start > 1440) {
     return res.status(400).json({ error: 'time_range_start must be an integer between 0 and 1440' });
   }

@@ -268,6 +268,12 @@ describe('POST /api/events', () => {
     expect(stored.lang).toBe('en');
   });
 
+  it('returns 400 when deadline is not a valid date', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, deadline: 'not-a-date' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/deadline/i);
+  });
+
   it('returns 400 for an unsupported lang value', async () => {
     const res = await request(app).post('/api/events').send({ ...BASE_BODY, lang: 'xx' });
     expect(res.status).toBe(400);
