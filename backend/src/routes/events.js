@@ -64,6 +64,10 @@ router.post('/', async (req, res) => {
   if (!Array.isArray(participant_emails)) {
     return res.status(400).json({ error: 'participant_emails must be an array' });
   }
+  const MAX_PARTICIPANT_EMAILS = 50;
+  if (normalizedParticipantEmails.length > MAX_PARTICIPANT_EMAILS) {
+    return res.status(400).json({ error: `participant_emails must contain ${MAX_PARTICIPANT_EMAILS} addresses or fewer` });
+  }
   const invalidEmail = normalizedParticipantEmails.find(e => !EMAIL_RE.test(e));
   if (invalidEmail !== undefined) {
     return res.status(400).json({ error: `participant_emails contains an invalid address: ${invalidEmail}` });

@@ -311,6 +311,13 @@ describe('POST /api/events', () => {
     expect(stored.lang).toBe('en');
   });
 
+  it('returns 400 when participant_emails exceeds 50 addresses', async () => {
+    const many = Array.from({ length: 51 }, (_, i) => `user${i}@example.com`);
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, participant_emails: many });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/participant_emails/i);
+  });
+
   it('returns 400 when name exceeds 200 characters', async () => {
     const res = await request(app).post('/api/events').send({ ...BASE_BODY, name: 'A'.repeat(201) });
     expect(res.status).toBe(400);
