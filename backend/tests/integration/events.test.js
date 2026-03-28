@@ -311,6 +311,12 @@ describe('POST /api/events', () => {
     expect(stored.lang).toBe('en');
   });
 
+  it('returns 400 when name exceeds 200 characters', async () => {
+    const res = await request(app).post('/api/events').send({ ...BASE_BODY, name: 'A'.repeat(201) });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/name/i);
+  });
+
   it('returns 400 when date range exceeds 90 days', async () => {
     const res = await request(app).post('/api/events').send({
       ...BASE_BODY,

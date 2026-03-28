@@ -40,6 +40,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields: name, organizer_email, date_range_start, date_range_end, deadline' });
   }
 
+  if (typeof name !== 'string' || name.trim().length === 0 || name.length > 200) {
+    return res.status(400).json({ error: 'name must be a non-empty string of 200 characters or fewer' });
+  }
+
   if (!timezone) {
     return res.status(400).json({ error: 'timezone is required' });
   }
