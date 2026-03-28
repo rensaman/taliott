@@ -81,6 +81,12 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'deadline is not a valid date' });
   }
 
+  const MAX_DATE_RANGE_DAYS = 90;
+  const daySpan = Math.round((endDateObj - startDateObj) / 86_400_000) + 1;
+  if (daySpan > MAX_DATE_RANGE_DAYS) {
+    return res.status(400).json({ error: `date range must span ${MAX_DATE_RANGE_DAYS} days or fewer` });
+  }
+
   if (!Number.isInteger(time_range_start) || time_range_start < 0 || time_range_start > 1440) {
     return res.status(400).json({ error: 'time_range_start must be an integer between 0 and 1440' });
   }

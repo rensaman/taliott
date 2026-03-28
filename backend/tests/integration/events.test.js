@@ -268,6 +268,16 @@ describe('POST /api/events', () => {
     expect(stored.lang).toBe('en');
   });
 
+  it('returns 400 when date range exceeds 90 days', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      date_range_start: '2025-01-01',
+      date_range_end: '2025-04-30',
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/date range/i);
+  });
+
   it('returns 400 when deadline is not a valid date', async () => {
     const res = await request(app).post('/api/events').send({ ...BASE_BODY, deadline: 'not-a-date' });
     expect(res.status).toBe(400);
