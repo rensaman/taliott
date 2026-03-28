@@ -22,10 +22,10 @@ function minutesToHHMM(minutes) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function formatDate(iso) {
+function formatDate(iso, tFn) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-').map(Number);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = tFn('datepicker.monthsShort', { returnObjects: true });
   return `${d} ${months[m - 1]} ${y}`;
 }
 
@@ -408,13 +408,13 @@ export default function EventSetupForm({ onCreated }) {
               {formData.isDateTimeFixed ? (
                 <div className="review-ticket-row">
                   <span className="review-ticket-label">{t('setup.review.labelWhen')}</span>
-                  <span className="review-ticket-value">{formatDate(formData.fixedDate)} {t('setup.review.at')} {formData.fixedTime} ({timezone})</span>
+                  <span className="review-ticket-value">{formatDate(formData.fixedDate, t)} {t('setup.review.at')} {formData.fixedTime} ({timezone})</span>
                 </div>
               ) : (
                 <>
                   <div className="review-ticket-row">
                     <span className="review-ticket-label">{t('setup.review.labelDates')}</span>
-                    <span className="review-ticket-value">{formatDate(formData.dateRange.start)} – {formatDate(formData.dateRange.end)}</span>
+                    <span className="review-ticket-value">{formatDate(formData.dateRange.start, t)} – {formatDate(formData.dateRange.end, t)}</span>
                   </div>
                   <div className="review-ticket-row">
                     <span className="review-ticket-label">{t('setup.review.labelTime')}</span>
@@ -424,7 +424,7 @@ export default function EventSetupForm({ onCreated }) {
               )}
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelBy')}</span>
-                <span className="review-ticket-value">{formatDate(formData.deadlineDate)} {t('setup.review.at')} {formData.deadlineTime} ({timezone})</span>
+                <span className="review-ticket-value">{formatDate(formData.deadlineDate, t)} {t('setup.review.at')} {formData.deadlineTime} ({timezone})</span>
               </div>
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelVia')}</span>
