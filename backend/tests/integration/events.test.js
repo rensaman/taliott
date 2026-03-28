@@ -9,16 +9,22 @@ import { PrismaClient } from '@prisma/client';
 import app from '../../src/index.js';
 const prisma = new PrismaClient();
 
+// Use future-relative dates so the test body remains valid if deadline/date validation tightens.
+function futureDate(daysFromNow) {
+  const d = new Date(Date.now() + daysFromNow * 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
 const BASE_BODY = {
   name: 'Summer meetup',
   organizer_email: 'alex@example.com',
   participant_emails: ['jamie@example.com', 'sam@example.com'],
-  date_range_start: '2025-06-01',
-  date_range_end: '2025-06-03',
+  date_range_start: futureDate(30),
+  date_range_end: futureDate(32),
   time_range_start: 480,
   time_range_end: 1320,
   timezone: 'UTC',
-  deadline: '2025-05-25T12:00:00.000Z',
+  deadline: `${futureDate(20)}T12:00:00.000Z`,
 };
 
 const createdEventIds = [];
