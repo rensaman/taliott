@@ -64,6 +64,26 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
     else setDisplayMonth(m => m + 1);
   }
 
+  function navigateGrid(e) {
+    const grid = e.currentTarget;
+    const buttons = Array.from(grid.querySelectorAll('button[role="gridcell"]'));
+    const focused = document.activeElement;
+    const idx = buttons.indexOf(focused);
+    if (idx === -1) return;
+
+    let next = -1;
+    if (e.key === 'ArrowRight') next = idx + 1;
+    else if (e.key === 'ArrowLeft') next = idx - 1;
+    else if (e.key === 'ArrowDown') next = idx + 7;
+    else if (e.key === 'ArrowUp') next = idx - 7;
+    else if (e.key === 'PageDown') { e.preventDefault(); nextMonth(); return; }
+    else if (e.key === 'PageUp') { e.preventDefault(); prevMonth(); return; }
+    else return;
+
+    e.preventDefault();
+    if (next >= 0 && next < buttons.length) buttons[next].focus();
+  }
+
   function handleDayClick(iso) {
     if (singleDate) {
       onChange(iso);
@@ -133,7 +153,7 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
             <button type="button" className="drp-nav-btn" onClick={nextMonth} aria-label={t('datepicker.nextMonth')}>›</button>
           </div>
 
-          <div className="drp-grid" role="grid" aria-label={t('datepicker.gridLabel')}>
+          <div className="drp-grid" role="grid" aria-label={t('datepicker.gridLabel')} onKeyDown={navigateGrid}>
             {WEEKDAYS.map(d => (
               <div key={d} className="drp-weekday" role="columnheader">{d}</div>
             ))}
