@@ -8,13 +8,14 @@ vi.mock('nodemailer', () => ({
 }));
 
 // Import after mock is set up
-const { sendEmail } = await import('./mailer.js');
+const { sendEmail, resetTransport } = await import('./mailer.js');
 
 describe('sendEmail', () => {
   beforeEach(() => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     mockCreateTransport.mockClear();
     mockSendMail.mockClear();
+    resetTransport();
     delete process.env.SMTP_HOST;
     delete process.env.SMTP_PORT;
     delete process.env.SMTP_USER;
