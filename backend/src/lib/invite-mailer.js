@@ -44,32 +44,6 @@ export async function sendEventInvites(event) {
   }
 }
 
-export function buildOrganizerConfirmation(event) {
-  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
-  const eventName = sanitizeField(event.name);
-  const l = lang(event);
-  return {
-    to: event.organizerEmail,
-    subject: t(l, 'organizerConfirmation.subject', { eventName }),
-    text: [
-      t(l, 'organizerConfirmation.greeting'),
-      ``,
-      t(l, 'organizerConfirmation.created', { eventName }),
-      ``,
-      t(l, 'organizerConfirmation.manageLink'),
-      `${baseUrl}/admin/${event.adminToken}`,
-      ``,
-      t(l, 'organizerConfirmation.deadline', { deadline: new Date(event.deadline).toUTCString() }),
-      ``,
-      t(l, 'organizerConfirmation.participantsSent'),
-    ].join('\n'),
-  };
-}
-
-export async function sendOrganizerConfirmation(event) {
-  await sendEmail(buildOrganizerConfirmation(event));
-}
-
 export function buildOrganizerCreationEmail(event) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
   const eventName = sanitizeField(event.name);

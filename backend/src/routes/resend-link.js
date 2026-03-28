@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { getPrisma } from '../lib/prisma.js';
 import { sendEmail } from '../lib/mailer.js';
-import { buildOrganizerConfirmation, buildParticipantInvite } from '../lib/invite-mailer.js';
+import { buildOrganizerCreationEmail, buildParticipantInvite } from '../lib/invite-mailer.js';
 
 const router = Router();
 
@@ -56,9 +56,10 @@ router.post('/', async (req, res) => {
 
   const prisma = getPrisma();
 
-  // Find events where this email is the organizer
+  // Find events where this email is the organizer (with participants for email builder)
   const organizerEvents = await prisma.event.findMany({
     where: { organizerEmail: email },
+    include: { participants: true },
   });
 
   // Find participant records where this email matches
@@ -69,7 +70,7 @@ router.post('/', async (req, res) => {
 
   // Send admin recovery email for each organizer match
   for (const event of organizerEvents) {
-    await sendEmail(buildOrganizerConfirmation(event));
+    await sendEmail(buildOrganizerCreationEmail(event));
   }
 
   // Send participation link recovery email for each participant match

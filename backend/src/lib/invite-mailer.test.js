@@ -6,8 +6,6 @@ vi.mock('./ics.js', () => ({ generateICS: vi.fn().mockReturnValue('BEGIN:VCALEND
 import {
   buildParticipantInvite,
   sendEventInvites,
-  buildOrganizerConfirmation,
-  sendOrganizerConfirmation,
   buildOrganizerCreationEmail,
   sendOrganizerCreationEmail,
   buildJoinConfirmation,
@@ -87,43 +85,6 @@ describe('sendEventInvites', () => {
     const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
     expect(recipients).not.toContain('organizer@example.com');
     expect(sendEmail).toHaveBeenCalledTimes(2);
-  });
-});
-
-describe('buildOrganizerConfirmation', () => {
-  it('sends to organizer email', () => {
-    const msg = buildOrganizerConfirmation(event);
-    expect(msg.to).toBe('organizer@example.com');
-  });
-
-  it('includes event name in subject', () => {
-    const msg = buildOrganizerConfirmation(event);
-    expect(msg.subject).toContain('Summer Meetup');
-  });
-
-  it('includes admin link in body', () => {
-    const msg = buildOrganizerConfirmation(event);
-    expect(msg.text).toContain('/admin/admin-token-uuid');
-  });
-
-  it('uses APP_BASE_URL env var in admin link', () => {
-    process.env.APP_BASE_URL = 'https://myapp.example.com';
-    const msg = buildOrganizerConfirmation(event);
-    expect(msg.text).toContain('https://myapp.example.com/admin/admin-token-uuid');
-  });
-
-  it('subject is distinct from participant invite subject', () => {
-    const orgMsg = buildOrganizerConfirmation(event);
-    const partMsg = buildParticipantInvite(event.participants[0], event);
-    expect(orgMsg.subject).not.toBe(partMsg.subject);
-  });
-});
-
-describe('sendOrganizerConfirmation', () => {
-  it('calls sendEmail once with organizer email', async () => {
-    await sendOrganizerConfirmation(event);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
-    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'organizer@example.com' }));
   });
 });
 
