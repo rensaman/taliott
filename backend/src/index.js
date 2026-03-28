@@ -49,7 +49,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/events', writeLimiter, eventsRouter);
 app.use('/api/participate', participateRouter);
 app.use('/api/geocode', geocodeLimiter, geocodeRouter);
-app.use('/api/join', joinRouter);
+app.use('/api/join', writeLimiter, joinRouter);
 app.use('/api/resend-link', writeLimiter, resendLinkRouter);
 app.use('/api/feedback', writeLimiter, feedbackRouter);
 if (process.env.NODE_ENV !== 'production') {
