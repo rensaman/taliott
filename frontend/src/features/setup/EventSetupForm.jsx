@@ -125,6 +125,11 @@ export default function EventSetupForm({ onCreated }) {
           formData.dateRange.end >= formData.dateRange.start &&
           formData.timeRangeStart < formData.timeRangeEnd);
       case 'deadline': return formData.deadlineDate.length > 0 && formData.deadlineTime.length > 0;
+      case 'invite_mode': {
+        if (formData.inviteMode !== 'email_invites') return true;
+        const emails = formData.participantEmails.split('\n').map(s => s.trim()).filter(Boolean);
+        return emails.length === 0 || emails.every(e => EMAIL_RE.test(e));
+      }
       case 'review': return !submitting;
       default: return true;
     }
