@@ -323,6 +323,16 @@ router.post('/:adminToken/finalize', async (req, res) => {
   const trimmedVenueName = typeof venue_name === 'string' ? venue_name.trim() : venue_name;
   const trimmedVenueAddress = typeof venue_address === 'string' ? venue_address.trim() : venue_address;
 
+  if (typeof notes === 'string' && notes.length > 2000) {
+    return res.status(400).json({ error: 'notes must be 2000 characters or fewer' });
+  }
+  if (typeof venue_name === 'string' && venue_name.length > 300) {
+    return res.status(400).json({ error: 'venue_name must be 300 characters or fewer' });
+  }
+  if (typeof venue_address === 'string' && venue_address.length > 500) {
+    return res.status(400).json({ error: 'venue_address must be 500 characters or fewer' });
+  }
+
   // Exactly one venue form must be provided (or neither for TBD)
   if (venue_id && trimmedVenueName) {
     return res.status(400).json({ error: 'Provide either venue_id or venue_name/venue_address, not both' });
