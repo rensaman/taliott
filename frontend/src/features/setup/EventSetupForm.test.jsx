@@ -288,7 +288,7 @@ describe('EventSetupForm', () => {
     expect(body.date_range_end).toBe('2025-06-03');
     expect(body.time_range_start).toBe(480);
     expect(body.time_range_end).toBe(720);
-    expect(body.deadline).toBe('2025-05-25T12:00');
+    expect(body.deadline).toMatch(/^2025-05-25T12:00:00[+-]\d{2}:\d{2}$/);
     expect(body.invite_mode).toBe('email_invites');
   });
 

@@ -26,6 +26,21 @@ function formatDate(iso) {
   return `${d} ${months[m - 1]} ${y}`;
 }
 
+/**
+ * Build a deadline ISO string that includes the browser's UTC offset,
+ * so the backend stores the correct instant regardless of server timezone.
+ * e.g. "2025-05-25" + "18:00" → "2025-05-25T18:00:00+02:00"
+ */
+function buildDeadlineISO(dateStr, timeStr) {
+  const d = new Date(`${dateStr}T${timeStr}:00`);
+  const offsetMin = -d.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const absMin = Math.abs(offsetMin);
+  const hh = String(Math.floor(absMin / 60)).padStart(2, '0');
+  const mm = String(absMin % 60).padStart(2, '0');
+  return `${dateStr}T${timeStr}:00${sign}${hh}:${mm}`;
+}
+
 export default function EventSetupForm({ onCreated }) {
   const { t, i18n } = useTranslation();
 
@@ -162,7 +177,7 @@ export default function EventSetupForm({ onCreated }) {
           time_range_start: timeRangeStart,
           time_range_end: timeRangeEnd,
           timezone,
-          deadline: `${formData.deadlineDate}T${formData.deadlineTime}`,
+          deadline: buildDeadlineISO(formData.deadlineDate, formData.deadlineTime),
         }),
       });
       if (!res.ok) {
