@@ -4,7 +4,7 @@ import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
-import { fetchVenuesFromOverpass, sortVenues, haversineDistance, MAX_VENUE_DISTANCE_M } from '../lib/venues.js';
+import { getCachedVenues, sortVenues, haversineDistance, MAX_VENUE_DISTANCE_M } from '../lib/venues.js';
 import { subscribe } from '../lib/sse.js';
 
 const router = Router();
@@ -261,7 +261,7 @@ router.get('/:adminToken/venues', async (req, res) => {
       return res.json({ venues: sortVenues(withinRange.map(toVenueDto)) });
     }
 
-    const fetched = await fetchVenuesFromOverpass(venueType, centroid.lat, centroid.lng);
+    const fetched = await getCachedVenues(venueType, centroid.lat, centroid.lng);
     if (fetched.length > 0) {
       await getPrisma().venue.createMany({
         data: fetched.map(v => ({ ...v, eventId: event.id, venueType })),

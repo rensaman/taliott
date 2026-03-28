@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { haversineDistance, sortVenues, fetchVenuesFromOverpass, MAX_VENUE_DISTANCE_M } from './venues.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { haversineDistance, sortVenues, fetchVenuesFromOverpass, getCachedVenues, venueCache, MAX_VENUE_DISTANCE_M } from './venues.js';
 
 describe('haversineDistance', () => {
   it('returns 0 for identical points', () => {
@@ -59,6 +59,74 @@ describe('sortVenues', () => {
 
   it('handles empty array', () => {
     expect(sortVenues([])).toEqual([]);
+  });
+});
+
+describe('getCachedVenues', () => {
+  const venues = [{ externalId: '1', name: 'Café', latitude: 51.501, longitude: -0.1, rating: null, distanceM: 100, website: null, address: null }];
+
+  function makeFetch(v = venues) {
+    return vi.fn().mockResolvedValue({ ok: true, json: async () => ({ elements: [] }) });
+  }
+
+  beforeEach(() => venueCache.clear());
+
+  it('fetches and caches on first call', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ elements: [{ id: 1, lat: 51.501, lon: -0.1, tags: { name: 'Café' } }] }),
+    });
+    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    expect(mockFetch).toHaveBeenCalledOnce();
+    expect(venueCache.size).toBe(1);
+  });
+
+  it('returns cached result on second call without fetching again', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ elements: [] }),
+    });
+    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    expect(mockFetch).toHaveBeenCalledOnce();
+  });
+
+  it('uses the same cache bucket for coordinates rounded to 3 decimal places', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ elements: [] }),
+    });
+    await getCachedVenues('cafe', 51.5001, -0.1001, mockFetch);
+    await getCachedVenues('cafe', 51.5004, -0.1004, mockFetch);
+    expect(mockFetch).toHaveBeenCalledOnce();
+  });
+
+  it('revalidates in background when cache is stale but within stale window', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ elements: [] }),
+    });
+    // Seed a stale entry (70 min old)
+    const key = 'cafe:51.500:-0.100';
+    venueCache.set(key, { venues, fetchedAt: Date.now() - 70 * 60 * 1000 });
+    const result = await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    expect(result).toBe(venues); // returned stale immediately
+    // Background fetch is kicked off — wait a tick
+    await new Promise(r => setTimeout(r, 0));
+    expect(mockFetch).toHaveBeenCalledOnce();
+  });
+
+  it('fetches synchronously when cache is expired beyond stale window', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ elements: [] }),
+    });
+    const key = 'cafe:51.500:-0.100';
+    venueCache.set(key, { venues, fetchedAt: Date.now() - 3 * 60 * 60 * 1000 });
+    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    expect(mockFetch).toHaveBeenCalledOnce();
+    // Cache should be refreshed
+    expect(venueCache.get(key).fetchedAt).toBeGreaterThan(Date.now() - 1000);
   });
 });
 

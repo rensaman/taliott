@@ -1,6 +1,11 @@
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 export const MAX_VENUE_DISTANCE_M = Number(process.env.MAX_VENUE_DISTANCE_M) || 800;
 
+const CACHE_FRESH_MS = 60 * 60 * 1000;  // 1 hour
+const CACHE_STALE_MS = 2 * 60 * 60 * 1000; // serve stale + revalidate up to 2 hours
+
+export const venueCache = new Map(); // exported for testing/clearing
+
 export function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371000;
   const toRad = d => (d * Math.PI) / 180;
@@ -18,6 +23,29 @@ export function sortVenues(venues) {
     if (distDiff !== 0) return distDiff;
     return (b.rating ?? -Infinity) - (a.rating ?? -Infinity);
   });
+}
+
+export async function getCachedVenues(venueType, lat, lng, fetchFn = fetch) {
+  const key = `${venueType}:${lat.toFixed(3)}:${lng.toFixed(3)}`;
+  const cached = venueCache.get(key);
+  const now = Date.now();
+
+  if (cached) {
+    const age = now - cached.fetchedAt;
+    if (age < CACHE_FRESH_MS) {
+      return cached.venues;
+    }
+    if (age < CACHE_STALE_MS) {
+      fetchVenuesFromOverpass(venueType, lat, lng, fetchFn)
+        .then(venues => venueCache.set(key, { venues, fetchedAt: Date.now() }))
+        .catch(() => {});
+      return cached.venues;
+    }
+  }
+
+  const venues = await fetchVenuesFromOverpass(venueType, lat, lng, fetchFn);
+  venueCache.set(key, { venues, fetchedAt: now });
+  return venues;
 }
 
 export async function fetchVenuesFromOverpass(venueType, lat, lng, fetchFn = fetch) {
