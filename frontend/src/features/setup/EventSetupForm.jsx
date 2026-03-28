@@ -13,6 +13,9 @@ import './EventSetupForm.css';
 
 const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_mode', 'review'];
 
+// Keep in sync with EMAIL_RE in backend/src/routes/events.js
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function minutesToHHMM(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -113,7 +116,7 @@ export default function EventSetupForm({ onCreated }) {
   function canAdvance() {
     switch (currentStep) {
       case 'name': return formData.name.trim().length > 0;
-      case 'organizer_email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.organizerEmail);
+      case 'organizer_email': return EMAIL_RE.test(formData.organizerEmail);
       case 'date_and_time':
         if (formData.isDateTimeFixed) {
           return formData.fixedDate.length > 0 && formData.fixedTime.length > 0;

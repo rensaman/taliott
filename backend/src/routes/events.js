@@ -9,6 +9,7 @@ import { subscribe } from '../lib/sse.js';
 
 const router = Router();
 
+// Keep in sync with EMAIL_RE in frontend/src/features/setup/EventSetupForm.jsx
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidIANATimezone(tz) {
