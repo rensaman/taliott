@@ -217,7 +217,6 @@ export default function EventSetupForm({ onCreated }) {
                 className="wizard-input"
                 type="text"
                 data-testid="event-name-input"
-                aria-label={t('setup.name.label')}
                 value={formData.name}
                 onChange={e => update('name', e.target.value)}
                 autoFocus
@@ -238,7 +237,6 @@ export default function EventSetupForm({ onCreated }) {
                 className="wizard-input"
                 type="email"
                 data-testid="organizer-email-input"
-                aria-label={t('setup.email.label')}
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
                 autoFocus
@@ -290,7 +288,6 @@ export default function EventSetupForm({ onCreated }) {
                     ref={fixedTimeRef}
                     type="time"
                     className="wizard-input"
-                    aria-label="Start time"
                     value={formData.fixedTime}
                     onChange={e => update('fixedTime', e.target.value)}
                   />
@@ -338,7 +335,6 @@ export default function EventSetupForm({ onCreated }) {
                 ref={deadlineTimeRef}
                 type="time"
                 className="wizard-input"
-                aria-label="Deadline time"
                 value={formData.deadlineTime}
                 onChange={e => update('deadlineTime', e.target.value)}
               />
@@ -379,7 +375,6 @@ export default function EventSetupForm({ onCreated }) {
                   id="participant-emails"
                   className="wizard-input"
                   data-testid="participant-emails-input"
-                  aria-label={t('setup.inviteMode.emailsLabel')}
                   value={formData.participantEmails}
                   onChange={e => update('participantEmails', e.target.value)}
                   placeholder={'jamie@example.com\nsam@example.com'}
