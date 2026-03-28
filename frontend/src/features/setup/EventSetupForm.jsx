@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
-import TimeRangeSelector from './PartOfDaySelector.jsx';
+import TimeRangeSelector, { minutesToHHMM } from './PartOfDaySelector.jsx';
 import DateRangePicker from './DateRangePicker.jsx';
 import StepRoute from './StepRoute.jsx';
 import ToggleBlock from './ToggleBlock.jsx';
@@ -16,11 +16,6 @@ const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_m
 // Keep in sync with EMAIL_RE in backend/src/routes/events.js
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function minutesToHHMM(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
 
 function formatDate(iso, tFn) {
   if (!iso) return '';

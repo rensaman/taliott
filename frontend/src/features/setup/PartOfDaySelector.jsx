@@ -11,7 +11,7 @@ export const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return { value: totalMinutes, label };
 });
 
-function minutesToHHMM(minutes) {
+export function minutesToHHMM(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
