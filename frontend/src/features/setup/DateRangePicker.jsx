@@ -85,6 +85,7 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
   }
 
   function handleDayClick(iso) {
+    if (iso < today) return;
     if (singleDate) {
       onChange(iso);
       setOpen(false);
@@ -112,7 +113,9 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
     const isSingle = isStart && iso === previewEnd;
     const inRange = !!(start && previewEnd && previewEnd > start && iso > start && iso < previewEnd);
     const isToday = iso === today;
+    const isPast = iso < today;
 
+    if (isPast) return cls + ' drp-cell--past';
     if (isSingle) return cls + ' drp-cell--single';
     if (isStart) cls += ' drp-cell--start';
     if (isEnd) cls += ' drp-cell--end';
@@ -173,6 +176,8 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
                   onMouseEnter={() => pickingEnd && setHoverDate(iso)}
                   onMouseLeave={() => pickingEnd && setHoverDate(null)}
                   aria-label={iso}
+                  aria-disabled={iso < today || undefined}
+                  tabIndex={iso < today ? -1 : 0}
                 >
                   <span className="drp-num">{d}</span>
                 </button>

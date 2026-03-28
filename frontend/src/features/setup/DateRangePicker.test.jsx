@@ -75,28 +75,34 @@ describe('DateRangePicker', () => {
 
   it('calls onChange when a day cell is clicked (sets start)', () => {
     const onChange = vi.fn();
-    render(<DateRangePicker value={DEFAULT_VALUE} onChange={onChange} />);
+    // Use a future start date so the calendar opens on a month with clickable days
+    const futureStart = new Date(Date.now() + 32 * 86_400_000).toISOString().slice(0, 10);
+    render(<DateRangePicker value={{ start: futureStart, end: '' }} onChange={onChange} />);
     openPicker();
-    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
+    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON' && el.getAttribute('aria-disabled') !== 'true');
     fireEvent.click(dayBtns[0]);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ end: '' }));
   });
 
   it('calls onChange with end date when second day is clicked after start is set', () => {
     const onChange = vi.fn();
-    render(<DateRangePicker value={{ start: '2025-06-01', end: '' }} onChange={onChange} />);
+    const futureStart = new Date(Date.now() + 32 * 86_400_000).toISOString().slice(0, 10);
+    const futureStart2 = new Date(Date.now() + 33 * 86_400_000).toISOString().slice(0, 10);
+    render(<DateRangePicker value={{ start: futureStart, end: '' }} onChange={onChange} />);
     openPicker();
-    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
-    fireEvent.click(dayBtns[4]);
+    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON' && el.getAttribute('aria-disabled') !== 'true');
+    fireEvent.click(dayBtns[1]);
     expect(onChange).toHaveBeenCalled();
+    void futureStart2; // used to document intent
   });
 
   it('collapses after a single date is selected in singleDate mode', () => {
     const onChange = vi.fn();
-    render(<DateRangePicker singleDate value="" onChange={onChange} />);
+    const futureDate = new Date(Date.now() + 32 * 86_400_000).toISOString().slice(0, 10);
+    render(<DateRangePicker singleDate value={futureDate} onChange={onChange} />);
     openPicker();
     expect(screen.getByRole('grid')).toBeInTheDocument();
-    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON');
+    const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON' && el.getAttribute('aria-disabled') !== 'true');
     fireEvent.click(dayBtns[0]);
     expect(screen.queryByRole('grid')).not.toBeInTheDocument();
   });

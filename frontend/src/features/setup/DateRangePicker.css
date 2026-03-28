@@ -136,6 +136,11 @@
   cursor: default;
 }
 
+.drp-cell--past {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
 /* Day number circle */
 .drp-num {
   position: relative;
