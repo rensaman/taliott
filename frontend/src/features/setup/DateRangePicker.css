@@ -126,6 +126,12 @@
   outline: none;
 }
 
+.drp-cell:focus-visible {
+  outline: 2px solid var(--color-primary, #c0392b);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .drp-cell--empty {
   cursor: default;
 }
