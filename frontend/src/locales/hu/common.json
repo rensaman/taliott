@@ -81,7 +81,7 @@
     "review": {
       "heading": "Készen állsz az esemény létrehozására?",
       "labelName": "Név",
-      "labelOrg": "Szervező",
+      "labelOrg": "E-mail",
       "labelWhen": "Mikor",
       "labelDates": "Dátumok",
       "labelTime": "Idő",
@@ -229,6 +229,7 @@
   "confirmation": {
     "eyebrow": "Esemény létrehozva",
     "adminLinkLabel": "A rendszergazdai link — mentsd el",
+    "adminLinkHint": "Elküldtük a következő e-mail-re is: {{email}}.",
     "ownLinkLabel": "A saját részvételi linked",
     "shareLabel": "Oszd meg a résztvevőkkel",
     "copy": "Másolás",

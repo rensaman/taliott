@@ -81,7 +81,7 @@
     "review": {
       "heading": "Ready to create your event?",
       "labelName": "Name",
-      "labelOrg": "Org.",
+      "labelOrg": "Email",
       "labelWhen": "When",
       "labelDates": "Dates",
       "labelTime": "Time",
@@ -229,6 +229,7 @@
   "confirmation": {
     "eyebrow": "Event created",
     "adminLinkLabel": "Your admin link — save this",
+    "adminLinkHint": "Also sent to {{email}}.",
     "ownLinkLabel": "Your participation link",
     "shareLabel": "Share with participants",
     "copy": "Copy",

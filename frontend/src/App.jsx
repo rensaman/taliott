@@ -73,6 +73,11 @@ function ConfirmationView({ confirmation }) {
           >
             {adminUrl}
           </a>
+          {confirmation.participants?.[0]?.email && (
+            <p className="confirmation-admin-link-hint">
+              {t('confirmation.adminLinkHint', { email: confirmation.participants[0].email })}
+            </p>
+          )}
         </div>
 
         {ownUrl && (

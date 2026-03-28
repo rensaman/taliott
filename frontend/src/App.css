@@ -84,6 +84,12 @@
   background: var(--rule);
 }
 
+.confirmation-admin-link-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
 .confirmation-join-row {
   display: flex;
   align-items: center;
