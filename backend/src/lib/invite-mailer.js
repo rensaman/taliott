@@ -4,6 +4,10 @@ import { t } from './t.js';
 
 const DEFAULT_BASE_URL = 'http://localhost:3000';
 
+if (process.env.NODE_ENV === 'production' && !process.env.APP_BASE_URL) {
+  console.warn('[invite-mailer] WARNING: APP_BASE_URL is not set — all email links will point to http://localhost:3000');
+}
+
 /**
  * Strip CR and LF characters to prevent email header/body injection.
  * Applied to any user-controlled field embedded in email text or subjects.
