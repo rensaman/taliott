@@ -71,14 +71,14 @@ test.describe('Event creation flow', () => {
     await page.locator('[data-testid="date-end"]').fill('2025-07-03');
     await page.getByTestId('wizard-next-btn').click();
 
-    // Step 4 — voting deadline
-    await snap(page, 'create-05-deadline.png');
-    await page.locator('[data-testid="date-value"]').fill('2025-06-20');
-    await page.getByLabel(/deadline time/i).fill('12:00');
+    // Step 4 — invite mode (defaults to shared link)
+    await snap(page, 'create-05-invite-mode.png');
     await page.getByTestId('wizard-next-btn').click();
 
-    // Step 5 — invite mode (defaults to shared link)
-    await snap(page, 'create-06-invite-mode.png');
+    // Step 5 — voting deadline
+    await snap(page, 'create-06-deadline.png');
+    await page.locator('[data-testid="date-value"]').fill('2025-06-20');
+    await page.getByLabel(/deadline time/i).fill('12:00');
     await page.getByTestId('wizard-next-btn').click();
 
     // Step 6 — review

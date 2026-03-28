@@ -11,7 +11,6 @@ import PrivacyPolicyViewHu from './features/legal/PrivacyPolicyViewHu.jsx';
 import TermsViewHu from './features/legal/TermsViewHu.jsx';
 import LegalFooter from './features/legal/LegalFooter.jsx';
 import LandingPage from './features/landing/LandingPage.jsx';
-import FeedbackForm from './features/feedback/FeedbackForm.jsx';
 import LanguageSelector from './features/setup/LanguageSelector.jsx';
 import { track } from './lib/analytics.js';
 import './App.css';
@@ -86,6 +85,7 @@ function ConfirmationView({ confirmation }) {
             <a href={ownUrl} className="confirmation-admin-link" data-testid="own-participate-url">
               {ownUrl}
             </a>
+            <p className="confirmation-admin-link-hint">{t('confirmation.ownLinkHint')}</p>
           </div>
         )}
 
@@ -115,8 +115,6 @@ function ConfirmationView({ confirmation }) {
             <li>{t('confirmation.nextSteps.step3')}</li>
           </ol>
         </div>
-
-        <FeedbackForm context="organizer" />
 
         <p className="donate-nudge">
           {t('donate.text')}{' '}

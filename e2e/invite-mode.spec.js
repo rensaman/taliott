@@ -37,9 +37,9 @@ test.describe('invite mode selector', () => {
     await fillWizard(page, { ...BASE_FORM, stopAt: 'invite_mode' });
     // shared_link is the default — no textarea shown
     await expect(page.getByTestId('participant-emails-input')).not.toBeVisible();
-    // Advancing goes straight to review
+    // Advancing moves to the deadline step
     await page.getByTestId('wizard-next-btn').click();
-    await expect(page.getByTestId('create-event-submit-btn')).toBeVisible();
+    await expect(page.getByLabel(/deadline time/i)).toBeVisible();
   });
 
   test('confirmation screen shows join URL with copy button when shared_link is selected', async ({ page }) => {

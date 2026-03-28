@@ -5,7 +5,7 @@
  * navigation stops after arriving on that step (without advancing past it),
  * so the caller can assert or interact with that step.
  *
- * stopAt values: 'organizer_email' | 'date_and_time' | 'deadline' | 'invite_mode'
+ * stopAt values: 'organizer_email' | 'date_and_time' | 'invite_mode' | 'deadline'
  * Omit stopAt (or pass null) to reach the review step.
  */
 export async function fillWizard(page, {
@@ -36,7 +36,7 @@ export async function fillWizard(page, {
   await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'date_and_time') return;
 
-  // Step 3: date_and_time → deadline
+  // Step 3: date_and_time → invite_mode
   if (isFixed) {
     await page.getByTestId('toggle-dt-fixed').click();
     await setDateInput(page, 'date-value', fixedDate);
@@ -48,16 +48,9 @@ export async function fillWizard(page, {
     await setSlider(page, 'Latest start', timeRangeEnd);
   }
   await page.getByTestId('wizard-next-btn').click();
-  if (stopAt === 'deadline') return;
-
-  // Step 4: deadline → invite_mode
-  const [dDate, dTime] = deadline.split('T');
-  await setDateInput(page, 'date-value', dDate);
-  await page.getByLabel(/deadline time/i).fill(dTime);
-  await page.getByTestId('wizard-next-btn').click();
   if (stopAt === 'invite_mode') return;
 
-  // Step 5: invite_mode → review
+  // Step 4: invite_mode → deadline
   if (inviteMode === 'email_invites') {
     await page.getByTestId('toggle-invite-email').click();
     if (participantEmails) {
@@ -65,6 +58,13 @@ export async function fillWizard(page, {
     }
   }
   // shared_link is the default — no action needed
+  await page.getByTestId('wizard-next-btn').click();
+  if (stopAt === 'deadline') return;
+
+  // Step 5: deadline → review
+  const [dDate, dTime] = deadline.split('T');
+  await setDateInput(page, 'date-value', dDate);
+  await page.getByLabel(/deadline time/i).fill(dTime);
   await page.getByTestId('wizard-next-btn').click();
 
   // Caller is now on the review step

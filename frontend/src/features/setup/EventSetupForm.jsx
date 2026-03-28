@@ -11,7 +11,7 @@ import { privacyPath, termsPath } from '../../lib/legalPaths.js';
 import { localizeTimezone } from '../../lib/localizeTimezone.js';
 import './EventSetupForm.css';
 
-const STEPS = ['name', 'organizer_email', 'date_and_time', 'deadline', 'invite_mode', 'review'];
+const STEPS = ['name', 'organizer_email', 'date_and_time', 'invite_mode', 'deadline', 'review'];
 
 // Keep in sync with EMAIL_RE in backend/src/routes/events.js
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,8 +46,8 @@ export default function EventSetupForm({ onCreated }) {
     t('setup.steps.name'),
     t('setup.steps.email'),
     t('setup.steps.dates'),
-    t('setup.steps.deadline'),
     t('setup.steps.invites'),
+    t('setup.steps.deadline'),
     t('setup.steps.review'),
   ];
   const [formData, setFormData] = useState({
@@ -57,8 +57,8 @@ export default function EventSetupForm({ onCreated }) {
     fixedDate: '',
     fixedTime: '',
     dateRange: { start: '', end: '' },
-    timeRangeStart: 480,
-    timeRangeEnd: 540,
+    timeRangeStart: 1020,
+    timeRangeEnd: 1260,
     deadlineDate: '',
     deadlineTime: '',
     inviteMode: 'shared_link',
@@ -136,6 +136,18 @@ export default function EventSetupForm({ onCreated }) {
     if (currentStep === 'review') {
       handleSubmit();
     } else {
+      if (currentStep === 'invite_mode' && !formData.deadlineDate) {
+        const refDate = formData.isDateTimeFixed ? formData.fixedDate : formData.dateRange.end;
+        if (refDate) {
+          const d = new Date(refDate + 'T00:00:00');
+          d.setDate(d.getDate() - 3);
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          tomorrow.setHours(0, 0, 0, 0);
+          if (d < tomorrow) d.setTime(tomorrow.getTime());
+          update('deadlineDate', d.toISOString().slice(0, 10));
+        }
+      }
       setStep(s => s + 1);
     }
   }
@@ -319,7 +331,7 @@ export default function EventSetupForm({ onCreated }) {
       case 'deadline':
         return (
           <>
-            <h2>{t('setup.deadline.heading')}</h2>
+            <h2>{formData.isDateTimeFixed ? t('setup.deadline.headingFixed') : t('setup.deadline.heading')}</h2>
             <fieldset className="wizard-fieldset">
               <legend>{t('setup.deadline.dateLabel')}</legend>
               <DateRangePicker
@@ -388,6 +400,11 @@ export default function EventSetupForm({ onCreated }) {
         const emails = formData.inviteMode === 'email_invites'
           ? formData.participantEmails.split('\n').map(s => s.trim()).filter(Boolean)
           : [];
+        const editBtn = (stepIdx) => (
+          <button className="review-edit-btn" type="button" onClick={() => setStep(stepIdx)}>
+            {t('setup.review.editBtn')}
+          </button>
+        );
         return (
           <>
             <h2>{t('setup.review.heading')}</h2>
@@ -395,35 +412,42 @@ export default function EventSetupForm({ onCreated }) {
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelName')}</span>
                 <span className="review-ticket-value">{formData.name}</span>
+                {editBtn(0)}
               </div>
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelOrg')}</span>
                 <span className="review-ticket-value">{formData.organizerEmail}</span>
+                {editBtn(1)}
               </div>
               {formData.isDateTimeFixed ? (
                 <div className="review-ticket-row">
                   <span className="review-ticket-label">{t('setup.review.labelWhen')}</span>
                   <span className="review-ticket-value">{formatDate(formData.fixedDate, t)} {t('setup.review.at')} {formData.fixedTime} ({timezone})</span>
+                  {editBtn(2)}
                 </div>
               ) : (
                 <>
                   <div className="review-ticket-row">
                     <span className="review-ticket-label">{t('setup.review.labelDates')}</span>
                     <span className="review-ticket-value">{formatDate(formData.dateRange.start, t)} – {formatDate(formData.dateRange.end, t)}</span>
+                    {editBtn(2)}
                   </div>
                   <div className="review-ticket-row">
                     <span className="review-ticket-label">{t('setup.review.labelTime')}</span>
                     <span className="review-ticket-value">{minutesToHHMM(formData.timeRangeStart)} – {minutesToHHMM(formData.timeRangeEnd)} ({timezone})</span>
+                    {editBtn(2)}
                   </div>
                 </>
               )}
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelBy')}</span>
                 <span className="review-ticket-value">{formatDate(formData.deadlineDate, t)} {t('setup.review.at')} {formData.deadlineTime} ({timezone})</span>
+                {editBtn(4)}
               </div>
               <div className="review-ticket-row">
                 <span className="review-ticket-label">{t('setup.review.labelVia')}</span>
                 <span className="review-ticket-value">{formData.inviteMode === 'email_invites' ? t('setup.review.viaEmail') : t('setup.review.viaLink')}</span>
+                {editBtn(3)}
               </div>
               {emails.length > 0 && (
                 <div className="review-ticket-row">
@@ -433,13 +457,16 @@ export default function EventSetupForm({ onCreated }) {
                       {emails.map(email => <li key={email}>{email}</li>)}
                     </ul>
                   </span>
+                  {editBtn(3)}
                 </div>
               )}
             </div>
-            <p className="review-privacy">
-              {t('setup.review.privacyText')}{' '}
-              <a href={privacyPath(i18n.language)} target="_blank" rel="noreferrer">{t('setup.review.privacyLink')}</a>.
-            </p>
+            {formData.inviteMode === 'email_invites' && (
+              <p className="review-privacy">
+                {t('setup.review.privacyText')}{' '}
+                <a href={privacyPath(i18n.language)} target="_blank" rel="noreferrer">{t('setup.review.privacyLink')}</a>.
+              </p>
+            )}
           </>
         );
       }

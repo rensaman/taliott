@@ -35,9 +35,9 @@ function navigateToReview({
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'date_and_time') return;
 
-  // Step 3: fill date_and_time → deadline
+  // Step 3: fill date_and_time → invite_mode
   if (isFixed) {
-    fireEvent.click(screen.getByRole('radio', { name: /already set/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /date and time are fixed/i }));
     fireEvent.change(screen.getByLabelText(/^date$/i), { target: { value: fixedDate } });
     fireEvent.change(screen.getByLabelText(/start time/i), { target: { value: fixedTime } });
   } else {
@@ -51,16 +51,9 @@ function navigateToReview({
     });
   }
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
-  if (stopAt === 'deadline') return;
-
-  // Step 4 → invite_mode
-  const [dDate, dTime] = deadline.split('T');
-  fireEvent.change(screen.getByLabelText(/^date$/i), { target: { value: dDate } });
-  fireEvent.change(screen.getByLabelText(/deadline time/i), { target: { value: dTime } });
-  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
   if (stopAt === 'invite_mode') return;
 
-  // Step 5 → review
+  // Step 4 → deadline: fill invite_mode
   if (inviteMode === 'email_invites') {
     fireEvent.click(screen.getByRole('radio', { name: /send email invites/i }));
     if (participantEmails) {
@@ -70,6 +63,13 @@ function navigateToReview({
     }
   }
   // shared_link is default — no action needed
+  fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+  if (stopAt === 'deadline') return;
+
+  // Step 5 → review: fill deadline
+  const [dDate, dTime] = deadline.split('T');
+  fireEvent.change(screen.getByLabelText(/^date$/i), { target: { value: dDate } });
+  fireEvent.change(screen.getByLabelText(/deadline time/i), { target: { value: dTime } });
   fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 }
 
@@ -168,24 +168,24 @@ describe('EventSetupForm', () => {
   it('date_and_time step shows both preference radios and date/time inputs', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'date_and_time' });
-    expect(screen.getByRole('radio', { name: /time that works/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /already set/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /find a time together/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /date and time are fixed/i })).toBeInTheDocument();
     // flexible mode is default — date range and sliders are visible
     expect(screen.getByLabelText(/^from$/i)).toBeInTheDocument();
     expect(screen.getByRole('slider', { name: /earliest start/i })).toBeInTheDocument();
   });
 
-  it('defaults time range to 08:00–09:00', () => {
+  it('defaults time range to 17:00–21:00', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'date_and_time' });
-    expect(screen.getByRole('slider', { name: /earliest start/i }).value).toBe('480');
-    expect(screen.getByRole('slider', { name: /latest start/i }).value).toBe('540');
+    expect(screen.getByRole('slider', { name: /earliest start/i }).value).toBe('1020');
+    expect(screen.getByRole('slider', { name: /latest start/i }).value).toBe('1260');
   });
 
   it('switching to fixed mode hides the date range and sliders', () => {
     render(<EventSetupForm />);
     navigateToReview({ stopAt: 'date_and_time' });
-    fireEvent.click(screen.getByRole('radio', { name: /already set/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /date and time are fixed/i }));
     expect(screen.queryByRole('slider', { name: /earliest start/i })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/start time/i)).toBeInTheDocument();
   });
@@ -222,9 +222,9 @@ describe('EventSetupForm', () => {
 
   // --- Review step ---
 
-  it('shows a privacy notice with a link to the privacy policy at the review step', () => {
+  it('shows a privacy notice with a link to the privacy policy at the review step (email_invites only)', () => {
     render(<EventSetupForm />);
-    navigateToReview();
+    navigateToReview({ inviteMode: 'email_invites' });
     const link = screen.getByRole('link', { name: /privacy policy/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/privacy');

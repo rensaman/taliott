@@ -48,11 +48,11 @@
     "dateTime": {
       "heading": "Tudod, mikor találkoztok?",
       "flexible": {
-        "title": "Közös időpontot keresünk",
+        "title": "Közös időpont keresése",
         "description": "A résztvevők bejelölik, mikor érnek rá"
       },
       "fixed": {
-        "title": "Már tudjuk",
+        "title": "Az időpont és dátum adott",
         "description": "Csak a helyszín és a részvétel megerősítése szükséges"
       },
       "dateLabel": "Dátum",
@@ -62,6 +62,7 @@
     },
     "deadline": {
       "heading": "Mikor zárul a szavazás?",
+      "headingFixed": "Mikor kell visszajelezni?",
       "dateLabel": "Nap",
       "timeLabel": "Időpont ({{timezone}})"
     },
@@ -73,7 +74,7 @@
       },
       "email": {
         "title": "E-maillel",
-        "description": "A meghívókat közvetlenül a résztvevők kapják"
+        "description": "Csak a megadott e-mail-címek vehetnek részt"
       },
       "emailsLabel": "Résztvevők e-mail-címei",
       "emailsOnePerLine": "(soronként egy)"
@@ -91,6 +92,7 @@
       "at": "ekkor",
       "viaEmail": "E-mail meghívók",
       "viaLink": "Megosztott link",
+      "editBtn": "Szerkeszt",
       "privacyText": "Az esemény létrehozásával megerősíted, hogy az általad megadott résztvevői e-mail-címeket az érintett személyek tudtával gyűjtötted. Az e-mail-címeket kizárólag esemény meghívók és értesítések küldésére használjuk. Lásd az",
       "privacyLink": "Adatvédelmi tájékoztatónkat"
     }
@@ -231,6 +233,7 @@
     "adminLinkLabel": "A rendszergazdai link — mentsd el",
     "adminLinkHint": "Elküldtük a következő e-mail-re is: {{email}}.",
     "ownLinkLabel": "A saját részvételi linked",
+    "ownLinkHint": "Ezen a linken szavazz, és add meg a saját helyszínedet.",
     "shareLabel": "Oszd meg a résztvevőkkel",
     "copy": "Másolás",
     "copied": "Másolva!",
