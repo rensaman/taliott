@@ -126,7 +126,10 @@ export default function PrivacyPolicyViewHu() {
         <p>
           A tömegközlekedési útvonaltervezést (a &quot;tömegközlekedés&quot; közlekedési módhoz)
           saját üzemeltetésű OpenTripPlanner példány végzi. A tranzitszámítások során az
-          infrastruktúránkon kívülre nem kerülnek adatok.
+          infrastruktúránkon kívülre nem kerülnek adatok. A menetrendadatokat a{' '}
+          <strong>BKK (Budapest Közlekedési Központ)</strong> nyílt adatlicence alapján biztosítja;
+          ezeket az adatokat kizárólag a saját infrastruktúránkon belül használjuk, és résztvevői
+          adatokat nem osztunk meg a BKK-val.
         </p>
 
         <h2>5. Adatmegőrzés</h2>
@@ -169,10 +172,22 @@ export default function PrivacyPolicyViewHu() {
           </li>
         </ul>
 
-        <h2>7. Sütik és nyomkövetés</h2>
+        <h2>7. Sütik, helyi tárolás és analitika</h2>
         <p>
-          Nem használunk sütiket, helyi tárolást vagy bármilyen nyomkövető technológiát. Nem
-          használunk elemzőszoftvert, hirdetési hálózatokat vagy nyomkövető képpontokat.
+          Nem használunk sütiket vagy nyomkövető technológiákat. Egy kulcsot tárolunk a böngésződ
+          helyi tárhelyén — <code>taliott_feedback_sent</code> — miután elküldöd vagy bezárod az
+          egyszeri visszajelzési űrlapot, kizárólag azért, hogy az ne jelenjen meg újra. Ez a kulcs
+          nem tartalmaz személyes adatot, és soha nem kerül továbbításra a szerverünkre. Az
+          ePrivacy-irányelv értelmében nem szükséges hozzájárulás, mivel ez szigorúan szükséges az
+          űrlap működéséhez.
+        </p>
+        <p>
+          Összesített oldalforgalmunk mérésére saját üzemeltetésű <strong>Umami</strong>-példányt
+          használunk, amely egy sütimentes, nyílt forráskódú analitikai eszköz. Az Umami rögzíti az
+          oldal URL-jét, a hivatkozó oldalt, valamint anonimizált böngésző- és operációsrendszer
+          metaadatokat. Az IP-címek tárolás előtt anonimizálásra kerülnek, és nem őrizzük meg
+          azokat. Az Umami a saját infrastruktúránkon fut; analitikai adatok nem kerülnek
+          harmadik félhez. Hirdetési hálózatokat és nyomkövető képpontokat nem használunk.
         </p>
 
         <h2>8. Kiskorúak</h2>

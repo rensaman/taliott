@@ -121,7 +121,9 @@ export default function PrivacyPolicyView() {
         <p>
           Transit routing (for the &quot;public transit&quot; travel mode) is handled by a
           self-hosted OpenTripPlanner instance. No data leaves our infrastructure for transit
-          calculations.
+          calculations. Transit schedule data is provided by{' '}
+          <strong>BKK (Budapest Közlekedési Központ)</strong> under their open data licence; this
+          data is used locally within our infrastructure and no participant data is shared with BKK.
         </p>
 
         <h2>5. Data retention</h2>
@@ -158,15 +160,25 @@ export default function PrivacyPolicyView() {
           </li>
           <li>
             <strong>Lodge a complaint</strong> — you have the right to lodge a complaint with your
-            national data protection supervisory authority (e.g. the CNIL in France, the ICO in the
-            UK, or the Datenschutzbehörde in Austria).
+            national data protection supervisory authority (e.g. the NAIH in Hungary, the CNIL in
+            France, the ICO in the UK, or the Datenschutzbehörde in Austria).
           </li>
         </ul>
 
-        <h2>7. Cookies and tracking</h2>
+        <h2>7. Cookies, local storage, and analytics</h2>
         <p>
-          We do not use cookies, local storage, or any tracking technologies. We do not use analytics
-          software, advertising networks, or tracking pixels.
+          We do not use cookies or tracking technologies. We store one key in your browser&apos;s
+          local storage — <code>taliott_feedback_sent</code> — after you submit or dismiss the
+          one-time feedback form, solely to prevent it from reappearing. This key contains no
+          personal data and is never transmitted to our server. No consent is required under the
+          ePrivacy Directive as this is strictly necessary for the form&apos;s functionality.
+        </p>
+        <p>
+          We use a self-hosted instance of <strong>Umami</strong>, a cookieless open-source
+          analytics tool, to measure aggregate page traffic. Umami records page URL, referrer, and
+          anonymised browser and OS metadata. IP addresses are anonymised before storage and are not
+          retained. Umami runs on our own infrastructure; no analytics data is transmitted to any
+          third party. We do not use advertising networks or tracking pixels.
         </p>
 
         <h2>8. Children</h2>

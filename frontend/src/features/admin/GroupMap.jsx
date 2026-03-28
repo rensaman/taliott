@@ -77,7 +77,7 @@ export default function GroupMap({ centroid, participants, venues = [], selected
         style={{ width: '100%', aspectRatio: '1 / 1' }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          attribution='Routing &copy; <a href="https://openrouteservice.org">openrouteservice.org by HeiGIT</a> | Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapBounds participants={participants} centroid={centroid} venues={venues} />

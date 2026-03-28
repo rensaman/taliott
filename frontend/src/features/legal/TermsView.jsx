@@ -105,8 +105,8 @@ export default function TermsView() {
 
         <h2>11. Governing law</h2>
         <p>
-          These terms are governed by the laws of <strong>[JURISDICTION]</strong>. Any disputes shall
-          be subject to the exclusive jurisdiction of the courts of <strong>[JURISDICTION]</strong>.
+          These terms are governed by the laws of <strong>Hungary</strong>. Any disputes shall
+          be subject to the exclusive jurisdiction of the courts of <strong>Hungary</strong>.
         </p>
 
         <h2>12. Contact</h2>

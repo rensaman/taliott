@@ -114,8 +114,8 @@ export default function TermsViewHu() {
 
         <h2>11. Irányadó jog</h2>
         <p>
-          Ezekre a feltételekre <strong>[JOGHATÓSÁG]</strong> jogszabályai az irányadók.
-          Minden jogvita a <strong>[JOGHATÓSÁG]</strong> bíróságainak kizárólagos hatáskörébe
+          Ezekre a feltételekre <strong>Magyarország</strong> jogszabályai az irányadók.
+          Minden jogvita <strong>Magyarország</strong> bíróságainak kizárólagos hatáskörébe
           tartozik.
         </p>
 
