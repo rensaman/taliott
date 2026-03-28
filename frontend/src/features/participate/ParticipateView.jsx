@@ -149,13 +149,19 @@ export default function ParticipateView({ participantId }) {
 
       {finalSlot && (
         <section aria-label="Event result" data-testid="finalized-banner" className="pv-main">
-          <h2>{t('participate.eventFinalized')}</h2>
-          <p>{t('participate.finalizedWhen', { date: new Date(finalSlot.starts_at).toLocaleString(i18n.language) })}</p>
-          {finalVenue && (
-            <p>
-              {t('participate.finalizedWhere', { venue: finalVenue.name + (finalVenue.address ? `, ${finalVenue.address}` : '') })}
-            </p>
-          )}
+          <div className="finalized-result-card">
+            <div className="finalized-result-label">{t('participate.eventFinalized')}</div>
+            <div className="finalized-result-row">
+              <span className="finalized-result-key">{t('participate.finalizedWhenLabel')}</span>
+              <span className="finalized-result-value">{new Date(finalSlot.starts_at).toLocaleString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            {finalVenue && (
+              <div className="finalized-result-row">
+                <span className="finalized-result-key">{t('participate.finalizedWhereLabel')}</span>
+                <span className="finalized-result-value">{finalVenue.name}{finalVenue.address ? `, ${finalVenue.address}` : ''}</span>
+              </div>
+            )}
+          </div>
         </section>
       )}
 

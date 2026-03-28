@@ -426,3 +426,45 @@
   margin-top: 0.25rem;
 }
 
+/* ── Finalized result card ───────────────────────────────────────────────── */
+.finalized-result-card {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.finalized-result-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.65;
+  margin-bottom: 1rem;
+}
+
+.finalized-result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.9rem;
+}
+
+.finalized-result-row:last-child {
+  margin-bottom: 0;
+}
+
+.finalized-result-key {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+}
+
+.finalized-result-value {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+

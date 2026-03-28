@@ -151,7 +151,9 @@
     "resultsOnly": "Results only — voting has closed.",
     "eventFinalized": "Event finalized",
     "finalizedWhen": "When: {{date}}",
-    "finalizedWhere": "Where: {{venue}}"
+    "finalizedWhere": "Where: {{venue}}",
+    "finalizedWhenLabel": "When",
+    "finalizedWhereLabel": "Where"
   },
   "admin": {
     "wordmark": "taliott",
@@ -166,12 +168,16 @@
     "finalizedNotice": "This event has been finalized.",
     "statusResponded": "Responded",
     "statusPending": "Pending",
+    "status": {
+      "open": "open",
+      "finalized": "finalized"
+    },
     "finalizedSummaryHeading": "Finalized details",
     "finalizedWhen": "When",
     "finalizedVenueNone": "No venue set",
     "finalizedDurationUnit": "min",
     "justFinalizedTitle": "You're all set — enjoy it with your friends!",
-    "justFinalizedBody": "The event has been finalized and confirmation emails are on their way. The admin and participation links are no longer active.",
+    "justFinalizedBody": "The event has been finalized and confirmation emails are on their way. The admin and participation pages are now in read-only mode and will remain accessible until the event takes place.",
     "justFinalizedHome": "Back to home"
   },
   "datepicker": {

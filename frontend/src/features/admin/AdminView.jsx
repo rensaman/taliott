@@ -103,7 +103,7 @@ export default function AdminView({ adminToken }) {
         <div className="admin-name-badge">
           <h1 className="admin-event-name">{data.name}</h1>
           <span className={`admin-status-badge admin-status-badge--${data.status}`}>
-            {data.status}
+            {t(`admin.status.${data.status}`)}
           </span>
         </div>
       </header>
