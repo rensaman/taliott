@@ -256,6 +256,43 @@ describe('POST /api/events', () => {
     expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email.toLowerCase());
   });
 
+  it('shared_link mode: returns join_url and creates only organizer participant', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      invite_mode: 'shared_link',
+      participant_emails: [],
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    expect(res.body.join_url).toMatch(/^\/join\//);
+    expect(res.body.participants).toHaveLength(1);
+    expect(res.body.participants[0].email).toBe(BASE_BODY.organizer_email.toLowerCase());
+  });
+
+  it('shared_link mode: join_url contains a UUID v4 token', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      invite_mode: 'shared_link',
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+
+    const uuidV4Re = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const token = res.body.join_url.replace('/join/', '');
+    expect(token).toMatch(uuidV4Re);
+  });
+
+  it('email_invites mode: does not return join_url', async () => {
+    const res = await request(app).post('/api/events').send({
+      ...BASE_BODY,
+      invite_mode: 'email_invites',
+    });
+    expect(res.status).toBe(201);
+    createdEventIds.push(res.body.event_id);
+    expect(res.body.join_url).toBeUndefined();
+  });
+
   it('stores lang "hu" on event when provided', async () => {
     const res = await request(app).post('/api/events').send({ ...BASE_BODY, lang: 'hu' });
     expect(res.status).toBe(201);
