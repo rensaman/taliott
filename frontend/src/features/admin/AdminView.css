@@ -36,6 +36,14 @@
   color: var(--rule);
 }
 
+.admin-name-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .admin-event-name {
   font-family: var(--font-display);
   font-size: clamp(1rem, 2.5vw, 1.25rem);
@@ -43,7 +51,6 @@
   text-transform: uppercase;
   letter-spacing: -0.01em;
   line-height: 1.05;
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -367,6 +374,24 @@
   border-color: var(--ink);
   background: var(--ink);
   color: var(--paper);
+}
+
+.venue-type-toggle {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-bottom: 0.6rem;
+}
+
+.venue-type-toggle:hover {
+  color: var(--ink);
 }
 
 .venue-filter-custom {

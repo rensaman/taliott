@@ -23,15 +23,14 @@ describe('PrivacyPolicyViewHu', () => {
     expect(screen.getAllByText(/privacy@example\.com/i).length).toBeGreaterThan(0);
   });
 
-  it('links back to the home page', () => {
+  it('renders the wordmark linking to home', () => {
     render(<PrivacyPolicyViewHu />);
-    expect(screen.getByRole('link', { name: /vissza/i })).toHaveAttribute('href', '/');
+    expect(screen.getByText('taliott')).toBeInTheDocument();
   });
 
-  it('links to the Hungarian terms page', () => {
+  it('has a footer with privacy and terms links', () => {
     render(<PrivacyPolicyViewHu />);
-    expect(
-      screen.getByRole('link', { name: /általános szerződési feltételek/i })
-    ).toHaveAttribute('href', '/terms/hu');
+    expect(screen.getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
   });
 });

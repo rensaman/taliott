@@ -1,6 +1,6 @@
 {
   "wizard": {
-    "wordmark": "Taliott",
+    "wordmark": "taliott",
     "consentPrefix": "By continuing you agree to our",
     "tos": "Terms of Service",
     "and": "and",
@@ -154,7 +154,7 @@
     "finalizedWhere": "Where: {{venue}}"
   },
   "admin": {
-    "wordmark": "Taliott",
+    "wordmark": "taliott",
     "deadlineLabel": "Deadline:",
     "responded": "{{responded}} of {{total}} responded",
     "sectionParticipants": "Participants",
@@ -223,6 +223,7 @@
   "confirmation": {
     "eyebrow": "Event created",
     "adminLinkLabel": "Your admin link — save this",
+    "ownLinkLabel": "Your participation link",
     "shareLabel": "Share with participants",
     "copy": "Copy",
     "copied": "Copied!",
@@ -234,7 +235,7 @@
     "genericError": "Something went wrong. Please try again later.",
     "closed": "Voting is closed for this event.",
     "deadlineLabel": "Voting deadline:",
-    "pitch": "Share your availability and where you're coming from — Taliott will find a time and meeting spot that works fairly for everyone.",
+    "pitch": "Share your availability and where you're coming from — taliott will find a time and meeting spot that works fairly for everyone.",
     "emailLabel": "Your email",
     "emailPlaceholder": "you@example.com",
     "emailHint": "We'll use this to send you your personal participation link.",
@@ -289,7 +290,7 @@
     "link": "buy us a coffee ☕"
   },
   "feedback": {
-    "question": "How likely are you to recommend Taliott?",
+    "question": "How likely are you to recommend taliott?",
     "notAtAll": "Not at all",
     "extremely": "Extremely",
     "commentPlaceholder": "Anything else on your mind? (optional)",
@@ -305,7 +306,8 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "sourceCode": "GitHub",
-    "reportIssue": "Report an issue"
+    "reportIssue": "Report an issue",
+    "contact": "Contact"
   },
   "errors": {
     "timeRangeOrder": "Start time must be earlier than end time."

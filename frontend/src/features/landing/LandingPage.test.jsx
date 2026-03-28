@@ -6,7 +6,7 @@ import i18n from '../../i18n.js';
 describe('LandingPage', () => {
   it('renders the wordmark', () => {
     render(<LandingPage onStart={vi.fn()} />);
-    expect(screen.getByText('Taliott')).toBeInTheDocument();
+    expect(screen.getByText('taliott')).toBeInTheDocument();
   });
 
   it('renders the headline', () => {

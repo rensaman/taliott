@@ -15,7 +15,7 @@ export default function LandingPage({ onStart }) {
   return (
     <div className="landing">
       <header className="landing-header">
-        <p className="landing-wordmark">Taliott</p>
+        <p className="landing-wordmark">taliott</p>
       </header>
 
       <section className="landing-hero">

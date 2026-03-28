@@ -5,8 +5,10 @@ import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
 import ParticipationResult from './ParticipationResult.jsx';
 import FeedbackForm from '../feedback/FeedbackForm.jsx';
+import LegalFooter from '../legal/LegalFooter.jsx';
 import { track } from '../../lib/analytics.js';
 import './ResponseWizard.css';
+import '../join/JoinView.css';
 
 export default function ParticipateView({ participantId }) {
   const { t, i18n } = useTranslation();
@@ -102,12 +104,17 @@ export default function ParticipateView({ participantId }) {
           onComplete={handleComplete}
         />
         {dataRightsSection}
+        <LegalFooter />
       </>
     );
   }
 
   return (
-    <main>
+    <>
+      <header className="join-header">
+        <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
+      </header>
+      <main>
       <div className="pv-main">
         <h1 className="pv-event-title">{event.name}</h1>
         <DeadlineBadge deadline={event.deadline} locked={event.locked} />
@@ -175,5 +182,7 @@ export default function ParticipateView({ participantId }) {
         {dataRightsSection}
       </div>
     </main>
+      <LegalFooter />
+    </>
   );
 }

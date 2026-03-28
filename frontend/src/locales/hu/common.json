@@ -12,7 +12,7 @@
     "recoverLink": "Elveszett link"
   },
   "wizard": {
-    "wordmark": "Taliott",
+    "wordmark": "taliott",
     "consentPrefix": "A folytatással elfogadod az",
     "tos": "Általános szerződési feltételeinket",
     "and": "és az",
@@ -154,7 +154,7 @@
     "finalizedWhere": "Hol: {{venue}}"
   },
   "admin": {
-    "wordmark": "Taliott",
+    "wordmark": "taliott",
     "deadlineLabel": "Határidő:",
     "responded": "{{responded}} / {{total}} válaszolt",
     "sectionParticipants": "Résztvevők",
@@ -223,6 +223,7 @@
   "confirmation": {
     "eyebrow": "Esemény létrehozva",
     "adminLinkLabel": "A rendszergazdai link — mentsd el",
+    "ownLinkLabel": "A saját részvételi linked",
     "shareLabel": "Oszd meg a résztvevőkkel",
     "copy": "Másolás",
     "copied": "Másolva!",
@@ -234,7 +235,7 @@
     "genericError": "Valami hiba történt. Kérjük, próbáld újra később.",
     "closed": "A szavazás lezárult erre az eseményre.",
     "deadlineLabel": "Szavazási határidő:",
-    "pitch": "Add meg az elérhetőségedet és azt, honnan érkezel — a Taliott megtalálja a mindenki számára megfelelő időpontot és helyszínt.",
+    "pitch": "Add meg az elérhetőségedet és azt, honnan érkezel — a taliott megtalálja a mindenki számára megfelelő időpontot és helyszínt.",
     "emailLabel": "E-mail-cím",
     "emailPlaceholder": "te@pelda.hu",
     "emailHint": "Erre a címre küldjük a személyes részvételi linkedet.",
@@ -289,7 +290,7 @@
     "link": "vegyél nekünk egy kávét ☕"
   },
   "feedback": {
-    "question": "Mennyire valószínű, hogy ajánlanád a Taliottot?",
+    "question": "Mennyire valószínű, hogy ajánlanád a taliottot?",
     "notAtAll": "Egyáltalán nem",
     "extremely": "Nagyon valószínű",
     "commentPlaceholder": "Van még valami, amit szeretnél mondani? (nem kötelező)",
@@ -305,7 +306,8 @@
     "privacy": "Adatvédelmi tájékoztató",
     "terms": "Általános szerződési feltételek",
     "sourceCode": "GitHub",
-    "reportIssue": "Hibajelentés"
+    "reportIssue": "Hibajelentés",
+    "contact": "Kapcsolat"
   },
   "errors": {
     "timeRangeOrder": "A kezdési időpontnak korábbinak kell lennie a zárásnál."

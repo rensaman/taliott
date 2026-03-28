@@ -1,3 +1,4 @@
+import LegalFooter from './LegalFooter.jsx';
 import '../setup/EventSetupForm.css';
 import './LegalView.css';
 
@@ -8,7 +9,7 @@ export default function TermsViewHu() {
   return (
     <div className="legal-shell">
       <header className="legal-header">
-        <p className="wizard-wordmark">Taliott</p>
+        <p className="wizard-wordmark">taliott</p>
       </header>
 
       <main className="legal-body">
@@ -126,10 +127,7 @@ export default function TermsViewHu() {
         </p>
       </main>
 
-      <footer className="legal-footer">
-        <a href="/">← Vissza</a>
-        <a href="/privacy/hu">Adatvédelmi tájékoztató</a>
-      </footer>
+      <LegalFooter />
     </div>
   );
 }

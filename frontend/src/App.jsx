@@ -43,6 +43,10 @@ function ConfirmationView({ confirmation }) {
   const joinUrl = confirmation.join_url
     ? `${window.location.origin}${confirmation.join_url}`
     : null;
+  const organizerParticipant = confirmation.participants?.[0];
+  const ownUrl = organizerParticipant
+    ? `${window.location.origin}/participate/${organizerParticipant.id}`
+    : null;
 
   function handleCopy() {
     copyToClipboard(joinUrl).then(() => {
@@ -71,6 +75,15 @@ function ConfirmationView({ confirmation }) {
           </a>
         </div>
 
+        {ownUrl && (
+          <div className="confirmation-section">
+            <p className="confirmation-section-label">{t('confirmation.ownLinkLabel')}</p>
+            <a href={ownUrl} className="confirmation-admin-link" data-testid="own-participate-url">
+              {ownUrl}
+            </a>
+          </div>
+        )}
+
         {joinUrl ? (
           <div className="confirmation-section">
             <p className="confirmation-section-label">{t('confirmation.shareLabel')}</p>
@@ -98,6 +111,7 @@ function ConfirmationView({ confirmation }) {
           </a>
         </p>
       </main>
+      <LegalFooter />
     </div>
   );
 }

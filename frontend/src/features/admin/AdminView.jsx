@@ -5,6 +5,7 @@ import GroupMap from './GroupMap.jsx';
 import VenueList from './VenueList.jsx';
 import FinalizePanel from './FinalizePanel.jsx';
 import FinalizedSummary from './FinalizedSummary.jsx';
+import LegalFooter from '../legal/LegalFooter.jsx';
 import { useEventStream } from '../../hooks/useEventStream.js';
 import './AdminView.css';
 
@@ -85,6 +86,7 @@ export default function AdminView({ adminToken }) {
         <p>{t('admin.justFinalizedBody')}</p>
         <a href="/" className="btn btn-primary">{t('admin.justFinalizedHome')}</a>
       </div>
+      <LegalFooter />
     </div>
   );
 
@@ -98,10 +100,12 @@ export default function AdminView({ adminToken }) {
     <div className="admin-page">
       <header className="admin-header">
         <a href="/" className="admin-wordmark">{t('admin.wordmark')}<span className="beta-badge">beta</span></a>
-        <h1 className="admin-event-name">{data.name}</h1>
-        <span className={`admin-status-badge admin-status-badge--${data.status}`}>
-          {data.status}
-        </span>
+        <div className="admin-name-badge">
+          <h1 className="admin-event-name">{data.name}</h1>
+          <span className={`admin-status-badge admin-status-badge--${data.status}`}>
+            {data.status}
+          </span>
+        </div>
       </header>
 
       <div className="admin-meta">
@@ -166,6 +170,7 @@ export default function AdminView({ adminToken }) {
         <button className="btn-danger" onClick={handleDeleteEvent} data-testid="delete-event-btn">{t('admin.deleteEvent')}</button>
         {deleteError && <p role="alert" className="admin-error-danger">{deleteError}</p>}
       </footer>
+      <LegalFooter />
     </div>
   );
 }
