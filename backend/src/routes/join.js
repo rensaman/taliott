@@ -29,7 +29,8 @@ router.get('/:joinToken', async (req, res) => {
 });
 
 router.post('/:joinToken', async (req, res) => {
-  const { email, name } = req.body;
+  const { email } = req.body;
+  const name = typeof req.body.name === 'string' ? req.body.name.trim().slice(0, 200) : null;
 
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'email is required' });
