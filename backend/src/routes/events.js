@@ -185,7 +185,13 @@ router.get('/:adminToken', async (req, res) => {
     return res.status(404).json({ error: 'Event not found' });
   }
 
-  const centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
+  let centroid;
+  try {
+    centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
+  } catch (err) {
+    console.error('Failed to compute centroid:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 
   return res.json({
     id: event.id,
@@ -255,7 +261,13 @@ router.get('/:adminToken/venues', async (req, res) => {
     return res.status(400).json({ error: 'venue_type must be 100 characters or fewer' });
   }
 
-  const centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
+  let centroid;
+  try {
+    centroid = await computeCentroid(event.participants, { prisma: getPrisma() });
+  } catch (err) {
+    console.error('Failed to compute centroid for venues:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
   if (!centroid) return res.status(400).json({ error: 'No participant locations available' });
 
   try {
@@ -331,15 +343,21 @@ router.post('/:adminToken/finalize', async (req, res) => {
   if (!event) return res.status(404).json({ error: 'Event not found' });
   if (event.status === 'finalized') return res.status(409).json({ error: 'Event is already finalized' });
 
-  // Validate slot belongs to this event
-  const slot = await getPrisma().slot.findFirst({ where: { id: slot_id, eventId: event.id } });
-  if (!slot) return res.status(400).json({ error: 'slot_id not found for this event' });
+  let slot, venue;
+  try {
+    // Validate slot belongs to this event
+    slot = await getPrisma().slot.findFirst({ where: { id: slot_id, eventId: event.id } });
+    if (!slot) return res.status(400).json({ error: 'slot_id not found for this event' });
 
-  // Validate venue_id if provided
-  let venue = null;
-  if (venue_id) {
-    venue = await getPrisma().venue.findFirst({ where: { id: venue_id, eventId: event.id } });
-    if (!venue) return res.status(400).json({ error: 'venue_id not found for this event' });
+    // Validate venue_id if provided
+    venue = null;
+    if (venue_id) {
+      venue = await getPrisma().venue.findFirst({ where: { id: venue_id, eventId: event.id } });
+      if (!venue) return res.status(400).json({ error: 'venue_id not found for this event' });
+    }
+  } catch (err) {
+    console.error('Failed to validate slot/venue for finalize:', err);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 
   try {
