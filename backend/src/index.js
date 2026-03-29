@@ -6,6 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../.env') });
 
 import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import healthRouter from './routes/health.js';
@@ -24,6 +25,11 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.set('trust proxy', 1);
+app.use(cors({
+  origin: process.env.APP_BASE_URL ?? 'http://localhost:3000',
+  methods: ['GET', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+}));
 app.use(helmet());
 app.use(express.json({ limit: '50kb' }));
 
