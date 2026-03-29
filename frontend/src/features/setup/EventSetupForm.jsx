@@ -60,7 +60,7 @@ export default function EventSetupForm({ onCreated }) {
     timeRangeStart: 1020,
     timeRangeEnd: 1260,
     deadlineDate: '',
-    deadlineTime: '',
+    deadlineTime: '23:59',
     inviteMode: 'shared_link',
     participantEmails: '',
   });
