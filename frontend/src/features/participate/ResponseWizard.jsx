@@ -37,7 +37,14 @@ export default function ResponseWizard({
   const [travelMode, setTravelMode] = useState(initialTravelMode);
   const [nameError, setNameError] = useState(null);
   const [locationError, setLocationError] = useState(null);
+  const [travelModeError, setTravelModeError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
+  const [availabilityStateMap, setAvailabilityStateMap] = useState(() => {
+    const map = {};
+    for (const slot of slots) map[slot.id] = 'neutral';
+    for (const a of initialAvailability) map[a.slot_id] = a.state;
+    return map;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -86,13 +93,15 @@ export default function ResponseWizard({
     setTravelMode(mode);
     locationFieldsetRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     try {
-      await fetch(`/api/participate/${participantId}/travel-mode`, {
+      const res = await fetch(`/api/participate/${participantId}/travel-mode`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ travel_mode: mode }),
       });
+      if (!res.ok) setTravelModeError(t('participate.travelModeError'));
+      else setTravelModeError(null);
     } catch {
-      // Non-critical — centroid will fall back gracefully
+      setTravelModeError(t('participate.travelModeError'));
     }
   }
 
@@ -136,7 +145,7 @@ export default function ResponseWizard({
   }
 
   function canAdvance() {
-    if (currentStep === 'travel_location') return !!location;
+    if (currentStep === 'travel_location') return !!location && !travelModeError;
     if (currentStep === 'review') return !submitting;
     return true;
   }
@@ -178,6 +187,7 @@ export default function ResponseWizard({
               )}
               {locationError && <p className="wizard-error" role="alert">{locationError}</p>}
             </fieldset>
+            {travelModeError && <p className="wizard-error" role="alert">{travelModeError}</p>}
           </>
         );
 
@@ -197,11 +207,16 @@ export default function ResponseWizard({
               initialAvailability={initialAvailability}
               eventTimezone={eventTimezone}
               locked={false}
+              onAvailabilityChange={setAvailabilityStateMap}
             />
           </>
         );
 
-      case 'review':
+      case 'review': {
+        const availCounts = Object.values(availabilityStateMap).reduce(
+          (acc, s) => { if (s !== 'neutral') acc[s] = (acc[s] ?? 0) + 1; return acc; },
+          { yes: 0, maybe: 0, no: 0 }
+        );
         return (
           <>
             <h2>{t('participate.review.heading')}</h2>
@@ -222,6 +237,12 @@ export default function ResponseWizard({
                   <span className="review-ticket-value">{location.label}</span>
                 </div>
               )}
+              <div className="review-ticket-row">
+                <span className="review-ticket-label">{t('participate.review.labelAvailability')}</span>
+                <span className="review-ticket-value" data-testid="review-availability-summary">
+                  {availCounts.yes} {t('participate.dates.legendYes')} · {availCounts.maybe} {t('participate.dates.legendMaybe')} · {availCounts.no} {t('participate.dates.legendNo')}
+                </span>
+              </div>
             </div>
             <div className="rw-next-steps">
               <p className="rw-next-steps-heading">{t('participate.review.nextHeading')}</p>
@@ -234,6 +255,7 @@ export default function ResponseWizard({
             {submitError && <p className="wizard-error" role="alert">{submitError}</p>}
           </>
         );
+      }
 
       default:
         return null;

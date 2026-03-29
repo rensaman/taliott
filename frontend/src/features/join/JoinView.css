@@ -68,3 +68,19 @@
   margin-top: 0.4rem;
   line-height: 1.4;
 }
+
+.join-lost-link {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 1rem;
+}
+
+.join-lost-link a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.join-lost-link a:hover {
+  color: var(--ink);
+}

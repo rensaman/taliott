@@ -301,6 +301,19 @@
   color: var(--muted);
 }
 
+/* UX-7: destructive delete button */
+.pv-data-rights-btn--danger {
+  color: var(--red);
+}
+.pv-data-rights-btn--danger:hover {
+  color: var(--red);
+  opacity: 0.8;
+}
+
+/* UX-8: deadline urgency */
+.deadline-badge--high { color: #b37a0a; font-weight: 600; }
+.deadline-badge--critical { color: var(--red); font-weight: 700; }
+
 /* ── Summary view layout ─────────────────────────────────────────────────── */
 .pv-wizard-event-header {
   max-width: 480px;
@@ -393,6 +406,13 @@
 
 .pv-update-link:hover {
   color: var(--ink);
+}
+
+.pv-update-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 /* ── Post-participation overview band (map + slots) ──────────────────────── */

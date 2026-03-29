@@ -8,6 +8,7 @@ export default function JoinView({ joinToken }) {
   const { t, i18n } = useTranslation();
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [fieldError, setFieldError] = useState('');
@@ -35,7 +36,7 @@ export default function JoinView({ joinToken }) {
       const res = await fetch(`/api/join/${joinToken}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name: name.trim() || undefined }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -101,6 +102,19 @@ export default function JoinView({ joinToken }) {
 
         <form onSubmit={handleSubmit}>
           <div className="field">
+            <label htmlFor="join-name" className="field-label">{t('join.nameLabel')}</label>
+            <input
+              id="join-name"
+              className="wizard-input"
+              type="text"
+              data-testid="join-name-input"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder={t('join.namePlaceholder')}
+              autoFocus
+            />
+          </div>
+          <div className="field">
             <label htmlFor="join-email" className="field-label">{t('join.emailLabel')}</label>
             <input
               id="join-email"
@@ -111,7 +125,6 @@ export default function JoinView({ joinToken }) {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder={t('join.emailPlaceholder')}
-              autoFocus
             />
             <p className="join-email-hint">{t('join.emailHint')}</p>
           </div>
@@ -119,6 +132,10 @@ export default function JoinView({ joinToken }) {
           <button className="btn btn-primary" type="submit" disabled={submitting} data-testid="join-submit-btn">
             {submitting ? t('join.joining') : t('join.submit')}
           </button>
+          <p className="join-lost-link">
+            <a href="/resend" data-testid="resend-link">{t('join.lostLink')}</a>
+            {' '}{t('join.resend')}
+          </p>
         </form>
       </div>
 

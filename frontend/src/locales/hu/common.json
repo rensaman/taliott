@@ -127,22 +127,28 @@
       "legendYes": "Igen",
       "legendMaybe": "Talán",
       "legendNo": "Nem",
-      "legendHint": "Koppintás a váltáshoz"
+      "legendHint": "Koppintás a váltáshoz",
+      "cellTitle": "Kattints vagy nyomd meg: Y / M / N"
     },
     "review": {
       "heading": "Készen állsz a küldésre?",
       "labelName": "Név",
       "labelTravel": "Utazás",
       "labelFrom": "Honnan",
+      "labelAvailability": "Elérhetőség",
       "errorSubmit": "Nem sikerült elküldeni. Kérjük, próbáld újra.",
       "nextHeading": "Mi történik ezután?",
       "next1": "A szavazási határidőig gyűjtjük a válaszokat.",
       "next2": "A szervező átnézi a helyszínjavaslatokat, és kiválasztja a legjobb helyszínt és időpontot.",
       "next3": "Visszaigazoló e-mailt kapsz az esemény részleteivel."
     },
+    "travelModeError": "Nem sikerült menteni az utazási módot. Kérjük, próbáld újra.",
     "summary": {
       "confirmed": "Az időpontjaid, helyszíned és utazási beállításaid rögzítve lettek.",
-      "updateResponse": "← Válasz módosítása"
+      "updateResponse": "← Válasz módosítása",
+      "changeName": "Név módosítása",
+      "changeLocation": "Helyszín módosítása",
+      "changeDates": "Dátumok módosítása"
     },
     "loading": "Betöltés…",
     "notFound": "A részvételi link nem található.",
@@ -256,12 +262,16 @@
     "closed": "A szavazás lezárult erre az eseményre.",
     "deadlineLabel": "Szavazási határidő:",
     "pitch": "Add meg az elérhetőségedet és azt, honnan érkezel — a taliott megtalálja a mindenki számára megfelelő időpontot és helyszínt.",
+    "nameLabel": "Neved (nem kötelező)",
+    "namePlaceholder": "pl. Alex",
     "emailLabel": "E-mail-cím",
     "emailPlaceholder": "te@pelda.hu",
     "emailHint": "Erre a címre küldjük a személyes részvételi linkedet.",
     "networkError": "Hálózati hiba, kérjük, próbálja újra",
     "joining": "Csatlakozás…",
-    "submit": "Csatlakozás az eseményhez →"
+    "submit": "Csatlakozás az eseményhez →",
+    "lostLink": "Elveszett a linked?",
+    "resend": "Újraküldés"
   },
   "venueList": {
     "heading": "Helyszínjavaslatok",

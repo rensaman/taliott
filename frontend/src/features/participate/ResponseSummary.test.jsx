@@ -30,21 +30,39 @@ describe('ResponseSummary', () => {
     expect(screen.getByTestId('summary-confirmed')).toBeInTheDocument();
   });
 
-  it('shows "Update response" button when not locked', () => {
+  it('shows step-specific update buttons when not locked', () => {
     renderSummary({ locked: false });
-    expect(screen.getByTestId('update-response-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('update-name-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('update-location-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('update-dates-btn')).toBeInTheDocument();
   });
 
-  it('hides "Update response" button when locked', () => {
+  it('hides update buttons when locked', () => {
     renderSummary({ locked: true });
-    expect(screen.queryByTestId('update-response-btn')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('update-name-btn')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('update-location-btn')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('update-dates-btn')).not.toBeInTheDocument();
   });
 
-  it('calls onUpdate when the button is clicked', () => {
+  it('calls onUpdate(0) when Change name is clicked', () => {
     const onUpdate = vi.fn();
     renderSummary({ onUpdate });
-    screen.getByTestId('update-response-btn').click();
-    expect(onUpdate).toHaveBeenCalledOnce();
+    screen.getByTestId('update-name-btn').click();
+    expect(onUpdate).toHaveBeenCalledWith(0);
+  });
+
+  it('calls onUpdate(1) when Change location is clicked', () => {
+    const onUpdate = vi.fn();
+    renderSummary({ onUpdate });
+    screen.getByTestId('update-location-btn').click();
+    expect(onUpdate).toHaveBeenCalledWith(1);
+  });
+
+  it('calls onUpdate(2) when Change dates is clicked', () => {
+    const onUpdate = vi.fn();
+    renderSummary({ onUpdate });
+    screen.getByTestId('update-dates-btn').click();
+    expect(onUpdate).toHaveBeenCalledWith(2);
   });
 });
 
@@ -53,10 +71,10 @@ describe('ResponseSummary — i18n HU', () => {
     await i18n.changeLanguage('en');
   });
 
-  it('renders Update response button in Hungarian', async () => {
+  it('renders Change dates button in Hungarian', async () => {
     await i18n.changeLanguage('hu');
     renderSummary({ locked: false });
-    expect(screen.getByTestId('update-response-btn')).toHaveTextContent(/Válasz módosítása/i);
+    expect(screen.getByTestId('update-dates-btn')).toHaveTextContent(/Dátumok módosítása/i);
   });
 
   it('renders confirmation text in Hungarian', async () => {

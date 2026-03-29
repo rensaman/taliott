@@ -38,11 +38,18 @@ describe('JoinView', () => {
     expect(screen.getByText(/deadline/i)).toBeInTheDocument();
   });
 
-  it('shows email field', async () => {
+  it('shows name and email fields', async () => {
     mockFetch([{ body: OPEN_EVENT }]);
     render(<JoinView joinToken={TOKEN} />);
     await waitFor(() => screen.getByLabelText(/email/i));
-    expect(screen.queryByLabelText(/name/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+  });
+
+  it('shows "Lost your link?" link pointing to /resend', async () => {
+    mockFetch([{ body: OPEN_EVENT }]);
+    render(<JoinView joinToken={TOKEN} />);
+    await waitFor(() => screen.getByLabelText(/email/i));
+    expect(screen.getByTestId('resend-link')).toHaveAttribute('href', '/resend');
   });
 
   it('shows invalid link message on 404', async () => {
@@ -75,6 +82,25 @@ describe('JoinView', () => {
     await waitFor(() =>
       expect(screen.getByText(/something went wrong/i)).toBeInTheDocument()
     );
+  });
+
+  it('includes name in POST body when provided', async () => {
+    const fetchSpy = mockFetch([
+      { body: OPEN_EVENT },
+      { status: 201, body: { participant_id: 'p-new-id' } },
+    ]);
+    const location = { href: '' };
+    vi.stubGlobal('location', location);
+    render(<JoinView joinToken={TOKEN} />);
+    await waitFor(() => screen.getByLabelText(/name/i));
+
+    await userEvent.type(screen.getByLabelText(/name/i), 'Alice');
+    await userEvent.type(screen.getByLabelText(/email/i), 'alice@example.com');
+    await userEvent.click(screen.getByRole('button', { name: /join event/i }));
+
+    await waitFor(() => expect(location.href).toBe('/participate/p-new-id'));
+    const postCall = fetchSpy.mock.calls.find(([url, opts]) => url.includes('/api/join/') && opts?.method === 'POST');
+    expect(JSON.parse(postCall[1].body)).toMatchObject({ name: 'Alice', email: 'alice@example.com' });
   });
 
   it('shows field error when submit fetch throws a network error', async () => {

@@ -29,7 +29,7 @@ function buildDayMap(slots, timeZone) {
   return dayMap;
 }
 
-export default function AvailabilityGrid({ participantId, slots, initialAvailability, locked, eventTimezone = 'UTC' }) {
+export default function AvailabilityGrid({ participantId, slots, initialAvailability, locked, eventTimezone = 'UTC', onAvailabilityChange }) {
   const { i18n } = useTranslation();
   const [stateMap, setStateMap] = useState(() => {
     const map = {};
@@ -68,7 +68,9 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
   }, [participantId]);
 
   function handleCellClick(slotId, newState) {
-    setStateMap(prev => ({ ...prev, [slotId]: newState }));
+    const next = { ...stateMap, [slotId]: newState };
+    setStateMap(next);
+    onAvailabilityChange?.(next);
     pendingRef.current[slotId] = newState;
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(flush, DEBOUNCE_MS);

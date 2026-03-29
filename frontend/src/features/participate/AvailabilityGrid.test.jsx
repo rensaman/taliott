@@ -113,6 +113,15 @@ describe('AvailabilityGrid', () => {
     }
   });
 
+  it('calls onAvailabilityChange with updated state map when a cell is clicked', () => {
+    const onAvailabilityChange = vi.fn();
+    renderGrid({ onAvailabilityChange });
+    fireEvent.click(screen.getAllByTestId('slot-cell')[0]); // s1: neutral → yes
+    expect(onAvailabilityChange).toHaveBeenCalledWith(
+      expect.objectContaining({ s1: 'yes' })
+    );
+  });
+
   it('passes i18n.language as locale to column header date formatting', () => {
     const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
     renderGrid();

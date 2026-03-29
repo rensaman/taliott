@@ -127,22 +127,28 @@
       "legendYes": "Yes",
       "legendMaybe": "Maybe",
       "legendNo": "No",
-      "legendHint": "Tap to toggle"
+      "legendHint": "Tap to toggle",
+      "cellTitle": "Click or press Y / M / N"
     },
     "review": {
       "heading": "Ready to submit?",
       "labelName": "Name",
       "labelTravel": "Travel",
       "labelFrom": "From",
+      "labelAvailability": "Availability",
       "errorSubmit": "Failed to submit. Please try again.",
       "nextHeading": "What happens next",
       "next1": "Responses are collected until the voting deadline.",
       "next2": "The organizer reviews the venue suggestions and picks the best spot and time.",
       "next3": "You'll receive a confirmation email with the event details."
     },
+    "travelModeError": "Failed to save travel mode. Please try again.",
     "summary": {
       "confirmed": "Your time, location and travel preferences have been recorded.",
-      "updateResponse": "← Update response"
+      "updateResponse": "← Update response",
+      "changeName": "Change name",
+      "changeLocation": "Change location",
+      "changeDates": "Change dates"
     },
     "loading": "Loading…",
     "notFound": "Participation link not found.",
@@ -256,12 +262,16 @@
     "closed": "Voting is closed for this event.",
     "deadlineLabel": "Voting deadline:",
     "pitch": "Share your availability and where you're coming from — taliott will find a time and meeting spot that works fairly for everyone.",
+    "nameLabel": "Your name (optional)",
+    "namePlaceholder": "e.g. Alex",
     "emailLabel": "Your email",
     "emailPlaceholder": "you@example.com",
     "emailHint": "We'll use this to send you your personal participation link.",
     "networkError": "Network error, please try again",
     "joining": "Joining…",
-    "submit": "Join event →"
+    "submit": "Join event →",
+    "lostLink": "Lost your link?",
+    "resend": "Resend it"
   },
   "venueList": {
     "heading": "Venue Recommendations",

@@ -225,6 +225,40 @@ describe('ResponseWizard', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
   });
 
+  it('shows a travel mode error and disables Continue when /travel-mode save fails', async () => {
+    fetch.mockResolvedValueOnce({ ok: false }); // travel-mode PATCH fails
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
+    fireEvent.click(screen.getByTestId('travel-mode-selector'));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    // Also select a valid address so location is set, and verify advance is still blocked
+    fetch.mockResolvedValueOnce({ ok: true }); // location PATCH succeeds
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.getByTestId('selected-address')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
+  });
+
+  it('clears travel mode error when a subsequent travel mode save succeeds', async () => {
+    fetch.mockResolvedValueOnce({ ok: false }); // first attempt fails
+    fetch.mockResolvedValueOnce({ ok: true });  // second attempt succeeds
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
+    fireEvent.click(screen.getByTestId('travel-mode-selector'));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('travel-mode-selector'));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+  });
+
+  it('shows availability summary on review step', async () => {
+    const AvailabilityGrid = await import('./AvailabilityGrid.jsx');
+    AvailabilityGrid.default.mockImplementationOnce(({ onAvailabilityChange }) => {
+      onAvailabilityChange?.({ 's-1': 'yes' });
+      return <div data-testid="availability-grid" />;
+    });
+    renderWizard({ initialName: 'Alex', initialStep: 2 });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('submit-btn')).toBeInTheDocument());
+    expect(screen.getByTestId('review-availability-summary')).toBeInTheDocument();
+  });
+
   describe('i18n', () => {
     afterEach(() => {
       i18n.removeResourceBundle('en', 'common');

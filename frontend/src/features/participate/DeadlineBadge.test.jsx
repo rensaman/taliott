@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import DeadlineBadge from './DeadlineBadge.jsx';
 import i18n from '../../i18n.js';
 import enCommon from '../../locales/en/common.json';
@@ -21,6 +21,40 @@ describe('DeadlineBadge', () => {
 
     rerender(<DeadlineBadge deadline="2025-06-01T12:00:00Z" locked={true} />);
     expect(screen.getByText(/voting closed/i)).toBeInTheDocument();
+  });
+});
+
+describe('DeadlineBadge — urgency', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('has no urgency attribute for a far-future deadline', () => {
+    vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+    render(<DeadlineBadge deadline="2099-01-01T12:00:00Z" locked={false} />);
+    const badge = screen.getByTestId('deadline-badge');
+    expect(badge).not.toHaveAttribute('data-urgency');
+  });
+
+  it('has data-urgency="high" when deadline is within 24 hours', () => {
+    vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
+    render(<DeadlineBadge deadline="2025-06-01T20:00:00Z" locked={false} />);
+    expect(screen.getByTestId('deadline-badge')).toHaveAttribute('data-urgency', 'high');
+  });
+
+  it('has data-urgency="critical" when deadline is within 1 hour', () => {
+    vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
+    render(<DeadlineBadge deadline="2025-06-01T00:30:00Z" locked={false} />);
+    expect(screen.getByTestId('deadline-badge')).toHaveAttribute('data-urgency', 'critical');
+  });
+
+  it('has no urgency when locked even if deadline is near', () => {
+    vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
+    render(<DeadlineBadge deadline="2025-06-01T00:30:00Z" locked={true} />);
+    expect(screen.getByTestId('deadline-badge')).not.toHaveAttribute('data-urgency');
   });
 });
 

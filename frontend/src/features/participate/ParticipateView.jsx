@@ -14,7 +14,7 @@ export default function ParticipateView({ participantId }) {
   const { t, i18n } = useTranslation();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [updating, setUpdating] = useState(false);
+  const [updatingStep, setUpdatingStep] = useState(null);
   const [dataDeleted, setDataDeleted] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
   const [exportError, setExportError] = useState(null);
@@ -42,7 +42,7 @@ export default function ParticipateView({ participantId }) {
 
   const travelMode = participant.travel_mode ?? 'transit';
 
-  const showWizard = !event.locked && (!participant.responded_at || updating);
+  const showWizard = !event.locked && (!participant.responded_at || updatingStep !== null);
 
   async function handleExport() {
     setExportError(null);
@@ -85,7 +85,7 @@ export default function ParticipateView({ participantId }) {
         participant: { ...prev.participant, responded_at: new Date().toISOString() },
       }));
     }
-    setUpdating(false);
+    setUpdatingStep(null);
     setJustCompleted(true);
   }
 
@@ -94,7 +94,7 @@ export default function ParticipateView({ participantId }) {
       <button className="pv-data-rights-btn" onClick={handleExport} data-testid="download-data-btn">{t('participate.downloadData')}</button>
       {exportError && <p className="wizard-error" role="alert" data-testid="export-error">{exportError}</p>}
       {!dataDeleted && (
-        <button className="pv-data-rights-btn" onClick={handleDelete} data-testid="delete-data-btn">{t('participate.deleteData')}</button>
+        <button className="pv-data-rights-btn pv-data-rights-btn--danger" onClick={handleDelete} data-testid="delete-data-btn">{t('participate.deleteData')}</button>
       )}
       {deleteError && <p className="wizard-error" role="alert" data-testid="delete-error">{deleteError}</p>}
       {dataDeleted && (
@@ -113,6 +113,7 @@ export default function ParticipateView({ participantId }) {
         <ResponseWizard
           participantId={participantId}
           initialName={participant.name}
+          initialStep={updatingStep ?? 0}
           slots={slots}
           initialAvailability={availability}
           initialLocation={location}
@@ -146,7 +147,7 @@ export default function ParticipateView({ participantId }) {
           <ResponseSummary
             name={participant.name}
             locked={event.locked}
-            onUpdate={() => setUpdating(true)}
+            onUpdate={(step) => setUpdatingStep(step)}
           />
         </div>
       )}
