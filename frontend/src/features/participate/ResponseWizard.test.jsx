@@ -131,6 +131,14 @@ describe('ResponseWizard', () => {
     expect(fetch).not.toHaveBeenCalledWith('/api/participate/p-1/name', expect.anything());
   });
 
+  it('does not call PATCH /name and advances when name is cleared from a previously set value', async () => {
+    renderWizard({ initialName: 'Alex' });
+    fireEvent.change(screen.getByTestId('name-input'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument());
+    expect(fetch).not.toHaveBeenCalledWith('/api/participate/p-1/name', expect.anything());
+  });
+
   it('travel+location step shows both TravelModeSelector and AddressSearchInput', () => {
     renderWizard({ initialName: 'Alex', initialStep: 1 });
     expect(screen.getByTestId('travel-mode-selector')).toBeInTheDocument();

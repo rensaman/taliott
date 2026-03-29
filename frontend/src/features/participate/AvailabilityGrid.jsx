@@ -5,20 +5,31 @@ import SaveStatusIndicator from './SaveStatusIndicator.jsx';
 
 const DEBOUNCE_MS = 600;
 
+// Extract the day (YYYY-MM-DD) and time (minutes from midnight) in the event's timezone
+function getSlotLocalParts(isoString, timeZone) {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(isoString));
+  const get = type => parts.find(p => p.type === type).value;
+  const dayKey = `${get('year')}-${get('month')}-${get('day')}`;
+  const timeKey = parseInt(get('hour'), 10) * 60 + parseInt(get('minute'), 10);
+  return { dayKey, timeKey };
+}
+
 // Group slots into { dayKey → { timeKey (minutes from midnight) → slot } }
-function buildDayMap(slots) {
+function buildDayMap(slots, timeZone) {
   const dayMap = new Map();
   for (const slot of slots) {
-    const d = new Date(slot.starts_at);
-    const dayKey = d.toLocaleDateString('en-CA'); // YYYY-MM-DD, locale-independent
-    const timeKey = d.getHours() * 60 + d.getMinutes();
+    const { dayKey, timeKey } = getSlotLocalParts(slot.starts_at, timeZone);
     if (!dayMap.has(dayKey)) dayMap.set(dayKey, new Map());
     dayMap.get(dayKey).set(timeKey, slot);
   }
   return dayMap;
 }
 
-export default function AvailabilityGrid({ participantId, slots, initialAvailability, locked }) {
+export default function AvailabilityGrid({ participantId, slots, initialAvailability, locked, eventTimezone = 'UTC' }) {
   const { i18n } = useTranslation();
   const [stateMap, setStateMap] = useState(() => {
     const map = {};
@@ -43,7 +54,12 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
           availability: Object.entries(changes).map(([slot_id, state]) => ({ slot_id, state })),
         }),
       });
-      if (!res.ok) setSaveStatus('error');
+      if (!res.ok) {
+        setSaveStatus('error');
+      } else {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
     } catch {
       setSaveStatus('error');
     }
@@ -56,12 +72,10 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
     timerRef.current = setTimeout(flush, DEBOUNCE_MS);
   }
 
-  const dayMap = buildDayMap(slots);
+  const dayMap = buildDayMap(slots, eventTimezone);
   const days = [...dayMap.keys()].sort();
-  const timeKeys = [...new Set(slots.map(s => {
-    const d = new Date(s.starts_at);
-    return d.getHours() * 60 + d.getMinutes();
-  }))].sort((a, b) => a - b);
+  const timeKeys = [...new Set(slots.map(s => getSlotLocalParts(s.starts_at, eventTimezone).timeKey))]
+    .sort((a, b) => a - b);
 
   return (
     <section aria-label="Availability grid">

@@ -150,6 +150,8 @@
     "deleteData": "Adataim törlése",
     "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli a nevedet, helyszínedet és elérhetőségedet erről az eseményről.",
     "dataErased": "Személyes adataidat töröltük erről az eseményről.",
+    "errorExport": "Nem sikerült letölteni az adataidat. Kérjük, próbáld újra.",
+    "errorDelete": "Nem sikerült törölni az adataidat. Kérjük, próbáld újra.",
     "sectionSlots": "Időszavazatok",
     "resultsOnly": "Csak eredmények — a szavazás lezárult.",
     "eventFinalized": "Esemény véglegesítve",

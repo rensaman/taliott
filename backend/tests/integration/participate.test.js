@@ -54,6 +54,16 @@ describe('GET /api/participate/:participantId', () => {
     expect(res.body.availability).toBeInstanceOf(Array);
   });
 
+  it('includes event.timezone in the response', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE, timezone: 'Europe/Budapest' });
+    const pid = participants[0].id;
+
+    const res = await request(app).get(`/api/participate/${pid}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.event.timezone).toBe('Europe/Budapest');
+  });
+
   it('returns null name for a freshly created participant', async () => {
     const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
     const pid = participants[0].id;

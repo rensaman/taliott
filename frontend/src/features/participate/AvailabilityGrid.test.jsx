@@ -75,6 +75,17 @@ describe('AvailabilityGrid', () => {
   });
 
 
+  it('shows saved status and then clears it after a successful save', async () => {
+    renderGrid();
+    fireEvent.click(screen.getAllByTestId('slot-cell')[0]);
+    vi.advanceTimersByTime(600);
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Changes saved')
+    );
+    vi.advanceTimersByTime(2000);
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+  });
+
   it('shows error status when fetch fails', async () => {
     fetch.mockResolvedValue({ ok: false });
     renderGrid();
@@ -107,5 +118,26 @@ describe('AvailabilityGrid', () => {
     renderGrid();
     expect(spy).toHaveBeenCalledWith(i18n.language, expect.objectContaining({ weekday: 'short' }));
     spy.mockRestore();
+  });
+
+  it('groups slots by event timezone, not browser local time', () => {
+    // Slot at 2025-10-01T22:00:00Z is Oct 1 in UTC but Oct 2 in UTC+3 (e.g. Europe/Helsinki in winter)
+    const tzSlots = [
+      { id: 'tz1', starts_at: '2025-10-01T22:00:00.000Z', ends_at: '2025-10-01T23:00:00.000Z' },
+    ];
+    render(
+      <AvailabilityGrid
+        participantId="p1"
+        slots={tzSlots}
+        initialAvailability={[]}
+        locked={false}
+        eventTimezone="Europe/Helsinki"
+      />
+    );
+    // In Europe/Helsinki (UTC+3 in October), 22:00 UTC = 01:00 next day (Oct 2)
+    // The column header should reflect Oct 2
+    const headers = screen.getAllByRole('columnheader');
+    const headerText = headers.map(h => h.textContent).join(' ');
+    expect(headerText).toMatch(/Oct 2/i);
   });
 });

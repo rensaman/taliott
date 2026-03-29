@@ -19,6 +19,7 @@ export default function ResponseWizard({
   initialAvailability,
   initialLocation,
   initialTravelMode = 'transit',
+  eventTimezone = 'UTC',
   onComplete,
 }) {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ export default function ResponseWizard({
   async function saveName() {
     const trimmed = nameValue.trim();
     if (trimmed === (initialName ?? '').trim()) return true;
+    if (!trimmed) return true; // clearing name is a no-op — backend requires non-empty
     try {
       const res = await fetch(`/api/participate/${participantId}/name`, {
         method: 'PATCH',
@@ -193,6 +195,7 @@ export default function ResponseWizard({
               participantId={participantId}
               slots={slots}
               initialAvailability={initialAvailability}
+              eventTimezone={eventTimezone}
               locked={false}
             />
           </>

@@ -17,6 +17,8 @@ export default function ParticipateView({ participantId }) {
   const [updating, setUpdating] = useState(false);
   const [dataDeleted, setDataDeleted] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
+  const [exportError, setExportError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     fetch(`/api/participate/${participantId}`)
@@ -43,21 +45,33 @@ export default function ParticipateView({ participantId }) {
   const showWizard = !event.locked && (!participant.responded_at || updating);
 
   async function handleExport() {
-    const res = await fetch(`/api/participate/${participantId}/export`);
-    const json = await res.json();
-    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'my-taliott-data.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    setExportError(null);
+    try {
+      const res = await fetch(`/api/participate/${participantId}/export`);
+      if (!res.ok) { setExportError(t('participate.errorExport')); return; }
+      const json = await res.json();
+      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'my-taliott-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError(t('participate.errorExport'));
+    }
   }
 
   async function handleDelete() {
     if (!window.confirm(t('participate.deleteConfirm'))) return;
-    const res = await fetch(`/api/participate/${participantId}`, { method: 'DELETE' });
-    if (res.ok) setDataDeleted(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/participate/${participantId}`, { method: 'DELETE' });
+      if (res.ok) setDataDeleted(true);
+      else setDeleteError(t('participate.errorDelete'));
+    } catch {
+      setDeleteError(t('participate.errorDelete'));
+    }
   }
 
   async function handleComplete() {
@@ -78,9 +92,11 @@ export default function ParticipateView({ participantId }) {
   const dataRightsSection = (
     <section aria-label="Privacy and data" className="pv-data-rights">
       <button className="pv-data-rights-btn" onClick={handleExport} data-testid="download-data-btn">{t('participate.downloadData')}</button>
+      {exportError && <p className="wizard-error" role="alert" data-testid="export-error">{exportError}</p>}
       {!dataDeleted && (
         <button className="pv-data-rights-btn" onClick={handleDelete} data-testid="delete-data-btn">{t('participate.deleteData')}</button>
       )}
+      {deleteError && <p className="wizard-error" role="alert" data-testid="delete-error">{deleteError}</p>}
       {dataDeleted && (
         <p className="pv-erased" role="status" data-testid="data-erased-status">{t('participate.dataErased')}</p>
       )}
@@ -101,6 +117,7 @@ export default function ParticipateView({ participantId }) {
           initialAvailability={availability}
           initialLocation={location}
           initialTravelMode={travelMode}
+          eventTimezone={event.timezone ?? 'UTC'}
           onComplete={handleComplete}
         />
         {dataRightsSection}

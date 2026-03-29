@@ -176,6 +176,33 @@ describe('ParticipateView', () => {
     delete URL.revokeObjectURL;
   });
 
+  it('shows an error when export fetch fails', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+
+    fireEvent.click(screen.getByRole('button', { name: /download my data/i }));
+
+    await waitFor(() => expect(screen.getByTestId('export-error')).toBeInTheDocument());
+  });
+
+  it('shows an error when delete fetch fails', async () => {
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: false });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
+
+    await waitFor(() => expect(screen.getByTestId('delete-error')).toBeInTheDocument());
+  });
+
   it('calls DELETE and shows confirmation message when Delete is clicked and confirmed', async () => {
     vi.stubGlobal('confirm', vi.fn(() => true));
     fetch

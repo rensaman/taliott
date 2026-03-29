@@ -9,6 +9,25 @@ const router = Router();
 
 const VALID_STATES = ['yes', 'maybe', 'no', 'neutral'];
 
+// Middleware: fetch participant with event, verify not locked, set req.participant
+async function requireUnlockedParticipant(req, res, next) {
+  try {
+    const participant = await getPrisma().participant.findUnique({
+      where: { id: req.params.participantId },
+      include: { event: true },
+    });
+    if (!participant) return res.status(404).json({ error: 'Participant not found' });
+    if (isEventLocked(participant.event)) {
+      return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
+    }
+    req.participant = participant;
+    next();
+  } catch (err) {
+    console.error('Failed to fetch participant:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 router.get('/:participantId', async (req, res) => {
   let participant;
   try {
@@ -76,6 +95,7 @@ router.get('/:participantId', async (req, res) => {
       name: participant.event.name,
       deadline: participant.event.deadline,
       status: participant.event.status,
+      timezone: participant.event.timezone,
       locked,
     },
     participant: {
@@ -155,13 +175,13 @@ router.patch('/:participantId/availability', async (req, res) => {
   }
 
   try {
-    for (const { slot_id, state } of availability) {
-      await getPrisma().availability.upsert({
+    await Promise.all(availability.map(({ slot_id, state }) =>
+      getPrisma().availability.upsert({
         where: { participantId_slotId: { participantId: participant.id, slotId: slot_id } },
         update: { state },
         create: { participantId: participant.id, slotId: slot_id, state },
-      });
-    }
+      })
+    ));
   } catch (err) {
     console.error('Failed to upsert availability:', err);
     return res.status(500).json({ error: 'Internal server error' });
@@ -175,7 +195,7 @@ router.patch('/:participantId/availability', async (req, res) => {
   return res.json({ ok: true });
 });
 
-router.patch('/:participantId/name', async (req, res) => {
+router.patch('/:participantId/name', requireUnlockedParticipant, async (req, res) => {
   const { name } = req.body;
 
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -185,26 +205,9 @@ router.patch('/:participantId/name', async (req, res) => {
     return res.status(400).json({ error: 'name must be 200 characters or fewer' });
   }
 
-  let participant;
-  try {
-    participant = await getPrisma().participant.findUnique({
-      where: { id: req.params.participantId },
-      include: { event: true },
-    });
-  } catch (err) {
-    console.error('Failed to fetch participant:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-
-  if (!participant) return res.status(404).json({ error: 'Participant not found' });
-
-  if (isEventLocked(participant.event)) {
-    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
-  }
-
   try {
     await getPrisma().participant.update({
-      where: { id: participant.id },
+      where: { id: req.participant.id },
       data: { name: name.trim() },
     });
   } catch (err) {
@@ -215,7 +218,7 @@ router.patch('/:participantId/name', async (req, res) => {
   return res.json({ ok: true });
 });
 
-router.patch('/:participantId/location', async (req, res) => {
+router.patch('/:participantId/location', requireUnlockedParticipant, async (req, res) => {
   const { latitude, longitude, address_label } = req.body;
 
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
@@ -228,22 +231,7 @@ router.patch('/:participantId/location', async (req, res) => {
     return res.status(400).json({ error: 'latitude or longitude out of valid range' });
   }
 
-  let participant;
-  try {
-    participant = await getPrisma().participant.findUnique({
-      where: { id: req.params.participantId },
-      include: { event: true },
-    });
-  } catch (err) {
-    console.error('Failed to fetch participant:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-
-  if (!participant) return res.status(404).json({ error: 'Participant not found' });
-
-  if (isEventLocked(participant.event)) {
-    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
-  }
+  const { participant } = req;
 
   try {
     await getPrisma().participant.update({
@@ -282,7 +270,7 @@ router.patch('/:participantId/location', async (req, res) => {
 
 const VALID_TRAVEL_MODES = ['walking', 'cycling', 'driving', 'transit'];
 
-router.patch('/:participantId/travel-mode', async (req, res) => {
+router.patch('/:participantId/travel-mode', requireUnlockedParticipant, async (req, res) => {
   const { travel_mode } = req.body;
 
   if (!VALID_TRAVEL_MODES.includes(travel_mode)) {
@@ -291,22 +279,7 @@ router.patch('/:participantId/travel-mode', async (req, res) => {
     });
   }
 
-  let participant;
-  try {
-    participant = await getPrisma().participant.findUnique({
-      where: { id: req.params.participantId },
-      include: { event: true },
-    });
-  } catch (err) {
-    console.error('Failed to fetch participant:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-
-  if (!participant) return res.status(404).json({ error: 'Participant not found' });
-
-  if (isEventLocked(participant.event)) {
-    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
-  }
+  const { participant } = req;
 
   try {
     await getPrisma().participant.update({
@@ -412,27 +385,10 @@ router.delete('/:participantId', async (req, res) => {
   return res.json({ ok: true });
 });
 
-router.patch('/:participantId/confirm', async (req, res) => {
-  let participant;
-  try {
-    participant = await getPrisma().participant.findUnique({
-      where: { id: req.params.participantId },
-      include: { event: true },
-    });
-  } catch (err) {
-    console.error('Failed to fetch participant:', err);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-
-  if (!participant) return res.status(404).json({ error: 'Participant not found' });
-
-  if (isEventLocked(participant.event)) {
-    return res.status(403).json({ error: 'Event is locked — voting deadline has passed' });
-  }
-
+router.patch('/:participantId/confirm', requireUnlockedParticipant, async (req, res) => {
   try {
     await getPrisma().participant.update({
-      where: { id: participant.id },
+      where: { id: req.participant.id },
       data: { respondedAt: new Date() },
     });
   } catch (err) {
