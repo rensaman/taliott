@@ -190,8 +190,8 @@
     "nextMonth": "Next month",
     "gridLabel": "Date picker",
     "pickDate": "Pick a date",
-    "pickStart": "Tap a start date",
-    "pickEnd": "From {{start}} — tap an end date",
+    "pickStart": "Select a start date",
+    "pickEnd": "From {{start}} — select an end date",
     "rangeStatus": "{{start}} – {{end}}"
   },
   "finalize": {

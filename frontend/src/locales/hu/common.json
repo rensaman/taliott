@@ -190,8 +190,8 @@
     "nextMonth": "Következő hónap",
     "gridLabel": "Dátumválasztó",
     "pickDate": "Válassz egy dátumot",
-    "pickStart": "Koppints a kezdő dátumra",
-    "pickEnd": "{{start}}-tól — koppints a záró dátumra",
+    "pickStart": "Válassz kezdő dátumot",
+    "pickEnd": "{{start}}-tól — válassz záró dátumot",
     "rangeStatus": "{{start}} – {{end}}"
   },
   "finalize": {
