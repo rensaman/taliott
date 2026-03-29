@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { randomUUID } from 'crypto';
+import { rateLimit } from 'express-rate-limit';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
 import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications } from '../lib/invite-mailer.js';
@@ -8,6 +9,24 @@ import { getCachedVenues, sortVenues, haversineDistance, MAX_VENUE_DISTANCE_M } 
 import { subscribe } from '../lib/sse.js';
 
 const router = Router();
+
+// SEC-1: tight per-route limiter for irreversible admin mutations (finalize + delete)
+const adminMutateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+});
+
+// SEC-2: reject cross-origin mutations; allow server-side callers (no Origin header)
+function requireSameOrigin(req, res, next) {
+  const origin = req.headers.origin;
+  if (!origin) return next();
+  const allowed = process.env.APP_BASE_URL ?? 'http://localhost:3000';
+  if (origin !== allowed) return res.status(403).json({ error: 'Forbidden' });
+  return next();
+}
 
 // Keep in sync with EMAIL_RE in frontend/src/features/setup/EventSetupForm.jsx
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -312,7 +331,7 @@ router.get('/:adminToken/venues', async (req, res) => {
   }
 });
 
-router.post('/:adminToken/finalize', async (req, res) => {
+router.post('/:adminToken/finalize', adminMutateLimiter, requireSameOrigin, async (req, res) => {
   const { adminToken } = req.params;
   const { slot_id, venue_id, venue_name, venue_address, duration_minutes, notes } = req.body;
 
@@ -411,14 +430,14 @@ router.post('/:adminToken/finalize', async (req, res) => {
   return res.json({ ok: true, status: 'finalized' });
 });
 
-router.delete('/:adminToken', async (req, res) => {
+router.delete('/:adminToken', adminMutateLimiter, requireSameOrigin, async (req, res) => {
   const { adminToken } = req.params;
 
   let event;
   try {
     event = await getPrisma().event.findUnique({
       where: { adminToken },
-      select: { id: true },
+      select: { id: true, name: true, organizerEmail: true, status: true, createdAt: true },
     });
   } catch (err) {
     console.error('Failed to fetch event for deletion:', err);
@@ -426,6 +445,15 @@ router.delete('/:adminToken', async (req, res) => {
   }
 
   if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  // SEC-3: log event data before hard delete (audit trail; adminToken intentionally omitted)
+  console.log('[admin-delete] Deleting event', {
+    id: event.id,
+    name: event.name,
+    organizerEmail: event.organizerEmail,
+    status: event.status,
+    createdAt: event.createdAt,
+  });
 
   try {
     await getPrisma().event.delete({ where: { id: event.id } });
