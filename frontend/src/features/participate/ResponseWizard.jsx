@@ -242,7 +242,7 @@ export default function ResponseWizard({
     {showDialog && <UnsavedChangesDialog onStay={cancelLeave} onLeave={confirmLeave} />}
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
-        <h1 className="wizard-wordmark">{t('wizard.wordmark')}</h1>
+        <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
         <StepRoute stepLabels={STEP_LABELS} current={step} />
       </header>
 

@@ -87,7 +87,7 @@
       "labelWhen": "Mikor",
       "labelDates": "Dátumok",
       "labelTime": "Idő",
-      "labelBy": "Általa",
+      "labelBy": "Lezárás",
       "labelVia": "Módja",
       "labelTo": "Kinek",
       "at": "ekkor",
@@ -198,7 +198,7 @@
   "finalize": {
     "heading": "Esemény véglegesítése",
     "venueLegend": "Helyszín",
-    "venueRecommended": "Ajánlott kiválasztása",
+    "venueRecommended": "Kiválaszott helyszín",
     "venueCustom": "Saját helyszín megadása",
     "venueSelected": "Kiválasztva: {{name}}",
     "venueNone": "Nincs kiválasztott helyszín — válassz egyet az alábbi listából.",

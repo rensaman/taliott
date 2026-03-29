@@ -248,6 +248,7 @@ export default function EventSetupForm({ onCreated }) {
                 id="organizer-email"
                 className="wizard-input"
                 type="email"
+                autoComplete="email"
                 data-testid="organizer-email-input"
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
@@ -387,6 +388,7 @@ export default function EventSetupForm({ onCreated }) {
                 <textarea
                   id="participant-emails"
                   className="wizard-input"
+                  autoComplete="off"
                   data-testid="participant-emails-input"
                   value={formData.participantEmails}
                   onChange={e => update('participantEmails', e.target.value)}
@@ -507,6 +509,7 @@ export default function EventSetupForm({ onCreated }) {
             disabled={!canAdvance() || submitting}
             data-testid={isLastStep ? 'create-event-submit-btn' : 'wizard-next-btn'}
           >
+            {isLastStep && submitting && <span className="btn-spinner" aria-hidden="true" />}
             {isLastStep
               ? (submitting ? t('wizard.btn.creating') : t('wizard.btn.createEvent'))
               : t('wizard.btn.continue')}

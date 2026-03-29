@@ -9,7 +9,7 @@ export default function PrivacyPolicyViewHu() {
   return (
     <div className="legal-shell">
       <header className="legal-header">
-        <p className="wizard-wordmark">taliott</p>
+        <a href="/" className="wizard-wordmark">taliott</a>
       </header>
 
       <main className="legal-body">

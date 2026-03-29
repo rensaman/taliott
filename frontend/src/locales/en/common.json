@@ -87,7 +87,7 @@
       "labelWhen": "When",
       "labelDates": "Dates",
       "labelTime": "Time",
-      "labelBy": "By",
+      "labelBy": "Voting",
       "labelVia": "Via",
       "labelTo": "To",
       "at": "at",
@@ -198,7 +198,7 @@
   "finalize": {
     "heading": "Finalize Event",
     "venueLegend": "Venue",
-    "venueRecommended": "Select recommended",
+    "venueRecommended": "Use selected",
     "venueCustom": "Enter custom venue",
     "venueSelected": "Selected: {{name}}",
     "venueNone": "No venue selected — pick one from the list below.",

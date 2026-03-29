@@ -28,7 +28,7 @@ describe('FinalizePanel', () => {
 
   it('renders venue mode radio buttons', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    expect(screen.getByRole('radio', { name: /select recommended/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /use selected/i })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /enter custom venue/i })).toBeInTheDocument();
   });
 

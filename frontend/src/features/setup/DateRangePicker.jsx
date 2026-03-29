@@ -175,6 +175,7 @@ export default function DateRangePicker({ value, onChange, singleDate = false })
                   onClick={() => handleDayClick(iso)}
                   onMouseEnter={() => pickingEnd && setHoverDate(iso)}
                   onMouseLeave={() => pickingEnd && setHoverDate(null)}
+                  onTouchStart={() => pickingEnd && setHoverDate(iso)}
                   aria-label={iso}
                   aria-disabled={iso < today || undefined}
                   tabIndex={iso < today ? -1 : 0}

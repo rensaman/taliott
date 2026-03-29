@@ -46,6 +46,15 @@ run_tests() {
 
 run_tests "unit tests"        "npm run test:coverage --silent"
 run_tests "integration tests" "npm run test:integration"
+
+# Stop docker-compose backend/frontend containers if running — Playwright's
+# reuseExistingServer would otherwise reuse stale docker builds instead of
+# starting fresh dev servers with the current staged code.
+if docker compose ps --services --filter status=running 2>/dev/null | grep -qE '^(backend|frontend)$'; then
+  echo "[tests] Stopping docker backend/frontend so Playwright starts fresh dev servers…"
+  docker compose stop backend frontend 2>&1
+fi
+
 run_tests "e2e tests"         "npm run test:e2e"
 
 # All tests passed — persist the cache key

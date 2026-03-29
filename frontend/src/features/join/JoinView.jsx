@@ -53,7 +53,7 @@ export default function JoinView({ joinToken }) {
   if (error === 'not_found') {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <header className="join-header"><a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a></header>
         <div className="join-body"><p data-testid="join-invalid-link">{t('join.invalidLink')}</p></div>
       </main>
     );
@@ -61,7 +61,7 @@ export default function JoinView({ joinToken }) {
   if (error) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <header className="join-header"><a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a></header>
         <div className="join-body"><p>{t('join.genericError')}</p></div>
       </main>
     );
@@ -69,7 +69,7 @@ export default function JoinView({ joinToken }) {
   if (!event) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <header className="join-header"><a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a></header>
         <div className="join-body"><p>{t('join.loading')}</p></div>
       </main>
     );
@@ -77,7 +77,7 @@ export default function JoinView({ joinToken }) {
   if (event.closed) {
     return (
       <main className="join-shell">
-        <header className="join-header"><p className="wizard-wordmark">{t('wizard.wordmark')}</p></header>
+        <header className="join-header"><a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a></header>
         <div className="join-body">
           <h1 className="join-event-name">{event.name}</h1>
           <p className="join-meta" data-testid="closed-message">{t('join.closed')}</p>
@@ -89,7 +89,7 @@ export default function JoinView({ joinToken }) {
   return (
     <main className="join-shell">
       <header className="join-header">
-        <p className="wizard-wordmark">{t('wizard.wordmark')}</p>
+        <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
       </header>
 
       <div className="join-body">

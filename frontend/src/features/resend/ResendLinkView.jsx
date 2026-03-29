@@ -28,7 +28,7 @@ export default function ResendLinkView() {
   return (
     <main className="join-shell">
       <header className="join-header">
-        <p className="wizard-wordmark">{t('wizard.wordmark')}</p>
+        <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
       </header>
 
       <div className="join-body">

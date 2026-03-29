@@ -57,7 +57,7 @@ function ConfirmationView({ confirmation }) {
   return (
     <div className="confirmation">
       <header className="confirmation-header">
-        <p className="confirmation-wordmark">{t('wizard.wordmark')}</p>
+        <a href="/" className="confirmation-wordmark">{t('wizard.wordmark')}</a>
       </header>
       <main className="confirmation-body">
         <p className="confirmation-eyebrow">{t('confirmation.eyebrow')}</p>
