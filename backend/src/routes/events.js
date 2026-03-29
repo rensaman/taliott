@@ -230,6 +230,8 @@ router.get('/:adminToken', async (req, res) => {
     slot_count: event.slots.length,
     slots: event.slots.map(s => ({ id: s.id, starts_at: s.startsAt, ends_at: s.endsAt })),
     venue_type: event.venueType ?? null,
+    invite_mode: event.inviteMode,
+    join_url: event.joinToken ? `/join/${event.joinToken}` : null,
     centroid,
     final_slot_id: event.finalSlotId ?? null,
     final_venue_name: event.finalVenueName ?? null,

@@ -191,7 +191,18 @@
     "justFinalizedTitle": "Minden készen áll — élvezzétek a találkozót!",
     "justFinalizedBody": "Az esemény véglegesítve lett, és a visszaigazoló e-mailek úton vannak. Az admin és a részvételi oldalak mostantól csak olvasható módban elérhetők, és az esemény időpontjáig megmaradnak.",
     "justFinalizedHome": "Vissza a főoldalra",
-    "retry": "Próbáld újra"
+    "justFinalizedView": "Véglegesített esemény megtekintése",
+    "retry": "Próbáld újra",
+    "availLegendYes": "igen",
+    "availLegendMaybe": "talán",
+    "availLegendNo": "nem",
+    "joinLinkLabel": "Csatlakozási link:",
+    "copyJoinLink": "Másolás",
+    "joinLinkCopied": "Másolva!",
+    "deleteDialogTitle": "Esemény törlése",
+    "deleteDialogBody": "Biztosan folytatni szeretnéd? Ez véglegesen törli az eseményt és az összes résztvevői adatot.",
+    "deleteDialogCancel": "Mégsem",
+    "deleteDialogConfirm": "Végleges törlés"
   },
   "datepicker": {
     "months": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
@@ -214,6 +225,7 @@
     "venueNone": "Nincs kiválasztott helyszín — válassz egyet az alábbi listából.",
     "venueNameLabel": "Helyszín neve",
     "venueNamePlaceholder": "pl. A Kék Hang",
+    "venueNameRequired": "A helyszín neve kötelező",
     "venueAddressLabel": "Helyszín címe",
     "venueAddressPlaceholder": "pl. 1051 Budapest, Vörösmarty tér 7.",
     "durationLegend": "Esemény időtartama",
@@ -228,7 +240,16 @@
     "btnFinalize": "Esemény véglegesítése",
     "btnFinalizing": "Véglegesítés…",
     "errorNetwork": "Hálózati hiba — kérjük, próbálja újra",
-    "errorGeneric": "Véglegesítés sikertelen"
+    "errorGeneric": "Véglegesítés sikertelen",
+    "confirmTitle": "Áttekintés és megerősítés",
+    "confirmSlotLabel": "Időpont",
+    "confirmVenueLabel": "Helyszín",
+    "confirmDurationLabel": "Időtartam",
+    "confirmNotesLabel": "Megjegyzés",
+    "confirmCancel": "Vissza",
+    "confirmSend": "Megerősítés és küldés",
+    "singleSlotHint": "Csak egy időpont áll rendelkezésre — automatikusan kiválasztva",
+    "tieLabel": "DÖNTETLEN"
   },
   "timeRange": {
     "earliestStart": "Legkorábbi kezdés",

@@ -191,7 +191,18 @@
     "justFinalizedTitle": "You're all set — enjoy it with your friends!",
     "justFinalizedBody": "The event has been finalized and confirmation emails are on their way. The admin and participation pages are now in read-only mode and will remain accessible until the event takes place.",
     "justFinalizedHome": "Back to home",
-    "retry": "Try again"
+    "justFinalizedView": "View finalized event",
+    "retry": "Try again",
+    "availLegendYes": "yes",
+    "availLegendMaybe": "maybe",
+    "availLegendNo": "no",
+    "joinLinkLabel": "Join link:",
+    "copyJoinLink": "Copy",
+    "joinLinkCopied": "Copied!",
+    "deleteDialogTitle": "Delete event",
+    "deleteDialogBody": "Are you sure? This will permanently delete the event and all participant data.",
+    "deleteDialogCancel": "Cancel",
+    "deleteDialogConfirm": "Delete permanently"
   },
   "datepicker": {
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -214,6 +225,7 @@
     "venueNone": "No venue selected — pick one from the list below.",
     "venueNameLabel": "Venue name",
     "venueNamePlaceholder": "e.g. The Blue Note",
+    "venueNameRequired": "Venue name is required",
     "venueAddressLabel": "Venue address",
     "venueAddressPlaceholder": "e.g. 131 W 3rd St, New York",
     "durationLegend": "Event duration",
@@ -228,7 +240,16 @@
     "btnFinalize": "Finalize Event",
     "btnFinalizing": "Finalizing…",
     "errorNetwork": "Network error — please try again",
-    "errorGeneric": "Finalization failed"
+    "errorGeneric": "Finalization failed",
+    "confirmTitle": "Review & confirm",
+    "confirmSlotLabel": "Time slot",
+    "confirmVenueLabel": "Venue",
+    "confirmDurationLabel": "Duration",
+    "confirmNotesLabel": "Notes",
+    "confirmCancel": "Go back",
+    "confirmSend": "Confirm & Send",
+    "singleSlotHint": "Only one time slot — automatically selected",
+    "tieLabel": "TIE"
   },
   "timeRange": {
     "earliestStart": "Earliest start",

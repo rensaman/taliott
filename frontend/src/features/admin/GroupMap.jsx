@@ -88,7 +88,9 @@ export default function GroupMap({ centroid, participants, venues = [], selected
             zIndexOffset={0}
             eventHandlers={{ click: () => onVenueClick?.(v.id) }}
             data-testid={`venue-pin-${i + 1}`}
-          />
+          >
+            <Tooltip>{v.name}</Tooltip>
+          </Marker>
         ))}
         {located.map(p => (
           <Marker

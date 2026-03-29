@@ -29,6 +29,25 @@ describe('SlotScoreCard', () => {
     expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('#3');
   });
 
+  // ─── UX-10: Tied slot indicator ───────────────────────────────────────────
+
+  it('shows TIE label instead of rank when slot.tied is true', () => {
+    render(<SlotScoreCard slot={{ ...SLOT_NO_DATA, tied: true }} rank={1} selected={false} onClick={() => {}} />);
+    expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('TIE');
+    expect(screen.getByTestId('slot-card-slot-1')).not.toHaveTextContent('#1');
+  });
+
+  it('shows rank number when slot.tied is false', () => {
+    render(<SlotScoreCard slot={{ ...SLOT_NO_DATA, tied: false }} rank={1} selected={false} onClick={() => {}} />);
+    expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('#1');
+    expect(screen.getByTestId('slot-card-slot-1')).not.toHaveTextContent('TIE');
+  });
+
+  it('shows rank number when slot.tied is undefined (backward compat)', () => {
+    render(<SlotScoreCard slot={SLOT_NO_DATA} rank={2} selected={false} onClick={() => {}} />);
+    expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('#2');
+  });
+
   it('does not show vote bars when respondedCount is 0', () => {
     render(<SlotScoreCard slot={SLOT_NO_DATA} rank={1} selected={false} onClick={() => {}} />);
     expect(screen.queryByText(/✓/)).not.toBeInTheDocument();

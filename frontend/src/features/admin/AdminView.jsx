@@ -9,9 +9,10 @@ import LegalFooter from '../legal/LegalFooter.jsx';
 import { useEventStream } from '../../hooks/useEventStream.js';
 import './AdminView.css';
 
+// UX-10: compute slot scores and mark tied slots
 function scoreSlots(slots, participants) {
   const responded = participants.filter(p => p.responded_at);
-  return slots
+  const scored = slots
     .map(slot => {
       let yes = 0, maybe = 0, no = 0;
       for (const p of responded) {
@@ -24,6 +25,16 @@ function scoreSlots(slots, participants) {
       return { ...slot, yes, maybe, no, respondedCount: responded.length };
     })
     .sort((a, b) => (b.yes * 2 + b.maybe) - (a.yes * 2 + a.maybe));
+
+  if (responded.length === 0) return scored;
+
+  const scoreOf = s => s.yes * 2 + s.maybe;
+  const counts = scored.reduce((acc, s) => {
+    const sc = scoreOf(s);
+    acc[sc] = (acc[sc] || 0) + 1;
+    return acc;
+  }, {});
+  return scored.map(s => ({ ...s, tied: counts[scoreOf(s)] > 1 }));
 }
 
 export default function AdminView({ adminToken }) {
@@ -35,6 +46,8 @@ export default function AdminView({ adminToken }) {
   const [liveCentroid, setLiveCentroid] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [justFinalized, setJustFinalized] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false); // UX-7
+  const [linkCopied, setLinkCopied] = useState(false); // UX-8
 
   const loadDashboard = useCallback((signal) => {
     setError(null);
@@ -69,8 +82,13 @@ export default function AdminView({ adminToken }) {
     setSelectedVenue(venue);
   }
 
-  async function handleDeleteEvent() {
-    if (!window.confirm(t('admin.deleteConfirm'))) return;
+  // UX-7: show styled dialog instead of window.confirm
+  function handleDeleteEvent() {
+    setDeleteConfirmOpen(true);
+  }
+
+  async function confirmDeleteEvent() {
+    setDeleteConfirmOpen(false);
     const res = await fetch(`/api/events/${adminToken}`, { method: 'DELETE' });
     if (res.ok) {
       window.location.assign('/');
@@ -79,11 +97,22 @@ export default function AdminView({ adminToken }) {
     }
   }
 
+  // UX-8: copy join link to clipboard
+  function handleCopyJoinLink() {
+    navigator.clipboard.writeText(data.join_url).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }).catch(() => {
+      // clipboard not available — silent fail
+    });
+  }
+
   const scoredSlots = useMemo(() => {
     if (!data) return [];
     return scoreSlots(data.slots || [], data.participants || []);
   }, [data]);
 
+  // UX-3: thank-you screen with "View finalized event" link
   if (justFinalized) return (
     <div className="admin-page">
       <header className="admin-header">
@@ -93,6 +122,9 @@ export default function AdminView({ adminToken }) {
         <h1>{t('admin.justFinalizedTitle')}</h1>
         <p>{t('admin.justFinalizedBody')}</p>
         <a href="/" className="btn btn-primary">{t('admin.justFinalizedHome')}</a>
+        <a href={window.location.pathname} className="btn btn-secondary" data-testid="view-finalized-link">
+          {t('admin.justFinalizedView')}
+        </a>
       </div>
       <LegalFooter />
     </div>
@@ -131,6 +163,22 @@ export default function AdminView({ adminToken }) {
         <span>{t('admin.deadlineLabel')} <strong>{new Date(data.deadline).toLocaleString(i18n.language)}</strong></span>
         <span><strong>{t('admin.responded', { responded, total })}</strong></span>
       </div>
+
+      {/* UX-8: join link bar for shared-link events */}
+      {data.invite_mode === 'shared_link' && data.join_url && (
+        <div className="admin-join-link" data-testid="join-link-bar">
+          <span>{t('admin.joinLinkLabel')}</span>
+          <code>{data.join_url}</code>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={handleCopyJoinLink}
+            data-testid="copy-join-link-btn"
+          >
+            {linkCopied ? t('admin.joinLinkCopied') : t('admin.copyJoinLink')}
+          </button>
+        </div>
+      )}
 
       <div className="admin-body">
         <div className="admin-map-venue-band">
@@ -188,6 +236,36 @@ export default function AdminView({ adminToken }) {
       <footer className="admin-danger" aria-label="Danger zone">
         <button className="btn-danger" onClick={handleDeleteEvent} data-testid="delete-event-btn">{t('admin.deleteEvent')}</button>
         {deleteError && <p role="alert" className="admin-error-danger">{deleteError}</p>}
+        {/* UX-7: styled delete confirmation dialog */}
+        {deleteConfirmOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            data-testid="delete-confirm-dialog"
+            className="delete-confirm-dialog"
+          >
+            <h3>{t('admin.deleteDialogTitle')}</h3>
+            <p>{t('admin.deleteDialogBody')}</p>
+            <div className="delete-confirm-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-testid="delete-cancel-btn"
+                onClick={() => setDeleteConfirmOpen(false)}
+              >
+                {t('admin.deleteDialogCancel')}
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                data-testid="delete-confirm-btn"
+                onClick={confirmDeleteEvent}
+              >
+                {t('admin.deleteDialogConfirm')}
+              </button>
+            </div>
+          </div>
+        )}
       </footer>
       <LegalFooter />
     </div>

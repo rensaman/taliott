@@ -59,6 +59,21 @@ describe('ParticipantResponseList', () => {
     });
   });
 
+  // ─── UX-6: Availability dot legend ───────────────────────────────────────
+
+  it('renders an availability legend', () => {
+    render(<ParticipantResponseList participants={PARTICIPANTS} />);
+    expect(screen.getByTestId('avail-legend')).toBeInTheDocument();
+  });
+
+  it('availability legend contains yes, maybe, and no labels', () => {
+    render(<ParticipantResponseList participants={PARTICIPANTS} />);
+    const legend = screen.getByTestId('avail-legend');
+    expect(legend).toHaveTextContent(/yes/i);
+    expect(legend).toHaveTextContent(/maybe/i);
+    expect(legend).toHaveTextContent(/no/i);
+  });
+
   it('passes i18n.language as locale to slot date toLocaleString', () => {
     const participants = [
       { id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z', availability: [] },

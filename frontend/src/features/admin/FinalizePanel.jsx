@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import SlotScoreCard from './SlotScoreCard.jsx';
 
@@ -6,7 +6,7 @@ export default function FinalizePanel({
   adminToken, slots, scoredSlots,
   selectedVenueId, selectedVenueName, onFinalized,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [slotId, setSlotId] = useState('');
   const [venueMode, setVenueMode] = useState('recommended');
 
@@ -15,15 +15,27 @@ export default function FinalizePanel({
       setSlotId(slots[0].id);
     }
   }, [slots, slotId]);
+
+  // UX-11: Reset venueMode to recommended when a venue is selected while in custom mode
+  const venueModeRef = useRef(venueMode);
+  venueModeRef.current = venueMode;
+  useEffect(() => {
+    if (selectedVenueId && venueModeRef.current === 'custom') {
+      setVenueMode('recommended');
+    }
+  }, [selectedVenueId]);
+
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState('30');
+  const [durationMinutes, setDurationMinutes] = useState('60'); // UX-4: default 60 min
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false); // UX-1
 
-  async function handleFinalize(e) {
-    e.preventDefault();
+  // UX-1: modal-based confirmation — called from the confirm modal, not the form submit
+  async function submitFinalize() {
+    setShowConfirm(false);
     if (!slotId) return;
     setLoading(true);
     setError(null);
@@ -60,11 +72,15 @@ export default function FinalizePanel({
   }
 
   const displayedSlots = scoredSlots && scoredSlots.length > 0 ? scoredSlots : slots;
+  const selectedSlot = displayedSlots.find(s => s.id === slotId) ?? null;
+  const confirmVenueName = venueMode === 'recommended'
+    ? (selectedVenueName || '—')
+    : (venueName || '—');
 
   return (
     <section data-testid="finalize-panel" className="finalize-section">
       <h2>{t('finalize.heading')}</h2>
-      <form onSubmit={handleFinalize}>
+      <form>
 
         {/* Visual slot scorer — click to select */}
         {displayedSlots.length > 0 && (
@@ -76,9 +92,17 @@ export default function FinalizePanel({
                 rank={i + 1}
                 selected={slotId === s.id}
                 onClick={() => setSlotId(s.id)}
+                tied={!!s.tied}
               />
             ))}
           </div>
+        )}
+
+        {/* UX-9: single-slot auto-select hint */}
+        {slots.length === 1 && (
+          <p className="single-slot-hint" data-testid="single-slot-hint">
+            {t('finalize.singleSlotHint')}
+          </p>
         )}
 
         <div>
@@ -130,6 +154,12 @@ export default function FinalizePanel({
                     data-testid="custom-venue-name"
                   />
                 </label>
+                {/* UX-2: required hint when name is empty */}
+                {!venueName.trim() && (
+                  <p className="custom-venue-hint" data-testid="custom-venue-required">
+                    {t('finalize.venueNameRequired')}
+                  </p>
+                )}
               </div>
               <div className="custom-venue-field">
                 <label>
@@ -178,11 +208,70 @@ export default function FinalizePanel({
         {error && <p role="alert" className="admin-error-inline">{error}</p>}
 
         <div className="finalize-button-row">
-          <button type="submit" className="btn btn-primary" disabled={loading || !slotId} data-testid="finalize-btn">
+          {/* UX-1: opens confirm modal; UX-2: also disabled when custom venue name is empty */}
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={loading || !slotId || (venueMode === 'custom' && !venueName.trim())}
+            data-testid="finalize-btn"
+            onClick={() => setShowConfirm(true)}
+          >
             {loading ? t('finalize.btnFinalizing') : t('finalize.btnFinalize')}
           </button>
         </div>
       </form>
+
+      {/* UX-1: confirmation modal */}
+      {showConfirm && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="finalize-confirm-title"
+          data-testid="finalize-confirm-modal"
+          className="finalize-confirm-overlay"
+        >
+          <div className="finalize-confirm-dialog">
+            <h3 id="finalize-confirm-title">{t('finalize.confirmTitle')}</h3>
+            <dl className="finalize-confirm-details">
+              <dt>{t('finalize.confirmSlotLabel')}</dt>
+              <dd data-testid="confirm-slot-value">
+                {selectedSlot
+                  ? `${new Date(selectedSlot.starts_at).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' })} ${new Date(selectedSlot.starts_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}`
+                  : '—'}
+              </dd>
+              <dt>{t('finalize.confirmVenueLabel')}</dt>
+              <dd data-testid="confirm-venue-value">{confirmVenueName}</dd>
+              <dt>{t('finalize.confirmDurationLabel')}</dt>
+              <dd>{durationMinutes} {t('admin.finalizedDurationUnit')}</dd>
+              {notes.trim() && (
+                <>
+                  <dt>{t('finalize.confirmNotesLabel')}</dt>
+                  <dd>{notes}</dd>
+                </>
+              )}
+            </dl>
+            <div className="finalize-confirm-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowConfirm(false)}
+                data-testid="confirm-cancel-btn"
+              >
+                {t('finalize.confirmCancel')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={submitFinalize}
+                data-testid="confirm-send-btn"
+                disabled={loading}
+              >
+                {loading ? t('finalize.btnFinalizing') : t('finalize.confirmSend')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

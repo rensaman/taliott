@@ -86,6 +86,14 @@ describe('GroupMap', () => {
     expect(onVenueClick).toHaveBeenCalledWith('v1');
   });
 
+  // ─── UX-5: Venue pin tooltips ─────────────────────────────────────────────
+
+  it('shows a tooltip with the venue name for each venue pin', () => {
+    render(<GroupMap centroid={null} participants={[]} venues={VENUES} />);
+    expect(screen.getByRole('tooltip', { name: 'Place A' })).toBeInTheDocument();
+    expect(screen.getByRole('tooltip', { name: 'Place B' })).toBeInTheDocument();
+  });
+
   it('shows tooltip with participant full name when name is provided', () => {
     const withName = [{ id: 'p-1', latitude: 0, longitude: 0, name: 'Alice Smith' }];
     render(<GroupMap centroid={null} participants={withName} />);

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 export default function SlotScoreCard({ slot, rank, selected, onClick }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const start = new Date(slot.starts_at);
   const end = new Date(slot.ends_at);
   const dateStr = start.toLocaleDateString(i18n.language, {
@@ -20,7 +20,7 @@ export default function SlotScoreCard({ slot, rank, selected, onClick }) {
       onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onClick?.()}
       aria-pressed={selected}
     >
-      <span className="slot-score-rank">#{rank}</span>
+      <span className="slot-score-rank">{slot.tied ? t('finalize.tieLabel') : `#${rank}`}</span>
       <div className="slot-score-datetime">
         <span className="slot-score-date">{dateStr}</span>
         <span className="slot-score-time">{timeStr}</span>

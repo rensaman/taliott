@@ -67,7 +67,8 @@ describe('FinalizePanel', () => {
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} onFinalized={onFinalized} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(
       '/api/events/tok/finalize',
@@ -76,12 +77,20 @@ describe('FinalizePanel', () => {
     expect(onFinalized).toHaveBeenCalled();
   });
 
+  it('does not call the API when Finalize Event is first clicked (modal opens instead)', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('submits venue_id when a recommended venue is selected', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
@@ -98,7 +107,8 @@ describe('FinalizePanel', () => {
     fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
     fireEvent.change(screen.getByTestId('custom-venue-name'), { target: { value: 'The Blue Note' } });
     fireEvent.change(screen.getByTestId('custom-venue-address'), { target: { value: '131 W 3rd St' } });
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
@@ -114,9 +124,9 @@ describe('FinalizePanel', () => {
     expect(screen.getByTestId('duration-select')).toBeInTheDocument();
   });
 
-  it('defaults the duration selector to 30 minutes', () => {
+  it('defaults the duration selector to 60 minutes', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    expect(screen.getByTestId('duration-select')).toHaveValue('30');
+    expect(screen.getByTestId('duration-select')).toHaveValue('60');
   });
 
   it('does not show a "same as slot" option in the duration selector', () => {
@@ -137,7 +147,8 @@ describe('FinalizePanel', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.change(screen.getByTestId('duration-select'), { target: { value: '90' } });
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
@@ -146,17 +157,18 @@ describe('FinalizePanel', () => {
     });
   });
 
-  it('submits duration_minutes: 30 by default without any user selection', async () => {
+  it('submits duration_minutes: 60 by default without any user selection', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
       const body = JSON.parse(options.body);
-      expect(body.duration_minutes).toBe(30);
+      expect(body.duration_minutes).toBe(60);
     });
   });
 
@@ -166,7 +178,8 @@ describe('FinalizePanel', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
     fireEvent.change(screen.getByTestId('finalize-notes'), { target: { value: 'Please bring ID' } });
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
@@ -180,7 +193,8 @@ describe('FinalizePanel', () => {
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() => {
       const [, options] = fetch.mock.calls[0];
@@ -203,11 +217,107 @@ describe('FinalizePanel', () => {
 
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-    fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
 
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('Event is already finalized')
     );
+  });
+
+  // ─── UX-1: Confirmation modal ─────────────────────────────────────────────
+
+  it('clicking Finalize Event opens a confirmation modal', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    expect(screen.getByTestId('finalize-confirm-modal')).toBeInTheDocument();
+  });
+
+  it('confirmation modal shows the chosen slot date', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    expect(screen.getByTestId('confirm-slot-value')).toBeInTheDocument();
+  });
+
+  it('confirmation modal shows the selected venue name', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    expect(screen.getByTestId('finalize-confirm-modal')).toHaveTextContent('The Anchor Pub');
+  });
+
+  it('clicking Cancel in the confirmation modal hides it', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    expect(screen.getByTestId('finalize-confirm-modal')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('confirm-cancel-btn'));
+    expect(screen.queryByTestId('finalize-confirm-modal')).not.toBeInTheDocument();
+  });
+
+  // ─── UX-2: Disable when custom venue name empty ───────────────────────────
+
+  it('finalize button is disabled in custom mode when venue name is empty', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    expect(screen.getByTestId('finalize-btn')).toBeDisabled();
+  });
+
+  it('finalize button is enabled in custom mode when venue name is filled', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    fireEvent.change(screen.getByTestId('custom-venue-name'), { target: { value: 'The Blue Note' } });
+    expect(screen.getByTestId('finalize-btn')).not.toBeDisabled();
+  });
+
+  it('shows a required hint near the custom venue name field when it is empty', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    expect(screen.getByTestId('custom-venue-required')).toBeInTheDocument();
+  });
+
+  it('hides the required hint once the custom venue name is filled', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    fireEvent.change(screen.getByTestId('custom-venue-name'), { target: { value: 'Foo' } });
+    expect(screen.queryByTestId('custom-venue-required')).not.toBeInTheDocument();
+  });
+
+  // ─── UX-9: Single-slot hint ───────────────────────────────────────────────
+
+  it('shows a hint when only one slot is provided', () => {
+    const single = [{ id: 'solo-1', starts_at: '2025-07-10T14:00:00.000Z', ends_at: '2025-07-10T15:00:00.000Z' }];
+    render(<FinalizePanel adminToken="tok" slots={single} />);
+    expect(screen.getByTestId('single-slot-hint')).toBeInTheDocument();
+  });
+
+  it('does not show the single slot hint when multiple slots are provided', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.queryByTestId('single-slot-hint')).not.toBeInTheDocument();
+  });
+
+  // ─── UX-11: Venue mode resets when venue selected in custom mode ──────────
+
+  it('switches venue mode back to recommended when a venue is selected while in custom mode', () => {
+    const { rerender } = render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId={null} />);
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    expect(screen.getByTestId('custom-venue-name')).toBeInTheDocument();
+
+    rerender(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId="v1" selectedVenueName="The Anchor Pub" />);
+
+    expect(screen.getByTestId('selected-venue-display')).toBeInTheDocument();
+    expect(screen.queryByTestId('custom-venue-name')).not.toBeInTheDocument();
+  });
+
+  it('does not switch venue mode when no venue is selected (selectedVenueId remains null)', () => {
+    const { rerender } = render(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId={null} />);
+    fireEvent.click(screen.getByRole('radio', { name: /enter custom venue/i }));
+    rerender(<FinalizePanel adminToken="tok" slots={SLOTS} selectedVenueId={null} />);
+    expect(screen.getByTestId('custom-venue-name')).toBeInTheDocument();
   });
 
   describe('i18n', () => {
@@ -227,7 +337,8 @@ describe('FinalizePanel', () => {
       i18n.addResourceBundle('en', 'common', { finalize: { errorGeneric: '__GENERIC_ERROR__' } }, true, true);
       render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
       fireEvent.click(screen.getByTestId('slot-card-slot-1'));
-      fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+      fireEvent.click(screen.getByTestId('finalize-btn'));
+      fireEvent.click(screen.getByTestId('confirm-send-btn'));
       await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('__GENERIC_ERROR__'));
     });
 

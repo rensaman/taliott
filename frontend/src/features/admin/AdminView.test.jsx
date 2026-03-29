@@ -83,6 +83,12 @@ const FINALIZED_DATA = {
   final_notes: 'Please bring ID',
 };
 
+const SHARED_LINK_DATA = {
+  ...OPEN_DATA,
+  invite_mode: 'shared_link',
+  join_url: '/join/abc123',
+};
+
 describe('AdminView', () => {
   beforeEach(() => {
     capturedSseHandler = null;
@@ -214,7 +220,6 @@ describe('AdminView', () => {
   });
 
   it('calls DELETE /api/events/:token when confirmed and navigates home', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true));
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
@@ -226,6 +231,8 @@ describe('AdminView', () => {
     await waitFor(() => screen.getByRole('heading', { level: 1 }));
 
     fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+    await waitFor(() => expect(screen.getByTestId('delete-confirm-dialog')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('delete-confirm-btn'));
 
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
@@ -237,19 +244,19 @@ describe('AdminView', () => {
   });
 
   it('does not call DELETE when user cancels the confirmation', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false));
     fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
 
     render(<AdminView adminToken="some-token" />);
     await waitFor(() => screen.getByRole('heading', { level: 1 }));
 
     fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+    await waitFor(() => expect(screen.getByTestId('delete-confirm-dialog')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('delete-cancel-btn'));
 
     expect(fetch).toHaveBeenCalledTimes(1); // only the initial dashboard load
   });
 
   it('shows an error when DELETE fails', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true));
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA })
       .mockResolvedValueOnce({ ok: false });
@@ -258,6 +265,8 @@ describe('AdminView', () => {
     await waitFor(() => screen.getByRole('heading', { level: 1 }));
 
     fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+    await waitFor(() => expect(screen.getByTestId('delete-confirm-dialog')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('delete-confirm-btn'));
 
     await waitFor(() =>
       expect(screen.getByRole('alert')).toBeInTheDocument()
@@ -328,6 +337,121 @@ describe('AdminView', () => {
     fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_DATA });
     render(<AdminView adminToken="some-token" />);
     await waitFor(() => expect(screen.queryByTestId('finalize-panel')).not.toBeInTheDocument());
+  });
+
+  // ─── UX-3: View finalized event link in thank-you screen ─────────────────
+
+  it('just-finalized screen has a "View finalized event" link', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true, status: 'finalized' }) });
+
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+    fireEvent.click(screen.getByTestId('finalize-btn'));
+    fireEvent.click(screen.getByTestId('confirm-send-btn'));
+
+    await waitFor(() => expect(screen.getByTestId('finalized-thankyou')).toBeInTheDocument());
+    expect(screen.getByTestId('view-finalized-link')).toBeInTheDocument();
+  });
+
+  // ─── UX-7: Styled delete confirmation dialog ──────────────────────────────
+
+  it('clicking Delete event shows a styled confirmation dialog', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+    expect(screen.getByTestId('delete-confirm-dialog')).toBeInTheDocument();
+  });
+
+  it('delete confirmation dialog goes away when Cancel is clicked', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+
+    fireEvent.click(screen.getByRole('button', { name: /delete event/i }));
+    await waitFor(() => expect(screen.getByTestId('delete-confirm-dialog')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('delete-cancel-btn'));
+    expect(screen.queryByTestId('delete-confirm-dialog')).not.toBeInTheDocument();
+  });
+
+  // ─── UX-8: Copy join link for shared-link events ──────────────────────────
+
+  it('shows join link bar for shared_link events', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => SHARED_LINK_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByTestId('join-link-bar'));
+    expect(screen.getByTestId('join-link-bar')).toHaveTextContent('/join/abc123');
+  });
+
+  it('does not show join link bar for email_invites events', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+    expect(screen.queryByTestId('join-link-bar')).not.toBeInTheDocument();
+  });
+
+  it('copy join link button copies the URL to clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    fetch.mockResolvedValue({ ok: true, json: async () => SHARED_LINK_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByTestId('copy-join-link-btn'));
+
+    fireEvent.click(screen.getByTestId('copy-join-link-btn'));
+    expect(writeText).toHaveBeenCalledWith('/join/abc123');
+  });
+
+  // ─── UX-10: Tied slot TIE indicator ──────────────────────────────────────
+
+  it('shows TIE indicators for slots with identical scores', async () => {
+    const tiedSlotsData = {
+      ...OPEN_DATA,
+      slots: [
+        { id: 'slot-1', starts_at: '2025-06-15T09:00:00.000Z', ends_at: '2025-06-15T10:00:00.000Z' },
+        { id: 'slot-2', starts_at: '2025-06-15T10:00:00.000Z', ends_at: '2025-06-15T11:00:00.000Z' },
+      ],
+      participants: [
+        {
+          id: 'p-1', email: 'alex@example.com', responded_at: '2025-01-01T10:00:00Z',
+          latitude: 1, longitude: 1,
+          availability: [
+            { slot_id: 'slot-1', state: 'yes' },
+            { slot_id: 'slot-2', state: 'yes' },
+          ],
+        },
+      ],
+    };
+    fetch.mockResolvedValue({ ok: true, json: async () => tiedSlotsData });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+    const tieElements = screen.getAllByText('TIE');
+    expect(tieElements).toHaveLength(2);
+  });
+
+  it('does not show TIE indicators when no participants have responded', async () => {
+    const noResponseData = {
+      ...OPEN_DATA,
+      slots: [
+        { id: 'slot-1', starts_at: '2025-06-15T09:00:00.000Z', ends_at: '2025-06-15T10:00:00.000Z' },
+        { id: 'slot-2', starts_at: '2025-06-15T10:00:00.000Z', ends_at: '2025-06-15T11:00:00.000Z' },
+      ],
+      participants: [
+        { id: 'p-1', email: 'alex@example.com', responded_at: null, latitude: null, longitude: null, availability: [] },
+      ],
+    };
+    fetch.mockResolvedValue({ ok: true, json: async () => noResponseData });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => screen.getByRole('heading', { level: 1 }));
+    expect(screen.queryByText('TIE')).not.toBeInTheDocument();
   });
 
   describe('i18n', () => {

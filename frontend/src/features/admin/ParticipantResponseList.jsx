@@ -6,7 +6,16 @@ const DOT_CLASS = { yes: 'avail-dot--yes', maybe: 'avail-dot--maybe', no: 'avail
 export default function ParticipantResponseList({ participants, slots = [] }) {
   const { t, i18n } = useTranslation();
   return (
-    <ul className="participant-list">
+    <>
+      {/* UX-6: availability dot colour legend */}
+      <div className="avail-legend" data-testid="avail-legend" aria-hidden="true">
+        <span className="avail-dot avail-dot--yes" /> {t('admin.availLegendYes')}
+        {'  '}
+        <span className="avail-dot avail-dot--maybe" /> {t('admin.availLegendMaybe')}
+        {'  '}
+        <span className="avail-dot avail-dot--no" /> {t('admin.availLegendNo')}
+      </div>
+      <ul className="participant-list">
       {participants.map(p => {
         const responded = !!p.responded_at;
         return (
@@ -39,5 +48,6 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
         );
       })}
     </ul>
+    </>
   );
 }
