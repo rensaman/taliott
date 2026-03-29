@@ -68,6 +68,7 @@
     },
     "inviteMode": {
       "heading": "How do you want to invite people?",
+      "recommended": "Recommended",
       "sharedLink": {
         "title": "Share a join link",
         "description": "Anyone with the link can join and vote"

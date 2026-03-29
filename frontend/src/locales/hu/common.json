@@ -68,6 +68,7 @@
     },
     "inviteMode": {
       "heading": "Hogyan hívod meg a többieket?",
+      "recommended": "Ajánlott",
       "sharedLink": {
         "title": "Csatlakozási linkkel",
         "description": "Bárki csatlakozhat és szavazhat a link birtokában"

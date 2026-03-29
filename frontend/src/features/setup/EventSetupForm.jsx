@@ -366,6 +366,7 @@ export default function EventSetupForm({ onCreated }) {
                 onChange={() => update('inviteMode', 'shared_link')}
                 title={t('setup.inviteMode.sharedLink.title')}
                 description={t('setup.inviteMode.sharedLink.description')}
+                badge={t('setup.inviteMode.recommended')}
                 data-testid="toggle-invite-link"
               />
               <ToggleBlock
