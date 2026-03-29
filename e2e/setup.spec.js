@@ -12,7 +12,7 @@ test('home page shows the landing page', async ({ page }) => {
 test('clicking create an event shows the event setup form', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('create-event-btn').click();
-  await expect(page.getByRole('heading', { name: 'taliott' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'taliott' })).toBeVisible();
   await expect(page.getByTestId('event-name-input')).toBeVisible();
 });
 
