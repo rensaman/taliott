@@ -185,11 +185,13 @@
     },
     "finalizedSummaryHeading": "Véglegesített adatok",
     "finalizedWhen": "Mikor",
+    "finalizedVenueLabel": "Helyszín",
     "finalizedVenueNone": "Nincs helyszín megadva",
     "finalizedDurationUnit": "perc",
     "justFinalizedTitle": "Minden készen áll — élvezzétek a találkozót!",
     "justFinalizedBody": "Az esemény véglegesítve lett, és a visszaigazoló e-mailek úton vannak. Az admin és a részvételi oldalak mostantól csak olvasható módban elérhetők, és az esemény időpontjáig megmaradnak.",
-    "justFinalizedHome": "Vissza a főoldalra"
+    "justFinalizedHome": "Vissza a főoldalra",
+    "retry": "Próbáld újra"
   },
   "datepicker": {
     "months": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
@@ -225,7 +227,8 @@
     "notesPlaceholder": "pl. Kérjük hozzatok igazolványt, öltözési kód: elegáns hétköznapi…",
     "btnFinalize": "Esemény véglegesítése",
     "btnFinalizing": "Véglegesítés…",
-    "errorNetwork": "Hálózati hiba — kérjük, próbálja újra"
+    "errorNetwork": "Hálózati hiba — kérjük, próbálja újra",
+    "errorGeneric": "Véglegesítés sikertelen"
   },
   "timeRange": {
     "earliestStart": "Legkorábbi kezdés",

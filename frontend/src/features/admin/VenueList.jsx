@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import VenueCard from './VenueCard.jsx';
 import VenueTypeFilter from './VenueTypeFilter.jsx';
@@ -8,6 +8,10 @@ const LIMIT_STEP = 5;
 
 export default function VenueList({ adminToken, defaultVenueType, selectedId, onVenuesLoaded, onSelectVenue }) {
   const { t } = useTranslation();
+  const onSelectVenueRef = useRef(onSelectVenue);
+  const onVenuesLoadedRef = useRef(onVenuesLoaded);
+  useEffect(() => { onSelectVenueRef.current = onSelectVenue; });
+  useEffect(() => { onVenuesLoadedRef.current = onVenuesLoaded; });
   const [venueTypes, setVenueTypes] = useState(
     defaultVenueType ? [defaultVenueType] : []
   );
@@ -23,7 +27,7 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
     setLoading(true);
     setError(null);
     setDisplayLimit(DEFAULT_LIMIT);
-    onSelectVenue?.(null);
+    onSelectVenueRef.current?.(null);
     Promise.all(
       venueTypes.map(type =>
         fetch(`/api/events/${adminToken}/venues?venue_type=${encodeURIComponent(type)}`)
@@ -44,14 +48,13 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
         });
         merged.sort((a, b) => a.distanceM - b.distanceM);
         setVenues(merged);
-        onVenuesLoaded?.(merged);
+        onVenuesLoadedRef.current?.(merged);
         setLoading(false);
       })
       .catch(err => {
         setError(typeof err === 'string' ? err : t('venueList.failedToLoad'));
         setLoading(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminToken, venueTypesKey]);
 
   const displayed = venues?.slice(0, displayLimit) ?? null;

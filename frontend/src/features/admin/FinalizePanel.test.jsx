@@ -189,6 +189,12 @@ describe('FinalizePanel', () => {
     });
   });
 
+  it('auto-selects the slot and enables finalize when only one slot is provided', () => {
+    const single = [{ id: 'solo-1', starts_at: '2025-07-10T14:00:00.000Z', ends_at: '2025-07-10T15:00:00.000Z' }];
+    render(<FinalizePanel adminToken="tok" slots={single} />);
+    expect(screen.getByRole('button', { name: /finalize/i })).not.toBeDisabled();
+  });
+
   it('shows error message when finalization fails', async () => {
     fetch.mockResolvedValue({
       ok: false,
@@ -214,6 +220,15 @@ describe('FinalizePanel', () => {
       i18n.addResourceBundle('en', 'common', { finalize: { heading: '__FINALIZE_HEADING_TEST__' } }, true, true);
       render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__FINALIZE_HEADING_TEST__');
+    });
+
+    it('uses i18n key for generic error when backend returns no error field', async () => {
+      fetch.mockResolvedValue({ ok: false, json: async () => ({}) });
+      i18n.addResourceBundle('en', 'common', { finalize: { errorGeneric: '__GENERIC_ERROR__' } }, true, true);
+      render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+      fireEvent.click(screen.getByTestId('slot-card-slot-1'));
+      fireEvent.click(screen.getByRole('button', { name: /finalize/i }));
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('__GENERIC_ERROR__'));
     });
 
     it('passes i18n.language as locale to slot date formatting', () => {

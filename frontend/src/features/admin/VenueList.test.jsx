@@ -170,6 +170,17 @@ describe('VenueList', () => {
     await waitFor(() => expect(screen.getAllByTestId('venue-card')).toHaveLength(10));
   });
 
+  it('does not re-fetch when only the onSelectVenue callback identity changes', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
+    const { rerender } = render(
+      <VenueList adminToken="tok" defaultVenueType="restaurant" onSelectVenue={() => {}} />
+    );
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    rerender(<VenueList adminToken="tok" defaultVenueType="restaurant" onSelectVenue={() => {}} />);
+    await new Promise(r => setTimeout(r, 10));
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it('marks the venue matching selectedId prop as selected', async () => {
     fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: MOCK_VENUES }) });
     render(<VenueList adminToken="tok" defaultVenueType="restaurant" selectedId="v2" onSelectVenue={vi.fn()} />);

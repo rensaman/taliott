@@ -40,10 +40,9 @@ function makeParticipantIcon(name) {
 function makeVenuePinIcon(number, selected) {
   const bg = selected ? '#1a1a1a' : '#fff';
   const color = selected ? '#fff' : '#1a1a1a';
-  const border = selected ? '#1a1a1a' : '#1a1a1a';
   return L.divIcon({
     className: '',
-    html: `<div style="width:24px;height:24px;background:${bg};border:2px solid ${border};border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:10px;font-weight:700;color:${color};font-family:sans-serif">${number}</div>`,
+    html: `<div style="width:24px;height:24px;background:${bg};border:2px solid #1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:10px;font-weight:700;color:${color};font-family:sans-serif">${number}</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });

@@ -46,9 +46,8 @@ test('admin sees slot preferences after a participant responds', async ({ page, 
   await expect(row).toBeVisible();
   await expect(row.getByText(/responded/i)).toBeVisible();
 
-  // Availability is shown via colored dots; the hidden list holds the data
+  // Availability is shown via colored dots
   await expect(row.locator('.avail-dot--yes')).toBeVisible();
-  await expect(row.getByTestId('slot-availability')).toContainText(/yes/i);
 });
 
 test('pending participant has no slot availability list shown', async ({ page, request }) => {
@@ -62,7 +61,7 @@ test('pending participant has no slot availability list shown', async ({ page, r
   const row = page.getByTestId(`participant-${participant.id}`);
   await expect(row).toBeVisible();
   await expect(row.getByText(/pending/i)).toBeVisible();
-  await expect(row.getByTestId('slot-availability')).not.toBeVisible();
+  await expect(row.locator('.avail-dot')).toHaveCount(0);
 });
 
 // ---------------------------------------------------------------------------

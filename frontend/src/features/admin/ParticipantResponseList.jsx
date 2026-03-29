@@ -35,20 +35,6 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
                 })}
               </div>
             )}
-            {/* Hidden list kept for test compatibility */}
-            {responded && slots.length > 0 && (
-              <ul data-testid="slot-availability" className="slot-availability-hidden">
-                {slots.map(s => {
-                  const avail = p.availability?.find(a => a.slot_id === s.id);
-                  const state = avail?.state ?? 'neutral';
-                  return (
-                    <li key={s.id}>
-                      {new Date(s.starts_at).toLocaleString(i18n.language)}: {STATE_SYMBOL[state]} {state}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </li>
         );
       })}

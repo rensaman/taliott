@@ -185,11 +185,13 @@
     },
     "finalizedSummaryHeading": "Finalized details",
     "finalizedWhen": "When",
+    "finalizedVenueLabel": "Venue",
     "finalizedVenueNone": "No venue set",
     "finalizedDurationUnit": "min",
     "justFinalizedTitle": "You're all set — enjoy it with your friends!",
     "justFinalizedBody": "The event has been finalized and confirmation emails are on their way. The admin and participation pages are now in read-only mode and will remain accessible until the event takes place.",
-    "justFinalizedHome": "Back to home"
+    "justFinalizedHome": "Back to home",
+    "retry": "Try again"
   },
   "datepicker": {
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -225,7 +227,8 @@
     "notesPlaceholder": "e.g. Please bring ID, dress code: smart casual…",
     "btnFinalize": "Finalize Event",
     "btnFinalizing": "Finalizing…",
-    "errorNetwork": "Network error — please try again"
+    "errorNetwork": "Network error — please try again",
+    "errorGeneric": "Finalization failed"
   },
   "timeRange": {
     "earliestStart": "Earliest start",

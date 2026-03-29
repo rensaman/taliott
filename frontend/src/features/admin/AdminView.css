@@ -305,42 +305,6 @@
 .slot-score-bar--maybe { color: #b37a0a; }
 .slot-score-bar--no    { color: var(--red); }
 
-/* ─── Native slot select ──────────────────────────────────────────────────── */
-
-.slot-select-row {
-  margin-bottom: 1.25rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  margin-bottom: 0.4rem;
-}
-
-.slot-native-select {
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  width: 100%;
-  background: var(--field-bg);
-  border: 1px solid transparent;
-  color: var(--ink);
-  padding: 0.55rem 0.75rem;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
-  border-radius: 0;
-  cursor: pointer;
-  transition: border-color 0.12s;
-}
-
-.slot-native-select:focus {
-  border-color: var(--ink);
-}
-
 /* ─── Venue type filter (chips + custom input) ────────────────────────────── */
 
 .venue-type-chips {
@@ -783,6 +747,19 @@
   margin: 0;
   color: var(--ink);
   line-height: 1.4;
+}
+
+/* ─── Error page (no data loaded) ────────────────────────────────────────── */
+
+.admin-error-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
 }
 
 /* ─── Just-finalized thank-you screen ────────────────────────────────────── */

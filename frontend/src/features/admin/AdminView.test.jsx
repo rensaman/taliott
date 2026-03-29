@@ -133,12 +133,43 @@ describe('AdminView', () => {
     expect(screen.getByText('sam@example.com')).toBeInTheDocument();
   });
 
+  it('aborts the in-flight dashboard fetch on unmount', async () => {
+    let capturedSignal;
+    fetch.mockImplementation((_url, opts) => {
+      capturedSignal = opts?.signal;
+      return new Promise(() => {});
+    });
+    const { unmount } = render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect(capturedSignal?.aborted).toBe(false);
+    unmount();
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
   it('shows error on failed fetch', async () => {
     fetch.mockResolvedValue({ ok: false, status: 404 });
     render(<AdminView adminToken="bad-token" />);
     await waitFor(() =>
       expect(screen.getByRole('alert')).toBeInTheDocument()
     );
+  });
+
+  it('error state renders page header and retry button', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 404 });
+    render(<AdminView adminToken="bad-token" />);
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+  });
+
+  it('retry button re-fetches and renders the dashboard on success', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+    await waitFor(() => expect(screen.getByRole('heading', { name: /summer meetup/i })).toBeInTheDocument());
   });
 
   it('renders the group map', async () => {

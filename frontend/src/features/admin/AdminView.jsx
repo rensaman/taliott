@@ -36,17 +36,25 @@ export default function AdminView({ adminToken }) {
   const [deleteError, setDeleteError] = useState(null);
   const [justFinalized, setJustFinalized] = useState(false);
 
-  const loadDashboard = useCallback(() => {
-    fetch(`/api/events/${adminToken}`)
+  const loadDashboard = useCallback((signal) => {
+    setError(null);
+    fetch(`/api/events/${adminToken}`, signal ? { signal } : undefined)
       .then(res => {
         if (!res.ok) throw new Error(t('admin.errorNotFound'));
         return res.json();
       })
       .then(setData)
-      .catch(err => setError(err.message));
+      .catch(err => {
+        if (err?.name === 'AbortError') return;
+        setError(err.message);
+      });
   }, [adminToken, t]);
 
-  useEffect(() => { loadDashboard(); }, [loadDashboard]);
+  useEffect(() => {
+    const controller = new AbortController();
+    loadDashboard(controller.signal);
+    return () => controller.abort();
+  }, [loadDashboard]);
 
   useEffect(() => {
     if (data?.centroid !== undefined) setLiveCentroid(data.centroid);
@@ -90,7 +98,18 @@ export default function AdminView({ adminToken }) {
     </div>
   );
 
-  if (error) return <p role="alert">{error}</p>;
+  if (error) return (
+    <div className="admin-page">
+      <header className="admin-header">
+        <a href="/" className="admin-wordmark">{t('admin.wordmark')}<span className="beta-badge">beta</span></a>
+      </header>
+      <div className="admin-error-page">
+        <p role="alert">{error}</p>
+        <button className="btn btn-secondary" onClick={() => loadDashboard()}>{t('admin.retry')}</button>
+      </div>
+      <LegalFooter />
+    </div>
+  );
   if (!data) return <p>{t('admin.loading')}</p>;
 
   const responded = data.participants.filter(p => p.responded_at).length;

@@ -14,7 +14,7 @@ export default function FinalizePanel({
     if (slots.length === 1 && !slotId) {
       setSlotId(slots[0].id);
     }
-  }, [slots]);
+  }, [slots, slotId]);
   const [venueName, setVenueName] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
   const [durationMinutes, setDurationMinutes] = useState('30');
@@ -47,7 +47,7 @@ export default function FinalizePanel({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Finalization failed');
+        setError(data.error || t('finalize.errorGeneric'));
         return;
       }
 

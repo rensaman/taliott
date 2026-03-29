@@ -25,7 +25,7 @@ export default function FinalizedSummary({
             <dd>{slotDatetime}</dd>
           </>
         )}
-        <dt>{t('finalize.venueLegend')}</dt>
+        <dt>{t('admin.finalizedVenueLabel')}</dt>
         <dd>
           {finalVenueName
             ? finalVenueAddress ? `${finalVenueName}, ${finalVenueAddress}` : finalVenueName
