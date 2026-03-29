@@ -10,7 +10,7 @@ function getSlotLocalParts(isoString, timeZone) {
   const parts = new Intl.DateTimeFormat('en', {
     timeZone,
     year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hour12: false,
+    hour: '2-digit', minute: '2-digit', hour12: false, hourCycle: 'h23',
   }).formatToParts(new Date(isoString));
   const get = type => parts.find(p => p.type === type).value;
   const dayKey = `${get('year')}-${get('month')}-${get('day')}`;
@@ -41,8 +41,10 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
   const [saveStatus, setSaveStatus] = useState('idle');
   const pendingRef = useRef({});
   const timerRef = useRef(null);
+  const saveStatusTimerRef = useRef(null);
 
   const flush = useCallback(async () => {
+    clearTimeout(saveStatusTimerRef.current);
     const changes = pendingRef.current;
     if (Object.keys(changes).length === 0) return;
     pendingRef.current = {};
@@ -58,7 +60,7 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
         setSaveStatus('error');
       } else {
         setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+        saveStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } catch {
       setSaveStatus('error');
