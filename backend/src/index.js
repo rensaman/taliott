@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 4000;
 app.set('trust proxy', 1);
 app.use(cors({
   origin: process.env.APP_BASE_URL ?? 'http://localhost:3000',
-  methods: ['GET', 'POST', 'DELETE'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type'],
 }));
 app.use(helmet());
@@ -37,6 +37,15 @@ app.use(express.json({ limit: '50kb' }));
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+});
+
+// Limiter for participation writes (availability, location, name — frequent during a session)
+const participateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV !== 'production',
@@ -53,7 +62,7 @@ const geocodeLimiter = rateLimit({
 
 app.use('/api/health', healthRouter);
 app.use('/api/events', writeLimiter, eventsRouter);
-app.use('/api/participate', participateRouter);
+app.use('/api/participate', participateLimiter, participateRouter);
 app.use('/api/geocode', geocodeLimiter, geocodeRouter);
 app.use('/api/join', writeLimiter, joinRouter);
 app.use('/api/resend-link', writeLimiter, resendLinkRouter);

@@ -74,7 +74,7 @@ describe('GET /api/participate/:participantId', () => {
     expect(res.body.event.locked).toBe(true);
   });
 
-  it('returns participants array with id, name, latitude, longitude, responded_at, availability', async () => {
+  it('returns participants array with id, name, responded_at, availability (no coordinates)', async () => {
     const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
     const pid = participants[0].id;
 
@@ -86,8 +86,8 @@ describe('GET /api/participate/:participantId', () => {
     const p = res.body.participants[0];
     expect(p).toHaveProperty('id');
     expect(p).toHaveProperty('name');
-    expect(p).toHaveProperty('latitude');
-    expect(p).toHaveProperty('longitude');
+    expect(p).not.toHaveProperty('latitude');
+    expect(p).not.toHaveProperty('longitude');
     expect(p).toHaveProperty('responded_at');
     expect(p).toHaveProperty('availability');
     expect(p.availability).toBeInstanceOf(Array);

@@ -97,11 +97,12 @@ router.get('/:participantId', async (req, res) => {
       slot_id: a.slotId,
       state: a.state,
     })),
+    // Coordinates are omitted for other participants — the centroid and heatmap
+    // convey the group's geography without exposing individual departure addresses.
+    // The requesting participant's own coordinates are returned in the participant field above.
     participants: allParticipants.map(p => ({
       id: p.id,
       name: p.name,
-      latitude: p.latitude,
-      longitude: p.longitude,
       responded_at: p.respondedAt,
       availability: p.availability.map(a => ({ slot_id: a.slotId, state: a.state })),
     })),
