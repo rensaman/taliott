@@ -98,6 +98,23 @@ describe('SlotScoreCard', () => {
     expect(() => fireEvent.click(screen.getByTestId('slot-card-slot-1'))).not.toThrow();
   });
 
+  // ─── UI-3: Rank hidden for single-slot events ─────────────────────────────
+
+  it('hides rank when totalSlots is 1', () => {
+    render(<SlotScoreCard slot={SLOT_NO_DATA} rank={1} selected={false} onClick={() => {}} totalSlots={1} />);
+    expect(screen.getByTestId('slot-card-slot-1')).not.toHaveTextContent('#1');
+  });
+
+  it('shows rank when totalSlots is greater than 1', () => {
+    render(<SlotScoreCard slot={SLOT_NO_DATA} rank={2} selected={false} onClick={() => {}} totalSlots={3} />);
+    expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('#2');
+  });
+
+  it('shows rank when totalSlots is undefined (backward compat)', () => {
+    render(<SlotScoreCard slot={SLOT_NO_DATA} rank={1} selected={false} onClick={() => {}} />);
+    expect(screen.getByTestId('slot-card-slot-1')).toHaveTextContent('#1');
+  });
+
   it('passes i18n.language as locale to date formatting', () => {
     const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
     render(<SlotScoreCard slot={SLOT_NO_DATA} rank={1} selected={false} onClick={() => {}} />);

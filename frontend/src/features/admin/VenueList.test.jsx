@@ -57,7 +57,10 @@ describe('VenueList', () => {
     expect(cards[0]).toHaveTextContent('The Restaurant');
     expect(cards[0]).toHaveTextContent('200 m');
     expect(cards[0]).toHaveTextContent('4.5');
-    expect(cards[0]).toHaveTextContent(/pin|📍/i);
+    // UI-9: pin uses a CSS element, not emoji
+    expect(cards[0].querySelector('.venue-card-pin')).toBeInTheDocument();
+    expect(cards[0].querySelector('.venue-card-pin')).toHaveAttribute('aria-hidden', 'true');
+    expect(cards[0]).not.toHaveTextContent('📍');
 
     // Second card has no rating
     expect(cards[1]).toHaveTextContent('Cafe Bistro');
@@ -212,6 +215,38 @@ describe('VenueList', () => {
     const cards = screen.getAllByTestId('venue-card');
     expect(cards[0]).toHaveTextContent('Near Cafe');
     expect(cards[1]).toHaveTextContent('Far Pub');
+  });
+
+  // ─── UI-6: Status messages use CSS classes, not inline styles ─────────────
+
+  it('loading paragraph has venue-list-status class', () => {
+    fetch.mockReturnValue(new Promise(() => {}));
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
+    const p = screen.getByText(/loading venues/i);
+    expect(p).toHaveClass('venue-list-status');
+    expect(p).not.toHaveStyle('fontSize: 0.8rem');
+  });
+
+  it('error paragraph has venue-list-status and venue-list-status--error classes', async () => {
+    fetch.mockResolvedValue({ ok: false, json: async () => ({ error: 'Bad request' }) });
+    render(<VenueList adminToken="tok" defaultVenueType="restaurant" />);
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveClass('venue-list-status');
+    expect(alert).toHaveClass('venue-list-status--error');
+    expect(alert).not.toHaveStyle('color: var(--red)');
+  });
+
+  it('no-type paragraph has venue-list-status class', () => {
+    render(<VenueList adminToken="tok" defaultVenueType="" />);
+    const p = screen.getByText(/set a venue type/i);
+    expect(p).toHaveClass('venue-list-status');
+  });
+
+  it('empty paragraph has venue-list-status class', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ venues: [] }) });
+    render(<VenueList adminToken="tok" defaultVenueType="bar" />);
+    const p = await screen.findByText(/no venues found/i);
+    expect(p).toHaveClass('venue-list-status');
   });
 });
 

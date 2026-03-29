@@ -26,7 +26,7 @@ export default function VenueCard({ venue, number, selected, onSelect }) {
           <a href={linkUrl} target="_blank" rel="noopener noreferrer">{venue.name}</a>
         </div>
         <div className="venue-card-meta">
-          <span className="venue-card-pin">📍</span>
+          <span className="venue-card-pin" aria-hidden="true"></span>
           {distance && <span data-testid="venue-distance">{distance}</span>}
           {venue.rating != null && (
             <span data-testid="venue-rating">★ {venue.rating.toFixed(1)}</span>

@@ -45,6 +45,7 @@ test('organizer selects a slot and finalizes — thank-you screen replaces panel
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
+  await page.getByTestId('confirm-send-btn').click();
 
   await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
   await expect(page.getByTestId('finalize-panel')).not.toBeVisible();
@@ -56,6 +57,7 @@ test('admin dashboard shows thank-you screen after finalization', async ({ page,
 
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
+  await page.getByTestId('confirm-send-btn').click();
 
   await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 });
@@ -71,6 +73,7 @@ test('organizer finalizes with custom venue — participant view shows final slo
   await page.getByTestId('custom-venue-name').fill('The Blue Note');
   await page.getByTestId('custom-venue-address').fill('131 W 3rd St, New York');
   await page.getByTestId('finalize-btn').click();
+  await page.getByTestId('confirm-send-btn').click();
 
   await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 

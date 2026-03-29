@@ -9,6 +9,20 @@ const SLOTS = [
 ];
 
 describe('FinalizedSummary', () => {
+  // ─── UI-1: finalNotes preserves line breaks ────────────────────────────────
+
+  it('renders finalNotes in a dd with class finalized-notes to preserve line breaks', () => {
+    render(<FinalizedSummary slots={SLOTS} finalSlotId="s-1" finalNotes={'Line 1\nLine 2'} />);
+    const notesDd = screen.getByTestId('finalized-notes');
+    expect(notesDd).toBeInTheDocument();
+    expect(notesDd).toHaveClass('finalized-notes');
+  });
+
+  it('does not render finalized-notes dd when finalNotes is absent', () => {
+    render(<FinalizedSummary slots={SLOTS} finalSlotId="s-1" />);
+    expect(screen.queryByTestId('finalized-notes')).not.toBeInTheDocument();
+  });
+
   describe('i18n', () => {
     afterEach(() => {
       i18n.removeResourceBundle('en', 'common');

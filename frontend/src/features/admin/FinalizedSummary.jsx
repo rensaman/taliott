@@ -40,7 +40,7 @@ export default function FinalizedSummary({
         {finalNotes && (
           <>
             <dt>{t('finalize.notesLabel')}</dt>
-            <dd>{finalNotes}</dd>
+            <dd className="finalized-notes" data-testid="finalized-notes">{finalNotes}</dd>
           </>
         )}
       </dl>

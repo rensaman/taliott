@@ -181,7 +181,10 @@ export default function AdminView({ adminToken }) {
       )}
 
       <div className="admin-body">
-        <div className="admin-map-venue-band">
+        <div className="admin-section">
+          <div className="admin-section-title" data-testid="map-venue-section-title">{t('admin.sectionMapVenues')}</div>
+        </div>
+        <div className={`admin-map-venue-band${data.status === 'finalized' ? ' admin-map-venue-band--finalized' : ''}`}>
           <div className="admin-map-col">
             <GroupMap
               centroid={liveCentroid}
@@ -191,15 +194,17 @@ export default function AdminView({ adminToken }) {
               onVenueClick={handleVenueClick}
             />
           </div>
-          <div className="admin-venue-col">
-            <VenueList
-              adminToken={adminToken}
-              defaultVenueType={data.venue_type || ''}
-              selectedId={selectedVenue?.id ?? null}
-              onSelectVenue={setSelectedVenue}
-              onVenuesLoaded={setVenues}
-            />
-          </div>
+          {data.status !== 'finalized' && (
+            <div className="admin-venue-col">
+              <VenueList
+                adminToken={adminToken}
+                defaultVenueType={data.venue_type || ''}
+                selectedId={selectedVenue?.id ?? null}
+                onSelectVenue={setSelectedVenue}
+                onVenuesLoaded={setVenues}
+              />
+            </div>
+          )}
         </div>
 
         <div className="admin-section">

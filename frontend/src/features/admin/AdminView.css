@@ -139,6 +139,16 @@
   }
 }
 
+.admin-map-venue-band--finalized {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .admin-map-venue-band--finalized {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── Sections ────────────────────────────────────────────────────────────── */
 
 .admin-section {
@@ -419,6 +429,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  margin-top: 0.75rem;
 }
 
 .venue-load-more {
@@ -470,7 +481,8 @@
 }
 
 .venue-card-block--selected .venue-card-number {
-  background: var(--ink);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 .venue-card-block:hover {
@@ -517,8 +529,11 @@
   color: var(--muted);
 }
 
-.venue-card-pin {
+.venue-card-pin::before {
+  content: '●';
+  font-size: 0.5em;
   color: var(--red);
+  vertical-align: middle;
 }
 
 /* ─── Finalize section ────────────────────────────────────────────────────── */
@@ -526,11 +541,6 @@
 .finalize-section {
   padding: 1.25rem;
   border-bottom: 1px solid var(--rule);
-}
-
-.finalize-section > h2 {
-  font-size: clamp(1.2rem, 3vw, 1.5rem);
-  margin-bottom: 1.25rem;
 }
 
 /* Venue mode fieldset */
@@ -749,6 +759,10 @@
   line-height: 1.4;
 }
 
+.finalized-notes {
+  white-space: pre-line;
+}
+
 /* ─── Error page (no data loaded) ────────────────────────────────────────── */
 
 .admin-error-page {
@@ -867,4 +881,14 @@
 .venue-list-section > h2 {
   font-size: clamp(1.1rem, 2.5vw, 1.4rem);
   margin-bottom: 1rem;
+}
+
+.venue-list-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+}
+
+.venue-list-status--error {
+  color: var(--red);
 }

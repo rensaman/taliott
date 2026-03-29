@@ -339,6 +339,30 @@ describe('AdminView', () => {
     await waitFor(() => expect(screen.queryByTestId('finalize-panel')).not.toBeInTheDocument());
   });
 
+  // ─── UI-2: Venue list hidden after finalization ───────────────────────────
+
+  it('hides the venue list column when event is finalized', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.getByTestId('finalized-summary')).toBeInTheDocument());
+    expect(screen.queryByTestId('venue-list')).not.toBeInTheDocument();
+  });
+
+  it('keeps the map visible when event is finalized', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => FINALIZED_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.getByTestId('finalized-summary')).toBeInTheDocument());
+    expect(screen.getByTestId('group-map')).toBeInTheDocument();
+  });
+
+  // ─── UI-8: Consistent section titles ─────────────────────────────────────
+
+  it('map and venue band has an admin-section-title label', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_DATA });
+    render(<AdminView adminToken="some-token" />);
+    await waitFor(() => expect(screen.getByTestId('map-venue-section-title')).toBeInTheDocument());
+  });
+
   // ─── UX-3: View finalized event link in thank-you screen ─────────────────
 
   it('just-finalized screen has a "View finalized event" link', async () => {

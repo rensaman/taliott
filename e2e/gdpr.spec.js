@@ -121,8 +121,8 @@ test('organiser deletes the event and is redirected to the home page', async ({ 
   const { admin_token, event_id } = await createEvent(request);
   await page.goto(`/admin/${admin_token}`);
 
-  page.once('dialog', d => d.accept());
   await page.getByTestId('delete-event-btn').click();
+  await page.getByTestId('delete-confirm-btn').click();
 
   await expect(page).toHaveURL('/');
 

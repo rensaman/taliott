@@ -105,4 +105,18 @@ describe('GroupMap', () => {
     render(<GroupMap centroid={null} participants={noName} />);
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
+
+  // ─── UI-7: Map wrapper has accessible region ──────────────────────────────
+
+  it('outer wrapper has role="region"', () => {
+    render(<GroupMap centroid={null} participants={[]} />);
+    expect(screen.getByRole('region')).toBeInTheDocument();
+  });
+
+  it('outer wrapper has an aria-label', () => {
+    render(<GroupMap centroid={null} participants={[]} />);
+    const region = screen.getByRole('region');
+    expect(region).toHaveAttribute('aria-label');
+    expect(region.getAttribute('aria-label').length).toBeGreaterThan(0);
+  });
 });

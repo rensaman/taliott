@@ -64,14 +64,14 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
       <h2>{t('venueList.heading')}</h2>
       <VenueTypeFilter defaultValue={defaultVenueType} onSearch={setVenueTypes} />
 
-      {venueTypes.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.noType')}</p>}
-      {loading && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.loading')}</p>}
-      {error && <p role="alert" style={{ fontSize: '0.8rem', color: 'var(--red)', marginTop: '0.75rem' }}>{error}</p>}
+      {venueTypes.length === 0 && <p className="venue-list-status">{t('venueList.noType')}</p>}
+      {loading && <p className="venue-list-status">{t('venueList.loading')}</p>}
+      {error && <p role="alert" className="venue-list-status venue-list-status--error">{error}</p>}
       {displayed != null && displayed.length === 0 && !loading && (
-        <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.75rem' }}>{t('venueList.empty')}</p>
+        <p className="venue-list-status">{t('venueList.empty')}</p>
       )}
       {displayed != null && displayed.length > 0 && (
-        <ul className="venue-card-list" style={{ marginTop: '0.75rem' }}>
+        <ul className="venue-card-list">
           {displayed.map((v, i) => (
             <VenueCard
               key={v.id}

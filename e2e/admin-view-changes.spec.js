@@ -179,6 +179,7 @@ test('FinalizePanel has no venue dropdown — finalize works with slot only', as
   // Finalize with slot only (no venue) — verifies the form still works without the old dropdown
   await page.locator('[data-testid^="slot-card-"]').first().click();
   await page.getByTestId('finalize-btn').click();
+  await page.getByTestId('confirm-send-btn').click();
 
   await expect(page.getByTestId('finalized-thankyou')).toBeVisible();
 });

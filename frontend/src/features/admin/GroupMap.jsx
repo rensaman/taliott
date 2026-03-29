@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -66,10 +67,11 @@ function MapBounds({ participants, centroid, venues }) {
 }
 
 export default function GroupMap({ centroid, participants, venues = [], selectedVenueId, onVenueClick }) {
+  const { t } = useTranslation();
   const located = participants.filter(p => p.latitude != null && p.longitude != null);
 
   return (
-    <div>
+    <div data-testid="group-map" role="region" aria-label={t('admin.mapAriaLabel')}>
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}

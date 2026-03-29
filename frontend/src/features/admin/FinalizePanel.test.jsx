@@ -20,6 +20,13 @@ describe('FinalizePanel', () => {
     expect(screen.getByTestId('finalize-panel')).toBeInTheDocument();
   });
 
+  // ─── UI-8: Heading uses admin-section-title for consistency ───────────────
+
+  it('finalize section heading uses admin-section-title class', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('finalize-section-title')).toHaveClass('admin-section-title');
+  });
+
   it('renders slot cards', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByTestId('slot-card-slot-1')).toBeInTheDocument();
@@ -40,6 +47,13 @@ describe('FinalizePanel', () => {
   it('shows no-venue prompt when no venue is selected in recommended mode', () => {
     render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
     expect(screen.getByTestId('selected-venue-display')).toHaveTextContent(/no venue selected/i);
+  });
+
+  // ─── UI-4: Instructional copy links no-venue state to venue list ──────────
+
+  it('no-venue prompt includes instruction to select from list above', () => {
+    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
+    expect(screen.getByTestId('selected-venue-display')).toHaveTextContent(/list above/i);
   });
 
   it('shows custom venue inputs when custom mode is selected', () => {
@@ -329,7 +343,7 @@ describe('FinalizePanel', () => {
     it('uses i18n for the heading', () => {
       i18n.addResourceBundle('en', 'common', { finalize: { heading: '__FINALIZE_HEADING_TEST__' } }, true, true);
       render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('__FINALIZE_HEADING_TEST__');
+      expect(screen.getByTestId('finalize-section-title')).toHaveTextContent('__FINALIZE_HEADING_TEST__');
     });
 
     it('uses i18n key for generic error when backend returns no error field', async () => {

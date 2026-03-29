@@ -79,7 +79,7 @@ export default function FinalizePanel({
 
   return (
     <section data-testid="finalize-panel" className="finalize-section">
-      <h2>{t('finalize.heading')}</h2>
+      <div className="admin-section-title" data-testid="finalize-section-title">{t('finalize.heading')}</div>
       <form>
 
         {/* Visual slot scorer — click to select */}
@@ -93,6 +93,7 @@ export default function FinalizePanel({
                 selected={slotId === s.id}
                 onClick={() => setSlotId(s.id)}
                 tied={!!s.tied}
+                totalSlots={displayedSlots.length}
               />
             ))}
           </div>
