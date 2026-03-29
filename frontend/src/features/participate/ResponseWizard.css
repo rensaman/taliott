@@ -1,3 +1,32 @@
+/* ── UI-1: Event context bar (name + deadline inside wizard body) ────────── */
+.rw-event-context {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rw-event-context-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+/* ── UI-4: Step content fade-in animation ────────────────────────────────── */
+@keyframes rw-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rw-step-animate {
+  animation: rw-fade-in 0.18s ease-out;
+}
+
 /* ── Wizard footer layout for participation flow ─────────────────────────── */
 .rw-footer {
   flex-direction: column;
@@ -182,13 +211,22 @@
   min-width: 2.5rem;
 }
 
-.rw-grid-table th[scope="row"] {
+.rw-grid-table th[scope="row"],
+.rw-grid-time-header {
   font-size: 0.65rem;
   font-weight: 500;
   color: var(--muted);
   padding-right: 0.4rem;
   text-align: right;
   white-space: nowrap;
+}
+
+/* UI-3: sticky time-label column so it stays visible on horizontal scroll */
+.rw-grid-time-header {
+  position: sticky;
+  left: 0;
+  background: var(--paper);
+  z-index: 1;
 }
 
 .rw-grid-table td {
@@ -315,12 +353,6 @@
 .deadline-badge--critical { color: var(--red); font-weight: 700; }
 
 /* ── Summary view layout ─────────────────────────────────────────────────── */
-.pv-wizard-event-header {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 1rem 1.25rem 0;
-}
-
 .pv-main {
   max-width: 480px;
   margin: 0 auto;

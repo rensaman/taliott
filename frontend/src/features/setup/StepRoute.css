@@ -74,6 +74,22 @@
   }
 }
 
+/* UI-2: clickable done step button */
+.step-node-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.step-node--done .step-node-btn:hover .step-node-number {
+  filter: brightness(0.8);
+}
+
 .step-connector {
   flex: 1;
   height: 1.5px;

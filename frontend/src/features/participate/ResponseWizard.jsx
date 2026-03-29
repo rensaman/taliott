@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import AvailabilityGrid from './AvailabilityGrid.jsx';
 import AddressSearchInput from './AddressSearchInput.jsx';
 import TravelModeSelector from './TravelModeSelector.jsx';
+import DeadlineBadge from './DeadlineBadge.jsx';
 import StepRoute from '../setup/StepRoute.jsx';
 import UnsavedChangesDialog from '../UnsavedChangesDialog.jsx';
 import { useNavigationGuard } from '../../hooks/useNavigationGuard.js';
@@ -20,6 +21,9 @@ export default function ResponseWizard({
   initialLocation,
   initialTravelMode = 'transit',
   eventTimezone = 'UTC',
+  eventName,
+  eventDeadline,
+  eventLocked,
   onComplete,
 }) {
   const { t } = useTranslation();
@@ -142,6 +146,16 @@ export default function ResponseWizard({
 
   function handleBack() {
     setStep(s => s - 1);
+  }
+
+  async function handleStepClick(targetStep) {
+    if (targetStep >= step) return;
+    if (currentStep === 'name') {
+      const ok = await saveName();
+      if (!ok) { setNameError(t('participate.name.errorSave')); return; }
+      setNameError(null);
+    }
+    setStep(targetStep);
   }
 
   function canAdvance() {
@@ -268,14 +282,22 @@ export default function ResponseWizard({
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
         <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
-        <StepRoute stepLabels={STEP_LABELS} current={step} />
+        <StepRoute stepLabels={STEP_LABELS} current={step} onStepClick={handleStepClick} />
       </header>
 
       <div className="wizard-body">
         <p style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
           Step {step + 1} of {STEPS.length}
         </p>
-        {renderStepContent()}
+        {eventName && (
+          <div className="rw-event-context">
+            <span className="rw-event-context-name">{eventName}</span>
+            <DeadlineBadge deadline={eventDeadline} locked={eventLocked} />
+          </div>
+        )}
+        <div key={step} className="rw-step-animate">
+          {renderStepContent()}
+        </div>
       </div>
 
       <footer className="wizard-footer rw-footer">

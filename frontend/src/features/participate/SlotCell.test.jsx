@@ -29,7 +29,7 @@ describe('nextAvailabilityState', () => {
 describe('SlotCell', () => {
   it('renders the correct label for each state', () => {
     const { rerender } = render(<SlotCell slotId="s1" state="neutral" onClick={vi.fn()} />);
-    expect(screen.getByRole('button')).toHaveTextContent('–');
+    expect(screen.getByRole('button')).toHaveTextContent('');
 
     rerender(<SlotCell slotId="s1" state="yes" onClick={vi.fn()} />);
     expect(screen.getByRole('button')).toHaveTextContent('✓');

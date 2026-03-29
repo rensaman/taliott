@@ -105,7 +105,7 @@ export default function AvailabilityGrid({ participantId, slots, initialAvailabi
               const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
               return (
                 <tr key={tk}>
-                  <th scope="row">{label}</th>
+                  <th scope="row" className="rw-grid-time-header">{label}</th>
                   {days.map(day => {
                     const slot = dayMap.get(day)?.get(tk);
                     if (!slot) return <td key={day} />;

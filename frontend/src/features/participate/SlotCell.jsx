@@ -9,7 +9,7 @@ export function nextAvailabilityState(current) {
 }
 
 const KEY_STATE = { y: 'yes', m: 'maybe', n: 'no' };
-const STATE_LABEL = { neutral: '–', yes: '✓', maybe: '?', no: '✗' };
+const STATE_LABEL = { neutral: '', yes: '✓', maybe: '?', no: '✗' };
 const STATE_CLASS = {
   neutral: 'slot-neutral',
   yes:     'slot-yes',
