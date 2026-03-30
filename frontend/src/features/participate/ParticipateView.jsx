@@ -115,22 +115,24 @@ export default function ParticipateView({ participantId }) {
   if (showWizard) {
     return (
       <>
-        <ResponseWizard
-          participantId={participantId}
-          initialName={participant.name}
-          initialStep={updatingStep ?? 0}
-          slots={slots}
-          initialAvailability={availability}
-          initialLocation={location}
-          initialTravelMode={travelMode}
-          eventTimezone={event.timezone ?? 'UTC'}
-          eventName={event.name}
-          eventDeadline={event.deadline}
-          eventLocked={event.locked}
-          isUpdate={participant.responded_at !== null}
-          onComplete={handleComplete}
-        />
-        {dataRightsSection}
+        <main>
+          <ResponseWizard
+            participantId={participantId}
+            initialName={participant.name}
+            initialStep={updatingStep ?? 0}
+            slots={slots}
+            initialAvailability={availability}
+            initialLocation={location}
+            initialTravelMode={travelMode}
+            eventTimezone={event.timezone ?? 'UTC'}
+            eventName={event.name}
+            eventDeadline={event.deadline}
+            eventLocked={event.locked}
+            isUpdate={participant.responded_at !== null}
+            onComplete={handleComplete}
+          />
+          {dataRightsSection}
+        </main>
         <LegalFooter />
       </>
     );

@@ -99,7 +99,7 @@ test.describe('Participation flow', () => {
     const pid = event.participants[0].id;
 
     await page.goto(`/participate/${pid}`);
-    await page.waitForSelector('h1', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="name-input"]', { timeout: 10000 });
 
     // Step 1 — name
     await snap(page, 'participate-01-name.png');

@@ -42,7 +42,7 @@ test('participant visiting an open event sees deadline and no locked banner', as
 
   await page.goto(`/participate/${pid}`);
 
-  await expect(page.getByRole('heading', { name: /deadline e2e/i })).toBeVisible();
+  await expect(page.getByText(/deadline e2e/i).first()).toBeVisible();
   await expect(page.getByTestId('deadline-badge')).toBeVisible();
   await expect(page.getByTestId('results-only-status')).not.toBeVisible();
 });

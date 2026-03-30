@@ -315,6 +315,11 @@ router.patch('/:participantId/travel-mode', requireUnlockedParticipant, async (r
   return res.json({ ok: true });
 });
 
+// Threat model: export requires only a valid participantId (UUID). Risk is low because
+// participantIds are never shown publicly and are only delivered via personal invite
+// email. Anyone with the URL already has full participation access (S-4). A one-time
+// export token is not implemented; if the participantId is treated as private, this is
+// acceptable.
 router.get('/:participantId/export', async (req, res) => {
   let participant;
   try {
@@ -351,6 +356,10 @@ router.get('/:participantId/export', async (req, res) => {
   });
 });
 
+// GDPR right-to-erasure: deletion is intentionally allowed regardless of event status
+// (locked, finalized) because GDPR Art. 17 applies at any time. If a participant
+// erases data after finalization, their availability rows are removed and their name
+// is nulled, but the event result is not changed. This is an accepted trade-off.
 router.delete('/:participantId', async (req, res) => {
   let participant;
   try {
