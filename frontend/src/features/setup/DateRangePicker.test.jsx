@@ -75,8 +75,10 @@ describe('DateRangePicker', () => {
 
   it('calls onChange when a day cell is clicked (sets start)', () => {
     const onChange = vi.fn();
-    // Use a future start date so the calendar opens on a month with clickable days
-    const futureStart = new Date(Date.now() + 32 * 86_400_000).toISOString().slice(0, 10);
+    // Use a mid-month future date so day 1 of the displayed month is always clickable and before start
+    const raw = new Date(Date.now() + 32 * 86_400_000);
+    raw.setDate(15);
+    const futureStart = raw.toISOString().slice(0, 10);
     render(<DateRangePicker value={{ start: futureStart, end: '' }} onChange={onChange} />);
     openPicker();
     const dayBtns = screen.getAllByRole('gridcell').filter(el => el.tagName === 'BUTTON' && el.getAttribute('aria-disabled') !== 'true');
