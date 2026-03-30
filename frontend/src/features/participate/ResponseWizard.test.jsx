@@ -29,8 +29,9 @@ function renderWizard(overrides = {}) {
       initialStep={overrides.initialStep ?? 0}
       slots={SLOTS}
       initialAvailability={[]}
-      initialLocation={null}
+      initialLocation={overrides.initialLocation ?? null}
       initialTravelMode={overrides.initialTravelMode ?? 'transit'}
+      isUpdate={overrides.isUpdate ?? false}
       onComplete={overrides.onComplete ?? vi.fn()}
     />
   );
@@ -245,6 +246,31 @@ describe('ResponseWizard', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     fireEvent.click(screen.getByTestId('travel-mode-selector'));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+  });
+
+  it('disables Continue on travel_location step when location save fails', async () => {
+    fetch.mockResolvedValueOnce({ ok: false }); // location PATCH fails
+    renderWizard({ initialName: 'Alex', initialStep: 1 });
+    fireEvent.click(screen.getByRole('button', { name: /select address/i }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled();
+  });
+
+  it('does not show unsaved-changes dialog when entering at initialStep=1 without making any changes', async () => {
+    renderWizard({ initialStep: 1 });
+    await waitFor(() => screen.getByTestId('travel-mode-selector'));
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('hides consent text when isUpdate is true', () => {
+    renderWizard({ isUpdate: true });
+    expect(screen.queryByRole('link', { name: /terms/i })).not.toBeInTheDocument();
+  });
+
+  it('shows consent text when isUpdate is false', () => {
+    renderWizard({ isUpdate: false });
+    expect(screen.getByRole('link', { name: /terms/i })).toBeInTheDocument();
   });
 
   it('shows availability summary on review step', async () => {

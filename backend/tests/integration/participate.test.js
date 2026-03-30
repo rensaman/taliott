@@ -333,6 +333,110 @@ describe('PATCH /api/participate/:participantId/travel-mode', () => {
   });
 });
 
+describe('PATCH /api/participate/:participantId/location', () => {
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app)
+      .patch('/api/participate/00000000-0000-0000-0000-000000000000/location')
+      .send({ latitude: 47.5, longitude: 19.0 });
+    expect(res.status).toBe(404);
+  });
+
+  it('saves location and returns ok', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0, address_label: 'Budapest, Hungary' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('persists location so GET reflects it', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0, address_label: 'Budapest' });
+
+    const get = await request(app).get(`/api/participate/${pid}`);
+    expect(get.body.participant.latitude).toBeCloseTo(47.5);
+    expect(get.body.participant.longitude).toBeCloseTo(19.0);
+    expect(get.body.participant.address_label).toBe('Budapest');
+  });
+
+  it('returns 403 when event is locked', async () => {
+    const { participants } = await createEvent({ deadline: PAST_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0 });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('returns 400 when latitude is missing', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ longitude: 19.0 });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when latitude is out of range', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 91, longitude: 19.0 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/range/i);
+  });
+
+  it('returns 400 when address_label exceeds 500 characters', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0, address_label: 'a'.repeat(501) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/address_label/i);
+  });
+
+  it('accepts address_label of exactly 500 characters', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0, address_label: 'a'.repeat(500) });
+
+    expect(res.status).toBe(200);
+  });
+
+  it('accepts null address_label', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app)
+      .patch(`/api/participate/${pid}/location`)
+      .send({ latitude: 47.5, longitude: 19.0, address_label: null });
+
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('PATCH /api/participate/:participantId/confirm', () => {
   it('returns 404 for an unknown participant id', async () => {
     const res = await request(app).patch(

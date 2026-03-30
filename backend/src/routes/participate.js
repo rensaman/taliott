@@ -230,6 +230,9 @@ router.patch('/:participantId/location', requireUnlockedParticipant, async (req,
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
     return res.status(400).json({ error: 'latitude or longitude out of valid range' });
   }
+  if (address_label != null && (typeof address_label !== 'string' || address_label.length > 500)) {
+    return res.status(400).json({ error: 'address_label must be a string of 500 characters or fewer' });
+  }
 
   const { participant } = req;
 

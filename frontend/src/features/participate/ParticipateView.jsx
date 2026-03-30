@@ -74,7 +74,8 @@ export default function ParticipateView({ participantId }) {
     }
   }
 
-  async function handleComplete() {
+  async function handleComplete({ name, location, travelMode } = {}) {
+    const isFirstSubmission = !data.participant.responded_at;
     track('availability_submitted');
     const res = await fetch(`/api/participate/${participantId}`).catch(() => null);
     if (res?.ok) {
@@ -82,11 +83,19 @@ export default function ParticipateView({ participantId }) {
     } else {
       setData(prev => ({
         ...prev,
-        participant: { ...prev.participant, responded_at: new Date().toISOString() },
+        participant: {
+          ...prev.participant,
+          responded_at: new Date().toISOString(),
+          name: name ?? prev.participant.name,
+          latitude: location?.lat ?? prev.participant.latitude,
+          longitude: location?.lng ?? prev.participant.longitude,
+          address_label: location?.label ?? prev.participant.address_label,
+          travel_mode: travelMode ?? prev.participant.travel_mode,
+        },
       }));
     }
     setUpdatingStep(null);
-    setJustCompleted(true);
+    if (isFirstSubmission) setJustCompleted(true);
   }
 
   const dataRightsSection = (
@@ -118,6 +127,7 @@ export default function ParticipateView({ participantId }) {
           eventName={event.name}
           eventDeadline={event.deadline}
           eventLocked={event.locked}
+          isUpdate={participant.responded_at !== null}
           onComplete={handleComplete}
         />
         {dataRightsSection}

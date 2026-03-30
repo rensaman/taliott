@@ -6,6 +6,7 @@ import enCommon from '../../locales/en/common.json';
 vi.mock('./ResponseWizard.jsx', () => ({ default: vi.fn() }));
 vi.mock('./ResponseSummary.jsx', () => ({ default: vi.fn() }));
 vi.mock('./ParticipationResult.jsx', () => ({ default: vi.fn() }));
+vi.mock('../feedback/FeedbackForm.jsx', () => ({ default: vi.fn(() => <div data-testid="feedback-form" />) }));
 
 import ResponseWizard from './ResponseWizard.jsx';
 import ResponseSummary from './ResponseSummary.jsx';
@@ -312,6 +313,52 @@ describe('ParticipateView', () => {
     await waitFor(() => screen.getByTestId('wizard-complete'));
     fireEvent.click(screen.getByTestId('wizard-complete'));
     await waitFor(() => expect(screen.getByTestId('participation-result')).toBeInTheDocument());
+  });
+
+  it('shows feedback form after first wizard submission', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => RESPONDED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    fireEvent.click(screen.getByTestId('wizard-complete'));
+    await waitFor(() => expect(screen.getByTestId('feedback-form')).toBeInTheDocument());
+  });
+
+  it('does not show feedback form when wizard completes as an update (already responded)', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => RESPONDED_RESPONSE })
+      .mockResolvedValueOnce({ ok: true, json: async () => RESPONDED_RESPONSE });
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('summary-update'));
+    fireEvent.click(screen.getByTestId('summary-update'));
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    fireEvent.click(screen.getByTestId('wizard-complete'));
+    await waitFor(() => screen.getByTestId('summary-update'));
+    expect(screen.queryByTestId('feedback-form')).not.toBeInTheDocument();
+  });
+
+  it('reflects updated name in summary when re-fetch fails after wizard completion', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => OPEN_RESPONSE })
+      .mockResolvedValueOnce({ ok: false });
+
+    ResponseWizard.mockImplementationOnce(({ onComplete }) => (
+      <button
+        data-testid="wizard-complete"
+        onClick={() => onComplete({ name: 'UpdatedName', location: null, travelMode: 'cycling' })}
+      >complete wizard</button>
+    ));
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    fireEvent.click(screen.getByTestId('wizard-complete'));
+
+    await waitFor(() => screen.getByTestId('summary-update'));
+    expect(ResponseSummary).toHaveBeenLastCalledWith(
+      expect.objectContaining({ name: 'UpdatedName' }),
+      {}
+    );
   });
 });
 

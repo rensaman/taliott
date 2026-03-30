@@ -24,6 +24,7 @@ export default function ResponseWizard({
   eventName,
   eventDeadline,
   eventLocked,
+  isUpdate = false,
   onComplete,
 }) {
   const { t } = useTranslation();
@@ -51,8 +52,9 @@ export default function ResponseWizard({
   });
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [hasMadeChanges, setHasMadeChanges] = useState(false);
 
-  const isDirty = !confirmed && (step > 0 || nameValue.trim() !== (initialName ?? '').trim());
+  const isDirty = !confirmed && hasMadeChanges;
   const { showDialog, confirmLeave, cancelLeave } = useNavigationGuard(isDirty);
 
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function ResponseWizard({
 
   async function saveLocation(loc) {
     setLocation(loc);
+    setHasMadeChanges(true);
     try {
       const res = await fetch(`/api/participate/${participantId}/location`, {
         method: 'PATCH',
@@ -95,6 +98,7 @@ export default function ResponseWizard({
 
   async function saveTravelMode(mode) {
     setTravelMode(mode);
+    setHasMadeChanges(true);
     locationFieldsetRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     try {
       const res = await fetch(`/api/participate/${participantId}/travel-mode`, {
@@ -119,7 +123,7 @@ export default function ResponseWizard({
         return;
       }
       setConfirmed(true);
-      onComplete();
+      onComplete({ name: nameValue.trim() || null, location, travelMode });
     } catch {
       setSubmitError(t('participate.review.errorSubmit'));
     } finally {
@@ -159,7 +163,7 @@ export default function ResponseWizard({
   }
 
   function canAdvance() {
-    if (currentStep === 'travel_location') return !!location && !travelModeError;
+    if (currentStep === 'travel_location') return !!location && !locationError && !travelModeError;
     if (currentStep === 'review') return !submitting;
     return true;
   }
@@ -177,7 +181,10 @@ export default function ResponseWizard({
                 className="wizard-input"
                 type="text"
                 value={nameValue}
-                onChange={e => setNameValue(e.target.value)}
+                onChange={e => {
+                  setNameValue(e.target.value);
+                  if (e.target.value.trim() !== (initialName ?? '').trim()) setHasMadeChanges(true);
+                }}
                 autoFocus
                 placeholder={t('participate.name.placeholder')}
                 data-testid="name-input"
@@ -221,7 +228,7 @@ export default function ResponseWizard({
               initialAvailability={initialAvailability}
               eventTimezone={eventTimezone}
               locked={false}
-              onAvailabilityChange={setAvailabilityStateMap}
+              onAvailabilityChange={next => { setAvailabilityStateMap(next); setHasMadeChanges(true); }}
             />
           </>
         );
@@ -301,14 +308,16 @@ export default function ResponseWizard({
       </div>
 
       <footer className="wizard-footer rw-footer">
-        <div className="rw-footer-legal">
-          <p className="rw-consent">
-            {t('wizard.consentPrefix')}{' '}
-            <a href="/terms" target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
-            {' '}{t('wizard.and')}{' '}
-            <a href="/privacy" target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
-          </p>
-        </div>
+        {!isUpdate && (
+          <div className="rw-footer-legal">
+            <p className="rw-consent">
+              {t('wizard.consentPrefix')}{' '}
+              <a href="/terms" target="_blank" rel="noreferrer">{t('wizard.tos')}</a>
+              {' '}{t('wizard.and')}{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer">{t('wizard.privacyPolicy')}</a>.
+            </p>
+          </div>
+        )}
         <div className="rw-footer-actions">
           {step > 0 && (
             <button className="btn btn-ghost" type="button" onClick={handleBack}>{t('wizard.btn.back')}</button>
