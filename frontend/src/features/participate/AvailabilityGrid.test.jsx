@@ -75,13 +75,12 @@ describe('AvailabilityGrid', () => {
   });
 
 
-  it('shows saved status and then clears it after a successful save', async () => {
+  it('shows no status indicator after a successful save', async () => {
     renderGrid();
     fireEvent.click(screen.getAllByTestId('slot-cell')[0]);
     vi.advanceTimersByTime(600);
-    await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('Changes saved')
-    );
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    // Advance past the 2000ms clear-timer to exercise that callback
     vi.advanceTimersByTime(2000);
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
   });

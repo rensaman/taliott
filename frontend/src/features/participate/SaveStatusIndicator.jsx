@@ -1,5 +1,4 @@
 const MESSAGES = {
-  saved: 'Changes saved.',
   error: 'Failed to save. Please try again.',
 };
 

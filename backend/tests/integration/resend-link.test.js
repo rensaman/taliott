@@ -175,6 +175,54 @@ describe('POST /api/resend-link', () => {
     expect(sendEmail).toHaveBeenCalledTimes(4);
   });
 
+  it('does not send links for a finalized event with a past final slot', async () => {
+    const event = await createEvent({ organizer_email: 'org-past@example.com', participant_emails: [] });
+    // Create a slot in the past and finalize the event to it
+    const pastSlot = await prisma.slot.create({
+      data: {
+        eventId: event.event_id,
+        startsAt: new Date('2020-01-01T10:00:00Z'),
+        endsAt: new Date('2020-01-01T11:00:00Z'),
+      },
+    });
+    await prisma.event.update({
+      where: { id: event.event_id },
+      data: { status: 'finalized', finalSlotId: pastSlot.id },
+    });
+    vi.clearAllMocks();
+
+    const res = await request(app)
+      .post('/api/resend-link')
+      .send({ email: 'org-past@example.com' });
+
+    expect(res.status).toBe(200);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it('sends links for a finalized event with a future final slot', async () => {
+    const event = await createEvent({ organizer_email: 'org-future@example.com', participant_emails: [] });
+    // Create a slot in the future and finalize the event to it
+    const futureSlot = await prisma.slot.create({
+      data: {
+        eventId: event.event_id,
+        startsAt: new Date('2099-06-01T10:00:00Z'),
+        endsAt: new Date('2099-06-01T11:00:00Z'),
+      },
+    });
+    await prisma.event.update({
+      where: { id: event.event_id },
+      data: { status: 'finalized', finalSlotId: futureSlot.id },
+    });
+    vi.clearAllMocks();
+
+    const res = await request(app)
+      .post('/api/resend-link')
+      .send({ email: 'org-future@example.com' });
+
+    expect(res.status).toBe(200);
+    expect(sendEmail).toHaveBeenCalled();
+  });
+
   it('returns 429 after exceeding rate limit (3 per 15 minutes)', async () => {
     const email = 'ratelimit-resend-5@example.com';
 

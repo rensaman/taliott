@@ -172,6 +172,7 @@
     "responded": "{{responded}} of {{total}} responded",
     "sectionParticipants": "Participants",
     "mapAriaLabel": "Participant and venue map",
+    "centroidTooltip": "Fair center — may shift as more participants join",
     "sectionMapVenues": "Map & Venues",
     "loading": "Loading…",
     "deleteEvent": "Delete event",

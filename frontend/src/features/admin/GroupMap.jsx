@@ -111,7 +111,9 @@ export default function GroupMap({ centroid, participants, venues = [], selected
             icon={centroidIcon}
             zIndexOffset={1000}
             data-testid="centroid-marker"
-          />
+          >
+            <Tooltip permanent={false}>{t('admin.centroidTooltip')}</Tooltip>
+          </Marker>
         )}
       </MapContainer>
       {/* coverage-counter kept as hidden node for test compatibility */}

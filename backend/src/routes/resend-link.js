@@ -64,19 +64,32 @@ router.post('/', async (req, res) => {
   // Find events where this email is the organizer (with participants for email builder)
   const organizerEvents = await prisma.event.findMany({
     where: { organizerEmail: email },
-    include: { participants: true },
+    include: { participants: true, slots: true },
   });
 
   // Find participant records where this email matches
   const participants = await prisma.participant.findMany({
     where: { email },
-    include: { event: true },
+    include: { event: { include: { slots: true } } },
   });
+
+  // Only send links for events that haven't happened yet: exclude finalized events
+  // whose final slot start time is already in the past.
+  const now = new Date();
+  function eventHasNotHappened(event) {
+    if (event.status !== 'finalized' || !event.finalSlotId) return true;
+    const finalSlot = event.slots.find(s => s.id === event.finalSlotId);
+    return !finalSlot || finalSlot.startsAt > now;
+  }
 
   // Send all recovery emails in parallel; failures do not block other sends
   await Promise.allSettled([
-    ...organizerEvents.map(event => sendEmail(buildOrganizerLinkRecoveryEmail(event))),
-    ...participants.map(participant => sendEmail(buildParticipantInvite(participant, participant.event))),
+    ...organizerEvents
+      .filter(event => eventHasNotHappened(event))
+      .map(event => sendEmail(buildOrganizerLinkRecoveryEmail(event))),
+    ...participants
+      .filter(p => eventHasNotHappened(p.event))
+      .map(participant => sendEmail(buildParticipantInvite(participant, participant.event))),
   ]);
 
   return res.json({ ok: true });

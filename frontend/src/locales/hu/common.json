@@ -172,6 +172,7 @@
     "responded": "{{responded}} / {{total}} válaszolt",
     "sectionParticipants": "Résztvevők",
     "mapAriaLabel": "Résztvevők és helyszínek térképe",
+    "centroidTooltip": "Tájékozódási pont — változhat, ahogy újabb résztvevők csatlakoznak",
     "sectionMapVenues": "Térkép és helyszínek",
     "loading": "Betöltés…",
     "deleteEvent": "Esemény törlése",
