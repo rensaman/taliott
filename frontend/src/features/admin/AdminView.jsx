@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import GroupMap from './GroupMap.jsx';
@@ -96,6 +96,18 @@ export default function AdminView({ adminToken }) {
       setDeleteError(t('admin.deleteError'));
     }
   }
+
+  // UX-4: resend invite to a pending participant
+  const handleResendInvite = useCallback(async (participantId) => {
+    try {
+      const res = await fetch(`/api/events/${adminToken}/participants/${participantId}/resend-invite`, {
+        method: 'POST',
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }, [adminToken]);
 
   // UX-8: copy join link to clipboard
   function handleCopyJoinLink() {
@@ -212,6 +224,8 @@ export default function AdminView({ adminToken }) {
           <ParticipantResponseList
             participants={data.participants}
             slots={data.slots || []}
+            inviteMode={data.invite_mode}
+            onResendInvite={data.status !== 'finalized' ? handleResendInvite : undefined}
           />
         </div>
 

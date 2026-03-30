@@ -41,6 +41,10 @@ export function buildParticipantInvite(participant, event) {
   };
 }
 
+export async function sendParticipantInvite(participant, event) {
+  await sendEmail(buildParticipantInvite(participant, event));
+}
+
 export async function sendEventInvites(event) {
   for (const participant of event.participants) {
     if (participant.email === event.organizerEmail) continue;
@@ -195,7 +199,17 @@ function resolveVenueInfo(venue, event) {
  */
 function buildFinalizationCore(event, slot, venue) {
   const eventName = sanitizeField(event.name);
-  const slotStart = new Date(slot.startsAt).toUTCString();
+  const tz = event.timezone ?? 'UTC';
+  const slotStart = new Date(slot.startsAt).toLocaleString('en-US', {
+    timeZone: tz,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  });
   const venueInfo = resolveVenueInfo(venue, event);
   const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
   const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
@@ -285,6 +299,28 @@ export function buildOrganizerFinalizationEmail(event, slot, venue) {
     text: lines.join('\n'),
     attachments: icsContent ? [{ filename: 'event.ics', content: icsContent }] : [],
   };
+}
+
+export function buildParticipantDeletionConfirmation(email, event) {
+  const eventName = sanitizeField(event.name);
+  const l = lang(event);
+  return {
+    to: email,
+    subject: t(l, 'participantDeletion.subject', { eventName }),
+    text: [
+      t(l, 'participantDeletion.greeting'),
+      ``,
+      t(l, 'participantDeletion.intro', { eventName }),
+      ``,
+      t(l, 'participantDeletion.detail'),
+      ``,
+      t(l, 'participantDeletion.note'),
+    ].join('\n'),
+  };
+}
+
+export async function sendParticipantDeletionConfirmation(email, event) {
+  await sendEmail(buildParticipantDeletionConfirmation(email, event));
 }
 
 export async function sendFinalizationNotifications(event, slot, venue) {

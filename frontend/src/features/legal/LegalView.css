@@ -12,6 +12,45 @@
   z-index: 10;
 }
 
+.legal-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.legal-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding: 0.75rem 1.25rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.legal-back-btn:hover {
+  color: var(--ink);
+}
+
+.legal-lang-link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.75rem 1.25rem;
+  white-space: nowrap;
+}
+
+.legal-lang-link:hover {
+  color: var(--ink);
+}
+
 .legal-body {
   flex: 1;
   padding: 2rem 1.25rem 3rem;

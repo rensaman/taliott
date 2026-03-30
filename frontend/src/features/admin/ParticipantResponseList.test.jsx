@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import ParticipantResponseList from './ParticipantResponseList.jsx';
 import i18n from '../../i18n.js';
@@ -72,6 +72,59 @@ describe('ParticipantResponseList', () => {
     expect(legend).toHaveTextContent(/yes/i);
     expect(legend).toHaveTextContent(/maybe/i);
     expect(legend).toHaveTextContent(/no/i);
+  });
+
+  // ─── UX-4: Resend invite button ───────────────────────────────────────────
+
+  describe('resend invite button', () => {
+    it('shows resend button for pending participants when onResendInvite + inviteMode=email_invites', () => {
+      const onResendInvite = vi.fn().mockResolvedValue(true);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" onResendInvite={onResendInvite} />);
+      expect(screen.getByTestId('resend-invite-p-2')).toBeInTheDocument();
+      expect(screen.getByTestId('resend-invite-p-3')).toBeInTheDocument();
+    });
+
+    it('does not show resend button for responded participants', () => {
+      const onResendInvite = vi.fn().mockResolvedValue(true);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" onResendInvite={onResendInvite} />);
+      expect(screen.queryByTestId('resend-invite-p-1')).not.toBeInTheDocument();
+    });
+
+    it('does not show resend button for shared_link events', () => {
+      const onResendInvite = vi.fn().mockResolvedValue(true);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="shared_link" onResendInvite={onResendInvite} />);
+      expect(screen.queryByTestId('resend-invite-p-2')).not.toBeInTheDocument();
+    });
+
+    it('does not show resend button when onResendInvite is not provided', () => {
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" />);
+      expect(screen.queryByTestId('resend-invite-p-2')).not.toBeInTheDocument();
+    });
+
+    it('calls onResendInvite with participant id when clicked', async () => {
+      const onResendInvite = vi.fn().mockResolvedValue(true);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" onResendInvite={onResendInvite} />);
+      fireEvent.click(screen.getByTestId('resend-invite-p-2'));
+      expect(onResendInvite).toHaveBeenCalledWith('p-2');
+    });
+
+    it('shows "Sent!" after successful resend', async () => {
+      const onResendInvite = vi.fn().mockResolvedValue(true);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" onResendInvite={onResendInvite} />);
+      fireEvent.click(screen.getByTestId('resend-invite-p-2'));
+      await waitFor(() =>
+        expect(screen.getByTestId('resend-invite-p-2')).toHaveTextContent(/sent/i)
+      );
+    });
+
+    it('shows error label after failed resend', async () => {
+      const onResendInvite = vi.fn().mockResolvedValue(false);
+      render(<ParticipantResponseList participants={PARTICIPANTS} inviteMode="email_invites" onResendInvite={onResendInvite} />);
+      fireEvent.click(screen.getByTestId('resend-invite-p-2'));
+      await waitFor(() =>
+        expect(screen.getByTestId('resend-invite-p-2')).toHaveTextContent(/failed/i)
+      );
+    });
   });
 
   it('passes i18n.language as locale to slot date toLocaleString', () => {

@@ -5,6 +5,7 @@ import { isEventLocked } from '../lib/event.js';
 import { computeHeatmap } from '../lib/heatmap.js';
 import { computeCentroid } from '../lib/centroid.js';
 import { broadcast } from '../lib/sse.js';
+import { sendParticipantDeletionConfirmation } from '../lib/invite-mailer.js';
 
 const router = Router();
 
@@ -375,6 +376,7 @@ router.delete('/:participantId', erasureLimiter, async (req, res) => {
   try {
     participant = await getPrisma().participant.findUnique({
       where: { id: req.params.participantId },
+      include: { event: true },
     });
   } catch (err) {
     console.error('Failed to fetch participant for deletion:', err);
@@ -382,6 +384,10 @@ router.delete('/:participantId', erasureLimiter, async (req, res) => {
   }
 
   if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  // Capture original email before anonymisation for the deletion confirmation
+  const originalEmail = participant.email;
+  const isAlreadyDeleted = originalEmail.endsWith('@deleted.invalid');
 
   // SEC-5: audit log for GDPR erasure (non-personal metadata only; mirrors event-delete audit trail)
   console.log('[gdpr-erasure] Anonymising participant', {
@@ -411,6 +417,12 @@ router.delete('/:participantId', erasureLimiter, async (req, res) => {
   } catch (err) {
     console.error('Failed to anonymise participant:', err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  // UX-2: GDPR Art. 12(3) — notify participant of erasure; skip if already deleted
+  if (!isAlreadyDeleted && participant.event) {
+    sendParticipantDeletionConfirmation(originalEmail, participant.event)
+      .catch(err => console.error('[deletion-mailer]', err));
   }
 
   return res.json({ ok: true });

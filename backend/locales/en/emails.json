@@ -57,6 +57,13 @@
     "shareLink": "Share this link for others to join:",
     "yourVotingLink": "Your voting link:"
   },
+  "participantDeletion": {
+    "subject": "Your data has been deleted: {{eventName}}",
+    "greeting": "Hi,",
+    "intro": "Your personal data has been permanently erased from \"{{eventName}}\" as requested.",
+    "detail": "Your name, location, and availability have been deleted.",
+    "note": "This action cannot be undone."
+  },
   "organizerFinalizationEmail": {
     "subject": "Event finalized: {{eventName}}",
     "greeting": "Hi,",

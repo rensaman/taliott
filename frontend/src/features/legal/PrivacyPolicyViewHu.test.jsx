@@ -33,4 +33,18 @@ describe('PrivacyPolicyViewHu', () => {
     expect(screen.getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
   });
+
+  // UI-3: back navigation
+  it('has a back navigation button', () => {
+    render(<PrivacyPolicyViewHu />);
+    expect(screen.getByTestId('legal-back-btn')).toBeInTheDocument();
+  });
+
+  // UI-2: language toggle to EN
+  it('has a link to the English version', () => {
+    render(<PrivacyPolicyViewHu />);
+    const langLink = screen.getByTestId('legal-lang-link');
+    expect(langLink).toHaveAttribute('href', '/privacy');
+    expect(langLink).toHaveTextContent('EN');
+  });
 });

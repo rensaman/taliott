@@ -22,4 +22,18 @@ describe('PrivacyPolicyView', () => {
     render(<PrivacyPolicyView />);
     expect(screen.getAllByText(/privacy@example\.com/i).length).toBeGreaterThan(0);
   });
+
+  // UI-3: back navigation
+  it('has a back navigation button', () => {
+    render(<PrivacyPolicyView />);
+    expect(screen.getByTestId('legal-back-btn')).toBeInTheDocument();
+  });
+
+  // UI-2: language toggle to HU
+  it('has a link to the Hungarian version', () => {
+    render(<PrivacyPolicyView />);
+    const langLink = screen.getByTestId('legal-lang-link');
+    expect(langLink).toHaveAttribute('href', '/privacy/hu');
+    expect(langLink).toHaveTextContent('HU');
+  });
 });

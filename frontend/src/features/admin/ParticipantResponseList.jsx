@@ -1,10 +1,23 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const STATE_SYMBOL = { yes: '✓', maybe: '?', no: '✗', neutral: '—' };
 const DOT_CLASS = { yes: 'avail-dot--yes', maybe: 'avail-dot--maybe', no: 'avail-dot--no', neutral: 'avail-dot--neutral' };
 
-export default function ParticipantResponseList({ participants, slots = [] }) {
+export default function ParticipantResponseList({ participants, slots = [], onResendInvite, inviteMode }) {
   const { t, i18n } = useTranslation();
+  const [resendState, setResendState] = useState({});
+
+  async function handleResend(participantId) {
+    setResendState(prev => ({ ...prev, [participantId]: 'sending' }));
+    try {
+      const ok = await onResendInvite(participantId);
+      setResendState(prev => ({ ...prev, [participantId]: ok ? 'sent' : 'error' }));
+    } catch {
+      setResendState(prev => ({ ...prev, [participantId]: 'error' }));
+    }
+  }
+
   return (
     <>
       {/* UX-6: availability dot colour legend */}
@@ -18,6 +31,8 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
       <ul className="participant-list">
       {participants.map(p => {
         const responded = !!p.responded_at;
+        const state = resendState[p.id];
+        const showResend = !responded && inviteMode === 'email_invites' && onResendInvite;
         return (
           <li
             key={p.id}
@@ -29,6 +44,19 @@ export default function ParticipantResponseList({ participants, slots = [] }) {
             <span className={`participant-status ${responded ? 'participant-status--responded' : 'participant-status--pending'}`}>
               {responded ? t('admin.statusResponded') : t('admin.statusPending')}
             </span>
+            {showResend && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                data-testid={`resend-invite-${p.id}`}
+                onClick={() => handleResend(p.id)}
+                disabled={state === 'sending'}
+              >
+                {state === 'sent' ? t('admin.resendInviteSent')
+                  : state === 'error' ? t('admin.resendInviteError')
+                  : t('admin.resendInvite')}
+              </button>
+            )}
             {responded && slots.length > 0 && (
               <div className="participant-avail-dots">
                 {slots.map(s => {

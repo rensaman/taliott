@@ -57,6 +57,13 @@
     "shareLink": "Oszd meg ezt a linket, hogy csatlakozzanak mások:",
     "yourVotingLink": "A te szavazási linked:"
   },
+  "participantDeletion": {
+    "subject": "Adataid törölve: {{eventName}}",
+    "greeting": "Szia,",
+    "intro": "A személyes adataidat véglegesen töröltük a(z) \"{{eventName}}\" eseményből a kérésednek megfelelően.",
+    "detail": "Neved, helyszíned és elérhetőséged törlésre került.",
+    "note": "Ez a művelet nem vonható vissza."
+  },
   "organizerFinalizationEmail": {
     "subject": "Az esemény véglegesítve: {{eventName}}",
     "greeting": "Szia,",

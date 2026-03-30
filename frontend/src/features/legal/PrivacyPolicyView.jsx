@@ -9,7 +9,11 @@ export default function PrivacyPolicyView() {
   return (
     <div className="legal-shell">
       <header className="legal-header">
-        <a href="/" className="wizard-wordmark">taliott</a>
+        <div className="legal-header-nav">
+          <button type="button" className="legal-back-btn" onClick={() => window.history.back()} data-testid="legal-back-btn">← Back</button>
+          <a href="/" className="wizard-wordmark">{APP_NAME}</a>
+          <a href="/privacy/hu" className="legal-lang-link" data-testid="legal-lang-link">HU</a>
+        </div>
       </header>
 
       <main className="legal-body">

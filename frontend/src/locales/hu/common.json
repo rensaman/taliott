@@ -154,7 +154,7 @@
     "notFound": "A részvételi link nem található.",
     "downloadData": "Adataim letöltése",
     "deleteData": "Adataim törlése",
-    "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli a nevedet, helyszínedet és elérhetőségedet erről az eseményről.",
+    "deleteConfirm": "Biztosan folytatni szeretnéd? Ez véglegesen törli a nevedet, helyszínedet és elérhetőségedet erről az eseményről. Ez a művelet nem vonható vissza.",
     "dataErased": "Személyes adataidat töröltük erről az eseményről.",
     "errorExport": "Nem sikerült letölteni az adataidat. Kérjük, próbáld újra.",
     "errorDelete": "Nem sikerült törölni az adataidat. Kérjük, próbáld újra.",
@@ -204,7 +204,10 @@
     "deleteDialogTitle": "Esemény törlése",
     "deleteDialogBody": "Biztosan folytatni szeretnéd? Ez véglegesen törli az eseményt és az összes résztvevői adatot.",
     "deleteDialogCancel": "Mégsem",
-    "deleteDialogConfirm": "Végleges törlés"
+    "deleteDialogConfirm": "Végleges törlés",
+    "resendInvite": "Meghívó újraküldése",
+    "resendInviteSent": "Elküldve!",
+    "resendInviteError": "Nem sikerült újraküldeni"
   },
   "datepicker": {
     "months": ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"],
@@ -332,7 +335,10 @@
     "emailPlaceholder": "te@pelda.hu",
     "submit": "Link küldése",
     "sending": "Küldés…",
-    "successMsg": "Ha találtunk egyező eseményt, elküldtük a linket a postaládádba."
+    "successMsg": "Ha találtunk egyező eseményt, elküldtük a linket a postaládádba.",
+    "errorRateLimit": "Túl sok kérés — kérjük, várj egy kicsit, majd próbáld újra.",
+    "errorGeneric": "Valami hiba történt. Kérjük, próbáld újra.",
+    "tryAgain": "Más e-mail-cím megadása"
   },
   "travelMode": {
     "legend": "Hogyan jutsz oda?",

@@ -154,7 +154,7 @@
     "notFound": "Participation link not found.",
     "downloadData": "Download my data",
     "deleteData": "Delete my data",
-    "deleteConfirm": "Are you sure? This will permanently erase your name, location, and availability from this event.",
+    "deleteConfirm": "Are you sure? This will permanently erase your name, location, and availability from this event. This cannot be undone.",
     "dataErased": "Your personal data has been erased from this event.",
     "errorExport": "Failed to download your data. Please try again.",
     "errorDelete": "Failed to delete your data. Please try again.",
@@ -204,7 +204,10 @@
     "deleteDialogTitle": "Delete event",
     "deleteDialogBody": "Are you sure? This will permanently delete the event and all participant data.",
     "deleteDialogCancel": "Cancel",
-    "deleteDialogConfirm": "Delete permanently"
+    "deleteDialogConfirm": "Delete permanently",
+    "resendInvite": "Resend invite",
+    "resendInviteSent": "Sent!",
+    "resendInviteError": "Failed to resend"
   },
   "datepicker": {
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -332,7 +335,10 @@
     "emailPlaceholder": "you@example.com",
     "submit": "Send my link",
     "sending": "Sending…",
-    "successMsg": "If we found a matching event, we've sent the link to your inbox."
+    "successMsg": "If we found a matching event, we've sent the link to your inbox.",
+    "errorRateLimit": "Too many requests — please wait a moment and try again.",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "tryAgain": "Try a different email"
   },
   "travelMode": {
     "legend": "How will you get there?",

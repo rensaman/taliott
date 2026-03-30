@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { rateLimit } from 'express-rate-limit';
 import { getPrisma } from '../lib/prisma.js';
 import { generateSlots } from '../lib/slots.js';
-import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications } from '../lib/invite-mailer.js';
+import { sendEventInvites, sendOrganizerCreationEmail, sendFinalizationNotifications, sendParticipantInvite } from '../lib/invite-mailer.js';
 import { computeCentroid } from '../lib/centroid.js';
 import { getCachedVenues, sortVenues, haversineDistance, MAX_VENUE_DISTANCE_M } from '../lib/venues.js';
 import { subscribe } from '../lib/sse.js';
@@ -430,6 +430,38 @@ router.post('/:adminToken/finalize', adminMutateLimiter, requireSameOrigin, asyn
   );
 
   return res.json({ ok: true, status: 'finalized' });
+});
+
+router.post('/:adminToken/participants/:participantId/resend-invite', async (req, res) => {
+  const { adminToken, participantId } = req.params;
+
+  let event;
+  try {
+    event = await getPrisma().event.findUnique({
+      where: { adminToken },
+      include: { participants: true },
+    });
+  } catch (err) {
+    console.error('Failed to fetch event for resend-invite:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+  if (event.inviteMode !== 'email_invites') {
+    return res.status(400).json({ error: 'Resend invite is only available for email-invite events' });
+  }
+
+  const participant = event.participants.find(p => p.id === participantId);
+  if (!participant) return res.status(404).json({ error: 'Participant not found' });
+  if (!participant.email || participant.email.endsWith('@deleted.invalid')) {
+    return res.status(400).json({ error: 'Participant has no valid email address' });
+  }
+
+  sendParticipantInvite(participant, event).catch(err =>
+    console.error('[resend-invite]', err)
+  );
+
+  return res.json({ ok: true });
 });
 
 router.delete('/:adminToken', adminMutateLimiter, requireSameOrigin, async (req, res) => {

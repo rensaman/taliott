@@ -238,6 +238,19 @@ describe('ParticipateView', () => {
     expect(fetch).toHaveBeenCalledTimes(1); // only the initial load
   });
 
+  // UX-3: confirmation dialog must include an irreversibility warning
+  it('delete confirmation message includes "cannot be undone" (UX-3)', async () => {
+    const confirmSpy = vi.fn(() => false);
+    vi.stubGlobal('confirm', confirmSpy);
+    fetch.mockResolvedValue({ ok: true, json: async () => OPEN_RESPONSE });
+
+    render(<ParticipateView participantId="p-1" />);
+    await waitFor(() => screen.getByTestId('wizard-complete'));
+    fireEvent.click(screen.getByRole('button', { name: /delete my data/i }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/cannot be undone/i));
+  });
+
   it('hides Delete button after successful deletion', async () => {
     vi.stubGlobal('confirm', vi.fn(() => true));
     fetch

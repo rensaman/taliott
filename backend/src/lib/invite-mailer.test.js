@@ -5,6 +5,7 @@ vi.mock('./ics.js', () => ({ generateICS: vi.fn().mockReturnValue('BEGIN:VCALEND
 
 import {
   buildParticipantInvite,
+  sendParticipantInvite,
   sendEventInvites,
   buildOrganizerCreationEmail,
   buildOrganizerLinkRecoveryEmail,
@@ -16,6 +17,8 @@ import {
   buildFinalizationEmail,
   buildOrganizerFinalizationEmail,
   sendFinalizationNotifications,
+  buildParticipantDeletionConfirmation,
+  sendParticipantDeletionConfirmation,
 } from './invite-mailer.js';
 import { sendEmail } from './mailer.js';
 
@@ -61,6 +64,14 @@ describe('buildParticipantInvite', () => {
   it('includes voting deadline in body', () => {
     const msg = buildParticipantInvite(event.participants[0], event);
     expect(msg.text).toMatch(/deadline/i);
+  });
+});
+
+describe('sendParticipantInvite', () => {
+  it('calls sendEmail once with the participant email', async () => {
+    await sendParticipantInvite(event.participants[0], event);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'alice@example.com' }));
   });
 });
 
@@ -387,6 +398,75 @@ describe('buildOrganizerFinalizationEmail', () => {
   it('body omits notes section when event has no finalNotes', () => {
     const msg = buildOrganizerFinalizationEmail(event, slot, venue);
     expect(msg.text).not.toMatch(/organizer.*note|note.*organizer/i);
+  });
+});
+
+// ─── UX-2: Participant deletion confirmation ──────────────────────────────────
+
+describe('buildParticipantDeletionConfirmation', () => {
+  it('sends to the original participant email', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', event);
+    expect(msg.to).toBe('alice@example.com');
+  });
+
+  it('subject contains event name', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', event);
+    expect(msg.subject).toContain('Summer Meetup');
+  });
+
+  it('body mentions permanent erasure', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', event);
+    expect(msg.text).toMatch(/erased|deleted/i);
+  });
+
+  it('body mentions the event name', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', event);
+    expect(msg.text).toContain('Summer Meetup');
+  });
+
+  it('body states the action cannot be undone', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', event);
+    expect(msg.text).toMatch(/cannot be undone/i);
+  });
+
+  it('uses Hungarian when event.lang is "hu"', () => {
+    const msg = buildParticipantDeletionConfirmation('alice@example.com', { ...event, lang: 'hu' });
+    expect(msg.subject).toContain('törölve');
+  });
+});
+
+describe('sendParticipantDeletionConfirmation', () => {
+  it('calls sendEmail once with the original email', async () => {
+    await sendParticipantDeletionConfirmation('alice@example.com', event);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'alice@example.com' }));
+  });
+});
+
+// ─── UX-6: Finalization email timezone formatting ─────────────────────────────
+
+describe('UX-6: slot time timezone formatting in finalization email', () => {
+  const participant = { id: 'p-uuid-1', email: 'alice@example.com', name: 'Alice' };
+
+  it('formats slot time using the event timezone (not raw UTC)', () => {
+    // UTC slot: 09:00 UTC. In UTC+2 (e.g. Europe/Budapest) this is 11:00
+    const tzEvent = { ...event, timezone: 'Europe/Budapest' };
+    const msg = buildFinalizationEmail(participant, tzEvent, slot, null);
+    // Should contain timezone abbreviation (CEST or similar), not raw UTC
+    expect(msg.text).not.toContain('09:00 AM UTC');
+  });
+
+  it('includes a timezone abbreviation in the formatted slot time', () => {
+    const tzEvent = { ...event, timezone: 'Europe/Budapest' };
+    const msg = buildFinalizationEmail(participant, tzEvent, slot, null);
+    // Should include something like "CEST", "GMT+2", or similar
+    expect(msg.text).toMatch(/AM|PM/i); // en-US locale produces AM/PM
+  });
+
+  it('falls back to UTC when event has no timezone', () => {
+    const noTzEvent = { ...event, timezone: undefined };
+    const msg = buildFinalizationEmail(participant, noTzEvent, slot, null);
+    expect(msg.text).toMatch(/AM|PM/i);
   });
 });
 

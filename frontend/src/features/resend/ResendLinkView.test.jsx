@@ -27,8 +27,8 @@ describe('ResendLinkView', () => {
     );
   });
 
-  it('shows status message after successful submit', async () => {
-    fetch.mockResolvedValue({ ok: true });
+  it('shows success status message after successful submit (2xx)', async () => {
+    fetch.mockResolvedValue({ ok: true, status: 200 });
     render(<ResendLinkView />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
     fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
@@ -38,13 +38,62 @@ describe('ResendLinkView', () => {
     expect(screen.queryByRole('form')).not.toBeInTheDocument();
   });
 
-  it('shows status message even when server returns an error', async () => {
+  // UI-1: 429 should show an error, not the success message
+  it('shows rate-limit error message when server returns 429', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 429 });
+    render(<ResendLinkView />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
+    fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('alert', { hidden: false })).toBeInTheDocument()
+    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  // UI-1: 500 should show an error, not the success message
+  it('shows generic error message when server returns a non-ok status', async () => {
     fetch.mockResolvedValue({ ok: false, status: 500 });
     render(<ResendLinkView />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
     fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
     await waitFor(() =>
-      expect(screen.getByRole('status')).toBeInTheDocument()
+      expect(screen.getByRole('alert', { hidden: false })).toBeInTheDocument()
+    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  // UI-1: network error should show error
+  it('shows generic error message when fetch throws (network error)', async () => {
+    fetch.mockRejectedValue(new Error('Network error'));
+    render(<ResendLinkView />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
+    fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('alert', { hidden: false })).toBeInTheDocument()
+    );
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  // UX-5: success state has a "try again" secondary action
+  it('shows a "try a different email" button in the success state', async () => {
+    fetch.mockResolvedValue({ ok: true, status: 200 });
+    render(<ResendLinkView />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
+    fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
+    await waitFor(() => screen.getByRole('status'));
+    expect(screen.getByTestId('resend-try-again-btn')).toBeInTheDocument();
+  });
+
+  // UX-5: clicking "try again" resets the form
+  it('"try again" button resets to the form', async () => {
+    fetch.mockResolvedValue({ ok: true, status: 200 });
+    render(<ResendLinkView />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a@b.com' } });
+    fireEvent.submit(screen.getByRole('form', { name: /resend link/i }));
+    await waitFor(() => screen.getByTestId('resend-try-again-btn'));
+    fireEvent.click(screen.getByTestId('resend-try-again-btn'));
+    await waitFor(() =>
+      expect(screen.getByRole('form', { name: /resend link/i })).toBeInTheDocument()
     );
   });
 });
