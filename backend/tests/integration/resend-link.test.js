@@ -51,6 +51,16 @@ describe('POST /api/resend-link', () => {
     expect(res.status).toBe(400);
   });
 
+  it('returns 400 for a malformed email address (S-3)', async () => {
+    const res = await request(app).post('/api/resend-link').send({ email: 'not-an-email' });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for an email with only a domain (S-3)', async () => {
+    const res = await request(app).post('/api/resend-link').send({ email: '@nodomain' });
+    expect(res.status).toBe(400);
+  });
+
   it('returns 200 for unknown email (no user enumeration)', async () => {
     const res = await request(app)
       .post('/api/resend-link')

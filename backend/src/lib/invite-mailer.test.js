@@ -206,6 +206,14 @@ describe('buildOrganizerJoinNotification', () => {
     const msg = buildOrganizerJoinNotification(participant, event);
     expect(msg.text).toContain('/admin/admin-token-uuid');
   });
+
+  it('sanitizes CRLF in participant email to prevent injection (S-2)', () => {
+    const malicious = { id: 'p-evil', email: 'joiner@example.com\r\nBcc: attacker@evil.com', name: null };
+    const msg = buildOrganizerJoinNotification(malicious, event);
+    expect(msg.text).not.toMatch(/\r\n/);
+    // CRLF is collapsed to a space — the injected text appears inline, not as a new line
+    expect(msg.text).toContain('joiner@example.com Bcc: attacker@evil.com');
+  });
 });
 
 describe('sendOrganizerJoinNotification', () => {

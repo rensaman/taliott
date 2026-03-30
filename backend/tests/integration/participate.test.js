@@ -483,3 +483,54 @@ describe('PATCH /api/participate/:participantId/confirm', () => {
     expect(new Date(secondTs).getTime()).toBeGreaterThan(new Date(firstTs).getTime());
   });
 });
+
+describe('DELETE /api/participate/:participantId', () => {
+  it('returns 404 for an unknown participant id', async () => {
+    const res = await request(app).delete('/api/participate/00000000-0000-0000-0000-000000000000');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 200 and ok:true on success', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    const res = await request(app).delete(`/api/participate/${pid}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  it('nulls personal fields and resets travelMode to default transit (S-1)', async () => {
+    const { participants } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app).patch(`/api/participate/${pid}/name`).send({ name: 'Alice' });
+    await request(app).patch(`/api/participate/${pid}/location`).send({ latitude: 47.5, longitude: 19.0, address_label: 'Budapest' });
+    await request(app).patch(`/api/participate/${pid}/travel-mode`).send({ travel_mode: 'cycling' });
+
+    await request(app).delete(`/api/participate/${pid}`);
+
+    const p = await prisma.participant.findUnique({ where: { id: pid } });
+    expect(p.name).toBeNull();
+    expect(p.latitude).toBeNull();
+    expect(p.longitude).toBeNull();
+    expect(p.addressLabel).toBeNull();
+    expect(p.respondedAt).toBeNull();
+    expect(p.travelMode).toBe('transit');
+    expect(p.email).toMatch(/^deleted-/);
+  });
+
+  it('deletes all availability rows for the participant', async () => {
+    const { participants, slots } = await createEvent({ deadline: FUTURE_DEADLINE });
+    const pid = participants[0].id;
+
+    await request(app)
+      .patch(`/api/participate/${pid}/availability`)
+      .send({ availability: [{ slot_id: slots[0].id, state: 'yes' }] });
+
+    await request(app).delete(`/api/participate/${pid}`);
+
+    const avail = await prisma.availability.findMany({ where: { participantId: pid } });
+    expect(avail).toHaveLength(0);
+  });
+});

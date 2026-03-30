@@ -121,8 +121,8 @@ export function buildOrganizerJoinNotification(participant, event) {
   const eventName = sanitizeField(event.name);
   const l = lang(event);
   const participantLabel = participant.name
-    ? `${sanitizeField(participant.name)} (${participant.email})`
-    : participant.email;
+    ? `${sanitizeField(participant.name)} (${sanitizeField(participant.email)})`
+    : sanitizeField(participant.email);
   return {
     to: event.organizerEmail,
     subject: t(l, 'organizerJoinNotification.subject', { eventName }),

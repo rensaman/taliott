@@ -50,6 +50,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'email is required' });
   }
 
+  // Basic format check to avoid DB queries on garbage input (S-3)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
   if (isRateLimited(email)) {
     return res.status(429).json({ error: 'Too many requests. Please try again later.' });
   }

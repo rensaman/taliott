@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { getPrisma } from '../lib/prisma.js';
 import { isEventLocked } from '../lib/event.js';
 import { computeHeatmap } from '../lib/heatmap.js';
@@ -6,6 +7,15 @@ import { computeCentroid } from '../lib/centroid.js';
 import { broadcast } from '../lib/sse.js';
 
 const router = Router();
+
+// SEC-4: tight per-route limiter for the irreversible GDPR erasure operation
+const erasureLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+});
 
 const VALID_STATES = ['yes', 'maybe', 'no', 'neutral'];
 
@@ -360,7 +370,7 @@ router.get('/:participantId/export', async (req, res) => {
 // (locked, finalized) because GDPR Art. 17 applies at any time. If a participant
 // erases data after finalization, their availability rows are removed and their name
 // is nulled, but the event result is not changed. This is an accepted trade-off.
-router.delete('/:participantId', async (req, res) => {
+router.delete('/:participantId', erasureLimiter, async (req, res) => {
   let participant;
   try {
     participant = await getPrisma().participant.findUnique({
@@ -372,6 +382,14 @@ router.delete('/:participantId', async (req, res) => {
   }
 
   if (!participant) return res.status(404).json({ error: 'Participant not found' });
+
+  // SEC-5: audit log for GDPR erasure (non-personal metadata only; mirrors event-delete audit trail)
+  console.log('[gdpr-erasure] Anonymising participant', {
+    id: participant.id,
+    eventId: participant.eventId,
+    travelMode: participant.travelMode,
+    respondedAt: participant.respondedAt,
+  });
 
   try {
     const prisma = getPrisma();
@@ -386,6 +404,7 @@ router.delete('/:participantId', async (req, res) => {
           longitude: null,
           addressLabel: null,
           respondedAt: null,
+          travelMode: 'transit', // SEC-1: reset to default — travelMode can indirectly profile a deleted participant
         },
       });
     });
