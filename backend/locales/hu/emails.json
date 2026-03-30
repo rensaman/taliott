@@ -49,6 +49,14 @@
     "notes": "Szervező megjegyzése: {{notes}}",
     "calendarAttached": "A naptármeghívó csatolva van."
   },
+  "organizerLinkRecovery": {
+    "subject": "A linkjeid: {{eventName}}",
+    "greeting": "Szia,",
+    "intro": "Íme az eseményed \"{{eventName}}\" linkjei.",
+    "manageLink": "Kezeld az eseményed itt (ezt a linket tartsd titokban):",
+    "shareLink": "Oszd meg ezt a linket, hogy csatlakozzanak mások:",
+    "yourVotingLink": "A te szavazási linked:"
+  },
   "organizerFinalizationEmail": {
     "subject": "Az esemény véglegesítve: {{eventName}}",
     "greeting": "Szia,",

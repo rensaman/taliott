@@ -142,6 +142,39 @@ describe('POST /api/resend-link', () => {
     expect(partEmail).toBeDefined();
   });
 
+  it('recovery email for organizer has link-recovery subject, not creation subject (CQ-3)', async () => {
+    await createEvent({ organizer_email: 'org-cq3@example.com', participant_emails: [] });
+
+    const res = await request(app)
+      .post('/api/resend-link')
+      .send({ email: 'org-cq3@example.com' });
+
+    expect(res.status).toBe(200);
+    const calls = sendEmail.mock.calls.map(([msg]) => msg);
+    const adminEmail = calls.find(m => m.to === 'org-cq3@example.com' && m.text.includes('/admin/'));
+    expect(adminEmail).toBeDefined();
+    expect(adminEmail.subject).not.toMatch(/has been created/i);
+  });
+
+  it('sends all recovery emails even if one fails — parallel sends (CQ-4)', async () => {
+    // Create two events for the same organizer (organizer is also auto-enrolled as participant)
+    await createEvent({ organizer_email: 'org-cq4@example.com', participant_emails: [] });
+    await createEvent({ organizer_email: 'org-cq4@example.com', participant_emails: [] });
+
+    // Reset mock state after event creation; set up one rejection for the resend-link call
+    vi.clearAllMocks();
+    sendEmail.mockRejectedValueOnce(new Error('SMTP fail'));
+
+    const res = await request(app)
+      .post('/api/resend-link')
+      .send({ email: 'org-cq4@example.com' });
+
+    // Response is 200 despite a failing email (Promise.allSettled doesn't throw)
+    expect(res.status).toBe(200);
+    // 2 admin recovery + 2 participant invite = 4 total attempts; all are made despite one failure
+    expect(sendEmail).toHaveBeenCalledTimes(4);
+  });
+
   it('returns 429 after exceeding rate limit (3 per 15 minutes)', async () => {
     const email = 'ratelimit-resend-5@example.com';
 

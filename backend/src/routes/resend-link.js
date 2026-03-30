@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { getPrisma } from '../lib/prisma.js';
 import { sendEmail } from '../lib/mailer.js';
-import { buildOrganizerCreationEmail, buildParticipantInvite } from '../lib/invite-mailer.js';
+import { buildOrganizerLinkRecoveryEmail, buildParticipantInvite } from '../lib/invite-mailer.js';
 
 const router = Router();
 
@@ -73,15 +73,11 @@ router.post('/', async (req, res) => {
     include: { event: true },
   });
 
-  // Send admin recovery email for each organizer match
-  for (const event of organizerEvents) {
-    await sendEmail(buildOrganizerCreationEmail(event));
-  }
-
-  // Send participation link recovery email for each participant match
-  for (const participant of participants) {
-    await sendEmail(buildParticipantInvite(participant, participant.event));
-  }
+  // Send all recovery emails in parallel; failures do not block other sends
+  await Promise.allSettled([
+    ...organizerEvents.map(event => sendEmail(buildOrganizerLinkRecoveryEmail(event))),
+    ...participants.map(participant => sendEmail(buildParticipantInvite(participant, participant.event))),
+  ]);
 
   return res.json({ ok: true });
 });

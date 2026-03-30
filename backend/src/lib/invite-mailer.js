@@ -44,7 +44,11 @@ export function buildParticipantInvite(participant, event) {
 export async function sendEventInvites(event) {
   for (const participant of event.participants) {
     if (participant.email === event.organizerEmail) continue;
-    await sendEmail(buildParticipantInvite(participant, event));
+    try {
+      await sendEmail(buildParticipantInvite(participant, event));
+    } catch (err) {
+      console.error('[invite-mailer] Failed to send invite to', participant.email, err);
+    }
   }
 }
 
@@ -86,6 +90,36 @@ export function buildOrganizerCreationEmail(event) {
 
 export async function sendOrganizerCreationEmail(event) {
   await sendEmail(buildOrganizerCreationEmail(event));
+}
+
+export function buildOrganizerLinkRecoveryEmail(event) {
+  const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
+  const eventName = sanitizeField(event.name);
+  const l = lang(event);
+  const organizerParticipant = event.participants.find(p => p.email === event.organizerEmail);
+
+  const lines = [
+    t(l, 'organizerLinkRecovery.greeting'),
+    ``,
+    t(l, 'organizerLinkRecovery.intro', { eventName }),
+    ``,
+    t(l, 'organizerLinkRecovery.manageLink'),
+    `${baseUrl}/admin/${event.adminToken}`,
+  ];
+
+  if (event.inviteMode === 'shared_link' && event.joinToken) {
+    lines.push(``, t(l, 'organizerLinkRecovery.shareLink'), `${baseUrl}/join/${event.joinToken}`);
+  }
+
+  if (organizerParticipant) {
+    lines.push(``, t(l, 'organizerLinkRecovery.yourVotingLink'), `${baseUrl}/participate/${organizerParticipant.id}`);
+  }
+
+  return {
+    to: event.organizerEmail,
+    subject: t(l, 'organizerLinkRecovery.subject', { eventName }),
+    text: lines.join('\n'),
+  };
 }
 
 export function buildJoinConfirmation(participant, event) {
@@ -155,21 +189,19 @@ function resolveVenueInfo(venue, event) {
   return null;
 }
 
-export function buildFinalizationEmail(recipient, event, slot, venue) {
+/**
+ * Computes shared values used by both participant and organizer finalization emails.
+ * Returns sanitized fields, venue info, ICS content, and language.
+ */
+function buildFinalizationCore(event, slot, venue) {
   const eventName = sanitizeField(event.name);
-  const recipientName = recipient.name ? sanitizeField(recipient.name) : null;
   const slotStart = new Date(slot.startsAt).toUTCString();
   const venueInfo = resolveVenueInfo(venue, event);
   const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
   const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
-  const l = lang(event);
-
-  const venueLine = venueInfo
-    ? t(l, 'finalizationEmail.venueKnown', { venue: safeAddress ? `${safeName}, ${safeAddress}` : safeName })
-    : t(l, 'finalizationEmail.venueTBD');
   const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
-
   const safeNotes = event.finalNotes ? sanitizeField(event.finalNotes) : null;
+  const l = lang(event);
 
   let icsContent = null;
   try {
@@ -182,6 +214,18 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
   } catch (err) {
     console.error('[invite-mailer] ICS generation failed:', err);
   }
+
+  return { eventName, slotStart, venueInfo, safeName, safeAddress, icsVenue, safeNotes, icsContent, l };
+}
+
+export function buildFinalizationEmail(recipient, event, slot, venue) {
+  const { eventName, slotStart, venueInfo, safeName, safeAddress, safeNotes, icsContent, l } =
+    buildFinalizationCore(event, slot, venue);
+  const recipientName = recipient.name ? sanitizeField(recipient.name) : null;
+
+  const venueLine = venueInfo
+    ? t(l, 'finalizationEmail.venueKnown', { venue: safeAddress ? `${safeName}, ${safeAddress}` : safeName })
+    : t(l, 'finalizationEmail.venueTBD');
 
   const greeting = recipientName
     ? t(l, 'finalizationEmail.greetingNamed', { name: recipientName })
@@ -210,31 +254,12 @@ export function buildFinalizationEmail(recipient, event, slot, venue) {
 
 export function buildOrganizerFinalizationEmail(event, slot, venue) {
   const baseUrl = process.env.APP_BASE_URL ?? DEFAULT_BASE_URL;
-  const eventName = sanitizeField(event.name);
-  const slotStart = new Date(slot.startsAt).toUTCString();
-  const venueInfo = resolveVenueInfo(venue, event);
-  const safeName = venueInfo ? sanitizeField(venueInfo.name) : null;
-  const safeAddress = venueInfo?.address ? sanitizeField(venueInfo.address) : null;
-  const l = lang(event);
+  const { eventName, slotStart, venueInfo, safeName, safeAddress, safeNotes, icsContent, l } =
+    buildFinalizationCore(event, slot, venue);
 
   const venueLine = venueInfo
     ? t(l, 'organizerFinalizationEmail.venueKnown', { venue: safeAddress ? `${safeName}, ${safeAddress}` : safeName })
     : t(l, 'organizerFinalizationEmail.venueTBD');
-  const icsVenue = venueInfo ? { name: safeName, address: safeAddress } : null;
-
-  const safeNotes = event.finalNotes ? sanitizeField(event.finalNotes) : null;
-
-  let icsContent = null;
-  try {
-    icsContent = generateICS({
-      slot, venue: icsVenue, eventName,
-      timezone: event.timezone ?? 'UTC',
-      durationMinutes: event.finalDurationMinutes ?? undefined,
-      notes: safeNotes ?? undefined,
-    });
-  } catch (err) {
-    console.error('[invite-mailer] ICS generation failed:', err);
-  }
 
   const lines = [
     t(l, 'organizerFinalizationEmail.greeting'),

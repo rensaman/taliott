@@ -7,6 +7,7 @@ import {
   buildParticipantInvite,
   sendEventInvites,
   buildOrganizerCreationEmail,
+  buildOrganizerLinkRecoveryEmail,
   sendOrganizerCreationEmail,
   buildJoinConfirmation,
   sendJoinConfirmation,
@@ -86,6 +87,15 @@ describe('sendEventInvites', () => {
     expect(recipients).not.toContain('organizer@example.com');
     expect(sendEmail).toHaveBeenCalledTimes(2);
   });
+
+  it('continues sending to remaining participants when one email fails (CQ-2)', async () => {
+    sendEmail.mockRejectedValueOnce(new Error('SMTP fail'));
+    // Should not throw, and second participant still receives their email
+    await expect(sendEventInvites(event)).resolves.not.toThrow();
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    const recipients = sendEmail.mock.calls.map(([msg]) => msg.to);
+    expect(recipients).toContain('bob@example.com');
+  });
 });
 
 describe('buildOrganizerCreationEmail', () => {
@@ -131,6 +141,63 @@ describe('buildOrganizerCreationEmail', () => {
   it('does not include join link for email_invites mode', () => {
     const msg = buildOrganizerCreationEmail(emailInvitesEvent);
     expect(msg.text).not.toContain('/join/');
+  });
+});
+
+describe('buildOrganizerLinkRecoveryEmail', () => {
+  const sharedLinkEvent = {
+    ...event,
+    inviteMode: 'shared_link',
+    joinToken: 'join-token-uuid',
+    participants: [{ id: 'p-org', email: 'organizer@example.com' }],
+  };
+  const emailInvitesEvent = {
+    ...event,
+    inviteMode: 'email_invites',
+    joinToken: null,
+    participants: [...event.participants, { id: 'p-org', email: 'organizer@example.com' }],
+  };
+
+  it('sends to organizer email', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.to).toBe('organizer@example.com');
+  });
+
+  it('subject does not say "has been created" (CQ-3)', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.subject).not.toMatch(/has been created/i);
+    expect(msg.subject).not.toMatch(/sikeresen létrejött/i);
+  });
+
+  it('subject contains event name', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.subject).toContain('Summer Meetup');
+  });
+
+  it('includes admin link', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.text).toContain('/admin/admin-token-uuid');
+  });
+
+  it('includes join link for shared_link mode', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(sharedLinkEvent);
+    expect(msg.text).toContain('/join/join-token-uuid');
+  });
+
+  it('does not include join link for email_invites mode', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.text).not.toContain('/join/');
+  });
+
+  it('includes organizer voting link when organizer is a participant', () => {
+    const msg = buildOrganizerLinkRecoveryEmail(emailInvitesEvent);
+    expect(msg.text).toContain('/participate/p-org');
+  });
+
+  it('uses Hungarian when event.lang is "hu"', () => {
+    const msg = buildOrganizerLinkRecoveryEmail({ ...emailInvitesEvent, lang: 'hu' });
+    expect(msg.subject).not.toContain('Your event');
+    expect(msg.subject).toContain('Summer Meetup');
   });
 });
 

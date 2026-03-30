@@ -49,6 +49,14 @@
     "notes": "Note from the organizer: {{notes}}",
     "calendarAttached": "A calendar invite is attached."
   },
+  "organizerLinkRecovery": {
+    "subject": "Your links for: {{eventName}}",
+    "greeting": "Hi,",
+    "intro": "Here are the links for your event \"{{eventName}}\".",
+    "manageLink": "Manage your event here (keep this link private):",
+    "shareLink": "Share this link for others to join:",
+    "yourVotingLink": "Your voting link:"
+  },
   "organizerFinalizationEmail": {
     "subject": "Event finalized: {{eventName}}",
     "greeting": "Hi,",
