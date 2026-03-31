@@ -27,10 +27,10 @@ services:
       - "8080:8080"
     volumes:
       - ./otp/data:/var/opentripplanner
-    command: ["--build", "--serve"]
+    command: ["--load", "--serve"]
     environment:
-      JAVA_TOOL_OPTIONS: "-Xmx3g"
-    mem_limit: 4g
+      JAVA_TOOL_OPTIONS: "-Xmx1g"
+    mem_limit: 2g
 
   backend:
     build:
