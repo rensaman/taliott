@@ -29,8 +29,8 @@ services:
       - ./otp/data:/var/opentripplanner
     command: ["--build", "--serve"]
     environment:
-      JAVA_TOOL_OPTIONS: "-Xmx2g"
-    mem_limit: 2560m
+      JAVA_TOOL_OPTIONS: "-Xmx3g"
+    mem_limit: 4g
 
   backend:
     build:
