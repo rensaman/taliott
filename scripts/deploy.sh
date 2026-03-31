@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Pulls main branch and redeploys changed containers.
-# Never touches the otp service (slow graph build, managed manually).
 #
 # Usage: ./scripts/deploy.sh [--force]
 #   --force  redeploy even if no git changes detected
@@ -45,6 +44,7 @@ fi
 # ── 2. Classify changes ──────────────────────────────────────────────────────
 REBUILD_BACKEND=false
 REBUILD_FRONTEND=false
+REBUILD_OTP=false
 RESTART_IMAGE_SERVICES=false
 
 while IFS= read -r file; do
@@ -53,15 +53,18 @@ while IFS= read -r file; do
       REBUILD_BACKEND=true ;;
     frontend/*)
       REBUILD_FRONTEND=true ;;
+    otp/*)
+      REBUILD_OTP=true ;;
     docker-compose*.yml|Caddyfile)
       RESTART_IMAGE_SERVICES=true ;;
   esac
 done <<< "$CHANGED"
 
-# Force flag rebuilds both app containers
+# Force flag rebuilds all app containers
 if [ "$FORCE" = true ]; then
   REBUILD_BACKEND=true
   REBUILD_FRONTEND=true
+  REBUILD_OTP=true
 fi
 
 # ── 3. Pull ──────────────────────────────────────────────────────────────────
@@ -72,6 +75,7 @@ git pull origin main 2>&1 | while IFS= read -r line; do log "git: $line"; done
 BUILD_TARGETS=()
 [ "$REBUILD_BACKEND" = true ]  && BUILD_TARGETS+=(backend)
 [ "$REBUILD_FRONTEND" = true ] && BUILD_TARGETS+=(frontend)
+[ "$REBUILD_OTP" = true ]      && BUILD_TARGETS+=(otp)
 
 if [ ${#BUILD_TARGETS[@]} -gt 0 ]; then
   log "Building & restarting: ${BUILD_TARGETS[*]}"
@@ -80,10 +84,9 @@ if [ ${#BUILD_TARGETS[@]} -gt 0 ]; then
 fi
 
 # ── 5. Restart image-based services if compose config changed ───────────────
-# Never includes otp — that container is managed manually.
 if [ "$RESTART_IMAGE_SERVICES" = true ]; then
-  log "Compose config changed — restarting image-based services (not otp)..."
-  $COMPOSE up -d --no-deps --no-recreate caddy postgres postgres-umami umami \
+  log "Compose config changed — restarting image-based services..."
+  $COMPOSE up -d --no-deps --no-recreate caddy postgres postgres-umami umami otp \
     2>&1 | while IFS= read -r line; do log "up: $line"; done
 fi
 
