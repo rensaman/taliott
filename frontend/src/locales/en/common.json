@@ -245,6 +245,8 @@
     "notesPlaceholder": "e.g. Please bring ID, dress code: smart casual…",
     "btnFinalize": "Finalize Event",
     "btnFinalizing": "Finalizing…",
+    "hintNoSlot": "Select a time slot to enable finalization",
+    "hintNoVenue": "Enter a venue name to enable finalization",
     "errorNetwork": "Network error — please try again",
     "errorGeneric": "Finalization failed",
     "confirmTitle": "Review & confirm",

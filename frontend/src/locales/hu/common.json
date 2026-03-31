@@ -245,6 +245,8 @@
     "notesPlaceholder": "pl. Kérjük hozzatok igazolványt, öltözési kód: elegáns hétköznapi…",
     "btnFinalize": "Esemény véglegesítése",
     "btnFinalizing": "Véglegesítés…",
+    "hintNoSlot": "A véglegesítéshez válassz ki egy időpontot",
+    "hintNoVenue": "A véglegesítéshez add meg a helyszín nevét",
     "errorNetwork": "Hálózati hiba — kérjük, próbálja újra",
     "errorGeneric": "Véglegesítés sikertelen",
     "confirmTitle": "Áttekintés és megerősítés",

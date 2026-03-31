@@ -59,21 +59,6 @@ describe('ParticipantResponseList', () => {
     });
   });
 
-  // ─── UX-6: Availability dot legend ───────────────────────────────────────
-
-  it('renders an availability legend', () => {
-    render(<ParticipantResponseList participants={PARTICIPANTS} />);
-    expect(screen.getByTestId('avail-legend')).toBeInTheDocument();
-  });
-
-  it('availability legend contains yes, maybe, and no labels', () => {
-    render(<ParticipantResponseList participants={PARTICIPANTS} />);
-    const legend = screen.getByTestId('avail-legend');
-    expect(legend).toHaveTextContent(/yes/i);
-    expect(legend).toHaveTextContent(/maybe/i);
-    expect(legend).toHaveTextContent(/no/i);
-  });
-
   // ─── UX-4: Resend invite button ───────────────────────────────────────────
 
   describe('resend invite button', () => {

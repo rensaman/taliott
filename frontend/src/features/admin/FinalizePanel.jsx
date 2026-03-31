@@ -219,6 +219,12 @@ export default function FinalizePanel({
           >
             {loading ? t('finalize.btnFinalizing') : t('finalize.btnFinalize')}
           </button>
+          {!loading && !slotId && (
+            <p className="finalize-hint" data-testid="finalize-hint">{t('finalize.hintNoSlot')}</p>
+          )}
+          {!loading && slotId && venueMode === 'custom' && !venueName.trim() && (
+            <p className="finalize-hint" data-testid="finalize-hint">{t('finalize.hintNoVenue')}</p>
+          )}
         </div>
       </form>
 

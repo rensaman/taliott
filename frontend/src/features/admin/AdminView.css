@@ -892,3 +892,114 @@
 .venue-list-status--error {
   color: var(--red);
 }
+
+/* ─── Join link bar (shared-link events) ─────────────────────────────────── */
+
+.admin-join-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 1.25rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--field-bg);
+}
+
+.admin-join-link code {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--ink);
+  opacity: 0.7;
+}
+
+.admin-join-link .btn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  transition: border-color 0.12s, color 0.12s;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.admin-join-link .btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* ─── Finalize hint ───────────────────────────────────────────────────────── */
+
+.finalize-hint {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ─── Finalize confirm modal ──────────────────────────────────────────────── */
+
+.finalize-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1.5rem;
+}
+
+.finalize-confirm-dialog {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  padding: 2rem 2rem 1.5rem;
+  max-width: 440px;
+  width: 100%;
+}
+
+.finalize-confirm-dialog h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.5rem;
+}
+
+.finalize-confirm-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem 1rem;
+  font-size: 0.875rem;
+  margin: 0 0 1.75rem;
+}
+
+.finalize-confirm-details dt {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding-top: 0.15rem;
+  white-space: nowrap;
+}
+
+.finalize-confirm-details dd {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.finalize-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
