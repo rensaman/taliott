@@ -127,15 +127,11 @@ async function resolveDurations(located, dest, { prisma, fetchFn, navitiaFetchFn
       const d = await fetchNavitiaTravelDuration(located[i], dest, navitiaFetchFn);
       if (prisma) await storeCachedDurations(prisma, [located[i]], dest, 'transit', [d]);
       durations[i] = d;
-    } catch {
+    } catch (err) {
+      console.error('[centroid] OTP transit failed, falling back to haversine:', err.message);
       const fallback = haversineDistance(
         located[i].latitude, located[i].longitude, dest.lat, dest.lng,
       );
-      if (prisma) {
-        storeCachedDurations(prisma, [located[i]], dest, 'transit', [fallback]).catch(err =>
-          console.error('[centroid] failed to cache transit fallback:', err),
-        );
-      }
       durations[i] = fallback;
     }
   }

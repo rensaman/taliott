@@ -262,6 +262,10 @@
   background: var(--field-bg);
 }
 
+.slot-score-card--single {
+  grid-template-columns: 1fr auto;
+}
+
 .slot-score-rank {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -287,6 +291,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink);
+  white-space: nowrap;
 }
 
 .slot-score-time {

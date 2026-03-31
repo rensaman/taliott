@@ -13,7 +13,7 @@ export default function SlotScoreCard({ slot, rank, selected, onClick, totalSlot
   return (
     <div
       data-testid={`slot-card-${slot.id}`}
-      className={`slot-score-card${selected ? ' slot-score-card--selected' : ''}`}
+      className={`slot-score-card${selected ? ' slot-score-card--selected' : ''}${totalSlots === 1 ? ' slot-score-card--single' : ''}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
