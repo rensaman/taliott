@@ -30,7 +30,7 @@ services:
     command: ["--build", "--serve"]
     environment:
       JAVA_TOOL_OPTIONS: "-Xmx2g"
-    mem_limit: 4g
+    mem_limit: 2560m
 
   backend:
     build:
