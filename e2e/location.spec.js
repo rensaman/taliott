@@ -25,7 +25,6 @@ test('participant sees address search on the location step', async ({ page }) =>
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   await expect(page.getByLabel(/search address/i)).toBeVisible();
 });
@@ -66,7 +65,6 @@ test('participant types address, selects result, and coordinates are saved', asy
   );
 
   await page.goto(`/participate/${pid}`);
-  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   const input = page.getByLabel(/search address/i);
   await input.fill('London');
@@ -96,7 +94,6 @@ test('participant can select a travel mode on step 3', async ({ page }) => {
   const pid = participants[0].id;
 
   await page.goto(`/participate/${pid}`);
-  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
 
   // Travel mode selector should be visible
   await expect(page.getByTestId('travel-mode-selector')).toBeVisible();

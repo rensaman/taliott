@@ -10,7 +10,7 @@ import { useNavigationGuard } from '../../hooks/useNavigationGuard.js';
 import '../setup/EventSetupForm.css';
 import './ResponseWizard.css';
 
-const STEPS = ['name', 'travel_location', 'dates', 'review'];
+const STEPS = ['travel_location', 'dates', 'review'];
 
 export default function ResponseWizard({
   participantId,
@@ -19,7 +19,7 @@ export default function ResponseWizard({
   slots,
   initialAvailability,
   initialLocation,
-  initialTravelMode = 'transit',
+  initialTravelMode = null,
   eventTimezone = 'UTC',
   eventName,
   eventDeadline,
@@ -29,18 +29,18 @@ export default function ResponseWizard({
 }) {
   const { t } = useTranslation();
 
-  const STEP_LABELS = [
-    t('participate.steps.name'),
+  // 4-step labels including the join step (always shown as done in wizard)
+  const ALL_STEP_LABELS = [
+    t('participate.steps.join'),
     t('participate.steps.location'),
     t('participate.steps.dates'),
     t('participate.steps.review'),
   ];
+
   const [step, setStep] = useState(initialStep);
-  const [nameValue, setNameValue] = useState(initialName ?? '');
   const [location, setLocation] = useState(initialLocation ?? null);
   const locationFieldsetRef = useRef(null);
   const [travelMode, setTravelMode] = useState(initialTravelMode);
-  const [nameError, setNameError] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [travelModeError, setTravelModeError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
@@ -63,22 +63,6 @@ export default function ResponseWizard({
 
   const currentStep = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
-
-  async function saveName() {
-    const trimmed = nameValue.trim();
-    if (trimmed === (initialName ?? '').trim()) return true;
-    if (!trimmed) return true; // clearing name is a no-op — backend requires non-empty
-    try {
-      const res = await fetch(`/api/participate/${participantId}/name`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: trimmed }),
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  }
 
   async function saveLocation(loc) {
     setLocation(loc);
@@ -123,7 +107,7 @@ export default function ResponseWizard({
         return;
       }
       setConfirmed(true);
-      onComplete({ name: nameValue.trim() || null, location, travelMode });
+      onComplete({ name: initialName ?? null, location, travelMode });
     } catch {
       setSubmitError(t('participate.review.errorSubmit'));
     } finally {
@@ -133,14 +117,6 @@ export default function ResponseWizard({
 
   async function handleNext(e) {
     e?.preventDefault();
-    if (currentStep === 'name') {
-      const ok = await saveName();
-      if (!ok) {
-        setNameError(t('participate.name.errorSave'));
-        return;
-      }
-      setNameError(null);
-    }
     if (isLastStep) {
       await handleSubmit();
     } else {
@@ -152,48 +128,21 @@ export default function ResponseWizard({
     setStep(s => s - 1);
   }
 
-  async function handleStepClick(targetStep) {
+  function handleBarStepClick(barIndex) {
+    if (barIndex === 0) return; // join step — can't navigate back there
+    const targetStep = barIndex - 1;
     if (targetStep >= step) return;
-    if (currentStep === 'name') {
-      const ok = await saveName();
-      if (!ok) { setNameError(t('participate.name.errorSave')); return; }
-      setNameError(null);
-    }
     setStep(targetStep);
   }
 
   function canAdvance() {
-    if (currentStep === 'travel_location') return !!location && !locationError && !travelModeError;
+    if (currentStep === 'travel_location') return !!travelMode && !!location && !locationError && !travelModeError;
     if (currentStep === 'review') return !submitting;
     return true;
   }
 
   function renderStepContent() {
     switch (currentStep) {
-      case 'name':
-        return (
-          <>
-            <h2>{t('participate.name.heading')}</h2>
-            <div className="field">
-              <label htmlFor="participant-name" className="field-label">{t('participate.name.label')}</label>
-              <input
-                id="participant-name"
-                className="wizard-input"
-                type="text"
-                value={nameValue}
-                onChange={e => {
-                  setNameValue(e.target.value);
-                  if (e.target.value.trim() !== (initialName ?? '').trim()) setHasMadeChanges(true);
-                }}
-                autoFocus
-                placeholder={t('participate.name.placeholder')}
-                data-testid="name-input"
-              />
-            </div>
-            {nameError && <p className="wizard-error" role="alert">{nameError}</p>}
-          </>
-        );
-
       case 'travel_location':
         return (
           <>
@@ -242,16 +191,18 @@ export default function ResponseWizard({
           <>
             <h2>{t('participate.review.heading')}</h2>
             <div className="review-ticket">
-              {nameValue.trim() && (
+              {initialName?.trim() && (
                 <div className="review-ticket-row">
                   <span className="review-ticket-label">{t('participate.review.labelName')}</span>
-                  <span className="review-ticket-value">{nameValue.trim()}</span>
+                  <span className="review-ticket-value">{initialName.trim()}</span>
                 </div>
               )}
-              <div className="review-ticket-row">
-                <span className="review-ticket-label">{t('participate.review.labelTravel')}</span>
-                <span className="review-ticket-value">{t(`travelMode.${travelMode}.label`, { defaultValue: travelMode })}</span>
-              </div>
+              {travelMode && (
+                <div className="review-ticket-row">
+                  <span className="review-ticket-label">{t('participate.review.labelTravel')}</span>
+                  <span className="review-ticket-value">{t(`travelMode.${travelMode}.label`, { defaultValue: travelMode })}</span>
+                </div>
+              )}
               {location?.label && (
                 <div className="review-ticket-row">
                   <span className="review-ticket-label">{t('participate.review.labelFrom')}</span>
@@ -289,12 +240,16 @@ export default function ResponseWizard({
     <form className="wizard" onSubmit={handleNext} aria-label="Participation">
       <header className="wizard-header">
         <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
-        <StepRoute stepLabels={STEP_LABELS} current={step} onStepClick={handleStepClick} />
+        <StepRoute
+          stepLabels={ALL_STEP_LABELS}
+          current={step + 1}
+          onStepClick={handleBarStepClick}
+        />
       </header>
 
       <div className="wizard-body">
         <p style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
-          Step {step + 1} of {STEPS.length}
+          Step {step + 2} of {STEPS.length + 1}
         </p>
         {eventName && (
           <div className="rw-event-context">

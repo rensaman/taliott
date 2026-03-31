@@ -40,7 +40,7 @@ export default function ParticipateView({ participantId }) {
       ? { lat: participant.latitude, lng: participant.longitude, label: participant.address_label }
       : null;
 
-  const travelMode = participant.travel_mode ?? 'transit';
+  const travelMode = participant.responded_at ? (participant.travel_mode ?? 'transit') : null;
 
   const showWizard = !event.locked && (!participant.responded_at || updatingStep !== null);
 

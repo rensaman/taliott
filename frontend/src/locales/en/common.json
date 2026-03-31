@@ -100,6 +100,7 @@
   },
   "participate": {
     "steps": {
+      "join": "Join",
       "name": "Name",
       "location": "Location",
       "dates": "Dates",
@@ -345,6 +346,7 @@
   },
   "travelMode": {
     "legend": "How will you get there?",
+    "change": "Change",
     "transit": { "label": "Transit", "description": "Bus, metro, or train" },
     "driving": { "label": "Car", "description": "Drive your own vehicle" },
     "cycling": { "label": "Cycling", "description": "Bike or e-bike" },

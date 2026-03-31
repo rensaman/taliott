@@ -51,13 +51,14 @@ test('participation view shows the correct number of time slots', async ({ page 
   const { participants, slots } = await createEvent(page, { deadline: FUTURE_DEADLINE });
   const pid = participants[0].id;
 
-  // Pre-set location so Continue is not blocked on the travel+location step
+  // Pre-set location so Continue is not blocked on the address part
   await page.request.patch(`/api/participate/${pid}/location`, {
     data: { latitude: 48.8566, longitude: 2.3522, address_label: 'Paris' },
   });
 
   await page.goto(`/participate/${pid}`);
-  await page.getByTestId('wizard-next-btn').click(); // name → travel+location
+  // Select a travel mode (required before advancing)
+  await page.locator('[data-testid="travel-mode-transit"]').click();
   await page.getByTestId('wizard-next-btn').click(); // travel+location → dates
 
   await expect(page.getByTestId('slot-cell')).toHaveCount(slots.length);

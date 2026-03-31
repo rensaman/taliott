@@ -99,29 +99,23 @@ test.describe('Participation flow', () => {
     const pid = event.participants[0].id;
 
     await page.goto(`/participate/${pid}`);
-    await page.waitForSelector('[data-testid="name-input"]', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="travel-mode-selector"]', { timeout: 10000 });
 
-    // Step 1 — name
-    await snap(page, 'participate-01-name.png');
-    await page.getByTestId('name-input').fill('Jamie');
-    await page.getByTestId('wizard-next-btn').click();
-    await page.waitForTimeout(500);
-
-    // Step 2 — travel mode & location (location required; bypass via form submit)
-    await snap(page, 'participate-02-location.png');
+    // Step 1 — travel mode & location (location required; bypass via form submit)
+    await snap(page, 'participate-01-location.png');
     await submitForm(page);
     await page.waitForTimeout(300);
 
     // Step 3 — availability grid
     await page.waitForSelector('[data-testid="slot-cell"]', { timeout: 5000 });
-    await snap(page, 'participate-03-availability.png');
+    await snap(page, 'participate-02-availability.png');
     await page.getByTestId('wizard-next-btn').click();
     await page.waitForTimeout(300);
 
-    // Step 4 — review & submit
-    await snap(page, 'participate-04-review.png');
+    // Step 3 — review & submit
+    await snap(page, 'participate-03-review.png');
     await page.getByTestId('submit-btn').click();
     await page.waitForTimeout(1500);
-    await snap(page, 'participate-05-done.png');
+    await snap(page, 'participate-04-done.png');
   });
 });

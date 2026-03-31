@@ -13,13 +13,10 @@ export default function ResponseSummary({ name, locked, onUpdate }) {
       </p>
       {!locked && (
         <div className="pv-update-links">
-          <button className="pv-update-link" data-testid="update-name-btn" onClick={() => onUpdate(0)}>
-            {t('participate.summary.changeName')}
-          </button>
-          <button className="pv-update-link" data-testid="update-location-btn" onClick={() => onUpdate(1)}>
+          <button className="pv-update-link" data-testid="update-location-btn" onClick={() => onUpdate(0)}>
             {t('participate.summary.changeLocation')}
           </button>
-          <button className="pv-update-link" data-testid="update-dates-btn" onClick={() => onUpdate(2)}>
+          <button className="pv-update-link" data-testid="update-dates-btn" onClick={() => onUpdate(1)}>
             {t('participate.summary.changeDates')}
           </button>
         </div>

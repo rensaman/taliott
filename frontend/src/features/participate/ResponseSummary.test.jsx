@@ -30,39 +30,31 @@ describe('ResponseSummary', () => {
     expect(screen.getByTestId('summary-confirmed')).toBeInTheDocument();
   });
 
-  it('shows step-specific update buttons when not locked', () => {
+  it('shows location and dates update buttons when not locked', () => {
     renderSummary({ locked: false });
-    expect(screen.getByTestId('update-name-btn')).toBeInTheDocument();
     expect(screen.getByTestId('update-location-btn')).toBeInTheDocument();
     expect(screen.getByTestId('update-dates-btn')).toBeInTheDocument();
+    expect(screen.queryByTestId('update-name-btn')).not.toBeInTheDocument();
   });
 
   it('hides update buttons when locked', () => {
     renderSummary({ locked: true });
-    expect(screen.queryByTestId('update-name-btn')).not.toBeInTheDocument();
     expect(screen.queryByTestId('update-location-btn')).not.toBeInTheDocument();
     expect(screen.queryByTestId('update-dates-btn')).not.toBeInTheDocument();
   });
 
-  it('calls onUpdate(0) when Change name is clicked', () => {
-    const onUpdate = vi.fn();
-    renderSummary({ onUpdate });
-    screen.getByTestId('update-name-btn').click();
-    expect(onUpdate).toHaveBeenCalledWith(0);
-  });
-
-  it('calls onUpdate(1) when Change location is clicked', () => {
+  it('calls onUpdate(0) when Change location is clicked', () => {
     const onUpdate = vi.fn();
     renderSummary({ onUpdate });
     screen.getByTestId('update-location-btn').click();
-    expect(onUpdate).toHaveBeenCalledWith(1);
+    expect(onUpdate).toHaveBeenCalledWith(0);
   });
 
-  it('calls onUpdate(2) when Change dates is clicked', () => {
+  it('calls onUpdate(1) when Change dates is clicked', () => {
     const onUpdate = vi.fn();
     renderSummary({ onUpdate });
     screen.getByTestId('update-dates-btn').click();
-    expect(onUpdate).toHaveBeenCalledWith(2);
+    expect(onUpdate).toHaveBeenCalledWith(1);
   });
 });
 

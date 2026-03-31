@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import StepRoute from '../setup/StepRoute.jsx';
 import LegalFooter from '../legal/LegalFooter.jsx';
 import '../setup/EventSetupForm.css';
 import './JoinView.css';
 
 export default function JoinView({ joinToken }) {
   const { t, i18n } = useTranslation();
+  const JOIN_STEP_LABELS = [
+    t('participate.steps.join'),
+    t('participate.steps.location'),
+    t('participate.steps.dates'),
+    t('participate.steps.review'),
+  ];
   const [event, setEvent] = useState(null);
   const [error, setError] = useState(null);
   const [name, setName] = useState('');
@@ -91,6 +98,7 @@ export default function JoinView({ joinToken }) {
     <main className="join-shell">
       <header className="join-header">
         <a href="/" className="wizard-wordmark">{t('wizard.wordmark')}</a>
+        <StepRoute stepLabels={JOIN_STEP_LABELS} current={0} />
       </header>
 
       <div className="join-body">

@@ -100,6 +100,7 @@
   },
   "participate": {
     "steps": {
+      "join": "Belépés",
       "name": "Név",
       "location": "Helyszín",
       "dates": "Dátumok",
@@ -345,6 +346,7 @@
   },
   "travelMode": {
     "legend": "Hogyan jutsz oda?",
+    "change": "Módosít",
     "transit": { "label": "Tömegközlekedés", "description": "Busz, metró vagy vonat" },
     "driving": { "label": "Autó", "description": "Saját járművel" },
     "cycling": { "label": "Kerékpár", "description": "Kerékpár vagy e-bike" },
