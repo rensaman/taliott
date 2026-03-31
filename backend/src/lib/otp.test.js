@@ -5,65 +5,47 @@ const ORIGIN = { latitude: 47.497, longitude: 19.040 };
 const DEST = { lat: 47.520, lng: 19.060 };
 
 const OTP_RESPONSE = (duration) => ({
-  plan: { itineraries: [{ duration }] },
+  data: { plan: { itineraries: [{ duration }] } },
 });
 
+function mockOk(body) {
+  return vi.fn().mockResolvedValue({ ok: true, json: async () => body });
+}
+
 describe('fetchNavitiaTravelDuration', () => {
-  it('calls the OTP plan endpoint', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => OTP_RESPONSE(900),
-    });
-
+  it('calls the OTP GraphQL endpoint', async () => {
+    const mockFetch = mockOk(OTP_RESPONSE(900));
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
-
-    expect(mockFetch).toHaveBeenCalledOnce();
     const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain('/otp/routers/default/plan');
+    expect(url).toContain('/otp/routers/default/index/graphql');
   });
 
-  it('passes origin as fromPlace=lat,lon', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => OTP_RESPONSE(900),
-    });
-
+  it('sends a POST with JSON content-type', async () => {
+    const mockFetch = mockOk(OTP_RESPONSE(900));
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
-
-    const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain(`fromPlace=${ORIGIN.latitude},${ORIGIN.longitude}`);
+    const [, options] = mockFetch.mock.calls[0];
+    expect(options.method).toBe('POST');
+    expect(options.headers['Content-Type']).toBe('application/json');
   });
 
-  it('passes destination as toPlace=lat,lon', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => OTP_RESPONSE(900),
-    });
-
+  it('includes origin coordinates in query body', async () => {
+    const mockFetch = mockOk(OTP_RESPONSE(900));
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
-
-    const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain(`toPlace=${DEST.lat},${DEST.lng}`);
+    const [, options] = mockFetch.mock.calls[0];
+    expect(options.body).toContain(`${ORIGIN.latitude}`);
+    expect(options.body).toContain(`${ORIGIN.longitude}`);
   });
 
-  it('requests TRANSIT,WALK mode', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => OTP_RESPONSE(900),
-    });
-
+  it('includes destination coordinates in query body', async () => {
+    const mockFetch = mockOk(OTP_RESPONSE(900));
     await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
-
-    const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain('mode=TRANSIT,WALK');
+    const [, options] = mockFetch.mock.calls[0];
+    expect(options.body).toContain(`${DEST.lat}`);
+    expect(options.body).toContain(`${DEST.lng}`);
   });
 
   it('returns the duration of the first itinerary', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ plan: { itineraries: [{ duration: 1234 }, { duration: 999 }] } }),
-    });
-
+    const mockFetch = mockOk({ data: { plan: { itineraries: [{ duration: 1234 }, { duration: 999 }] } } });
     const result = await fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch);
     expect(result).toBe(1234);
   });
@@ -76,20 +58,14 @@ describe('fetchNavitiaTravelDuration', () => {
   });
 
   it('throws when itineraries array is empty', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ plan: { itineraries: [] } }),
-    });
+    const mockFetch = mockOk({ data: { plan: { itineraries: [] } } });
     await expect(
       fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch),
     ).rejects.toThrow('no itineraries found');
   });
 
   it('throws when plan is missing from response', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ error: 'no path' }),
-    });
+    const mockFetch = mockOk({ data: {} });
     await expect(
       fetchNavitiaTravelDuration(ORIGIN, DEST, mockFetch),
     ).rejects.toThrow('no itineraries found');
