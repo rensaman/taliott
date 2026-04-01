@@ -36,6 +36,7 @@ Live at **[taliott.hu](https://taliott.hu)**
 - Node.js 20+
 - Docker (for the database and optional services)
 - Playwright browsers — install once with `npx playwright install` (E2E tests only)
+- `osmium-tool` — required only if using OTP transit routing (`apt install osmium-tool` / `brew install osmium-tool`)
 
 ### 1. Install dependencies
 
