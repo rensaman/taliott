@@ -68,8 +68,8 @@ APP_BASE_URL="http://localhost:3000"
 # ORS_API_KEY="your-key-here"
 
 # Optional: OpenTripPlanner URL for transit-aware centroid.
-# docker compose up otp  — or leave unset to default to http://localhost:8080
-# OTP_BASE_URL="http://localhost:8080"
+# Requires a pre-built graph — see "OpenTripPlanner (transit routing)" below.
+# OTP_BASE_URL="http://otp:8080"
 ```
 
 Analytics (optional) — create `frontend/.env.local`:
@@ -144,6 +144,30 @@ An NPS feedback form (0–10 score + optional comment) is shown:
 - To participants immediately after they submit their availability
 
 Responses are stored in the `Feedback` table in the app database. Each browser submits at most once (tracked via `localStorage`).
+
+---
+
+## OpenTripPlanner (transit routing)
+
+OTP provides travel-time estimates for participants who choose the "public transit" mode. It is optional — the app falls back to straight-line distance if OTP is unavailable.
+
+OTP requires a pre-built graph before it can serve requests. Run these once, and again whenever GTFS or OSM data changes:
+
+```bash
+# 1. Download BKK transit schedules (GTFS)
+./scripts/download-gtfs.sh
+
+# 2. Download Hungary street network (OSM PBF) from Geofabrik
+./scripts/download-osm.sh
+
+# 3. Build the graph (needs ~4 GB RAM, exits when done)
+./scripts/build-otp-graph.sh
+
+# 4. Start OTP (loads the pre-built graph, ~1 GB RAM)
+docker compose up -d otp
+```
+
+OSM data is © OpenStreetMap contributors, available under the [ODbL licence](https://www.openstreetmap.org/copyright). BKK GTFS data is used under BKK's open data licence.
 
 ---
 
