@@ -224,8 +224,8 @@ describe('computeCentroid — OTP travel-time weights (transit)', () => {
   it('pulls the result toward the participant with shorter transit time', async () => {
     // Transit participant A at (0,0): 200 s; B at (2,0): 2000 s
     const navMock = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ plan: { itineraries: [{ duration: 200 }] } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ plan: { itineraries: [{ duration: 2000 }] } }) });
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { plan: { itineraries: [{ duration: 200 }] } } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { plan: { itineraries: [{ duration: 2000 }] } } }) });
 
     const result = await computeCentroid(
       [
@@ -256,7 +256,7 @@ describe('computeCentroid — OTP travel-time weights (transit)', () => {
 
   it('caches transit durations with mode "transit"', async () => {
     const navMock = vi.fn()
-      .mockResolvedValue({ ok: true, json: async () => ({ plan: { itineraries: [{ duration: 500 }] } }) });
+      .mockResolvedValue({ ok: true, json: async () => ({ data: { plan: { itineraries: [{ duration: 500 }] } } }) });
     const mockUpsert = vi.fn().mockResolvedValue({});
     const mockPrisma = {
       routeCache: {
@@ -294,7 +294,7 @@ describe('computeCentroid — mixed travel modes', () => {
     });
     const navMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ plan: { itineraries: [{ duration: 600 }] } }),
+      json: async () => ({ data: { plan: { itineraries: [{ duration: 600 }] } } }),
     });
 
     const result = await computeCentroid(
