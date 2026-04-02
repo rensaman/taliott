@@ -42,6 +42,8 @@
     },
     "email": {
       "heading": "Mi az e-mail-címed?",
+      "nameLabel": "A neved (nem kötelező)",
+      "namePlaceholder": "pl. Alex",
       "label": "E-mail-cím",
       "placeholder": "te@pelda.hu"
     },
@@ -83,7 +85,7 @@
     "review": {
       "heading": "Készen állsz az esemény létrehozására?",
       "labelName": "Név",
-      "labelOrg": "E-mail",
+      "labelOrg": "Szervező",
       "labelWhen": "Mikor",
       "labelDates": "Dátumok",
       "labelTime": "Idő",

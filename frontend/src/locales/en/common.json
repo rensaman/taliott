@@ -42,6 +42,8 @@
     },
     "email": {
       "heading": "What's your email?",
+      "nameLabel": "Your name (optional)",
+      "namePlaceholder": "e.g. Alex",
       "label": "Your email",
       "placeholder": "you@example.com"
     },
@@ -83,7 +85,7 @@
     "review": {
       "heading": "Ready to create your event?",
       "labelName": "Name",
-      "labelOrg": "Email",
+      "labelOrg": "Organizer",
       "labelWhen": "When",
       "labelDates": "Dates",
       "labelTime": "Time",

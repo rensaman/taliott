@@ -44,6 +44,7 @@ router.post('/', async (req, res) => {
   const {
     name,
     organizer_email,
+    organizer_name,
     invite_mode = 'email_invites',
     participant_emails = [],
     date_range_start,
@@ -76,6 +77,11 @@ router.post('/', async (req, res) => {
   const normalizedParticipantEmails = Array.isArray(participant_emails)
     ? participant_emails.map(e => (typeof e === 'string' ? e.toLowerCase() : e))
     : [];
+
+  if (organizer_name !== undefined && (typeof organizer_name !== 'string' || organizer_name.trim().length === 0 || organizer_name.length > 200)) {
+    return res.status(400).json({ error: 'organizer_name must be a non-empty string of 200 characters or fewer' });
+  }
+  const trimmedOrganizerName = organizer_name ? organizer_name.trim() : null;
 
   if (!EMAIL_RE.test(normalizedOrganizerEmail)) {
     return res.status(400).json({ error: 'organizer_email is not a valid email address' });
@@ -162,7 +168,12 @@ router.post('/', async (req, res) => {
         lang,
         status: 'open',
         slots: { create: slotData },
-        participants: { create: participantEmails.map(email => ({ email })) },
+        participants: {
+          create: participantEmails.map(email => ({
+            email,
+            ...(email === normalizedOrganizerEmail && trimmedOrganizerName ? { name: trimmedOrganizerName } : {}),
+          })),
+        },
       },
       include: {
         slots: { orderBy: { startsAt: 'asc' } },

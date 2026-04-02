@@ -8,6 +8,7 @@ import enCommon from '../../locales/en/common.json';
 // or all the way to the review step if `stopAt` is omitted.
 function navigateToReview({
   name = 'Summer meetup',
+  organizerName = '',
   organizerEmail = 'alex@example.com',
   isFixed = false,
   fixedDate = '2025-06-01',
@@ -29,6 +30,11 @@ function navigateToReview({
   if (stopAt === 'organizer_email') return;
 
   // Step 2 → date_and_time
+  if (organizerName) {
+    fireEvent.change(screen.getByRole('textbox', { name: /your name/i }), {
+      target: { value: organizerName },
+    });
+  }
   fireEvent.change(screen.getByRole('textbox', { name: /your email/i }), {
     target: { value: organizerEmail },
   });
@@ -255,6 +261,12 @@ describe('EventSetupForm', () => {
     expect(screen.getByText(/22:00/)).toBeInTheDocument();
   });
 
+  it('review step shows organizer name combined with email when name is provided', () => {
+    render(<EventSetupForm />);
+    navigateToReview({ organizerName: 'Alex', organizerEmail: 'alex@example.com' });
+    expect(screen.getByText('Alex · alex@example.com')).toBeInTheDocument();
+  });
+
   it('review step shows invitee emails when email_invites mode is used', () => {
     render(<EventSetupForm />);
     navigateToReview({
@@ -290,6 +302,26 @@ describe('EventSetupForm', () => {
     expect(body.time_range_end).toBe(720);
     expect(body.deadline).toMatch(/^2025-05-25T12:00:00[+-]\d{2}:\d{2}$/);
     expect(body.invite_mode).toBe('email_invites');
+  });
+
+  it('includes organizer_name in payload when provided', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+    render(<EventSetupForm />);
+    navigateToReview({ organizerName: 'Alex' });
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.organizer_name).toBe('Alex');
+  });
+
+  it('omits organizer_name from payload when not provided', async () => {
+    fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+    render(<EventSetupForm />);
+    navigateToReview();
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.organizer_name).toBeUndefined();
   });
 
   it('parses participant emails from the textarea (one per line)', async () => {
