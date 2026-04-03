@@ -301,19 +301,6 @@ describe('FinalizePanel', () => {
     expect(screen.queryByTestId('custom-venue-required')).not.toBeInTheDocument();
   });
 
-  // ─── UX-9: Single-slot hint ───────────────────────────────────────────────
-
-  it('shows a hint when only one slot is provided', () => {
-    const single = [{ id: 'solo-1', starts_at: '2025-07-10T14:00:00.000Z', ends_at: '2025-07-10T15:00:00.000Z' }];
-    render(<FinalizePanel adminToken="tok" slots={single} />);
-    expect(screen.getByTestId('single-slot-hint')).toBeInTheDocument();
-  });
-
-  it('does not show the single slot hint when multiple slots are provided', () => {
-    render(<FinalizePanel adminToken="tok" slots={SLOTS} />);
-    expect(screen.queryByTestId('single-slot-hint')).not.toBeInTheDocument();
-  });
-
   // ─── UX-11: Venue mode resets when venue selected in custom mode ──────────
 
   it('switches venue mode back to recommended when a venue is selected while in custom mode', () => {

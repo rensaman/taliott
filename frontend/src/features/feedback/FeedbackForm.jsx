@@ -56,7 +56,6 @@ export default function FeedbackForm({ context }) {
     <div className="feedback-card">
       <p className="feedback-question">{t('feedback.question')}</p>
       <div className="feedback-scale">
-        <span className="feedback-scale-label">{t('feedback.notAtAll')}</span>
         <div className="feedback-scores">
           {Array.from({ length: 11 }, (_, i) => (
             <button
@@ -70,7 +69,10 @@ export default function FeedbackForm({ context }) {
             </button>
           ))}
         </div>
-        <span className="feedback-scale-label">{t('feedback.extremely')}</span>
+        <div className="feedback-scale-labels">
+          <span className="feedback-scale-label">{t('feedback.notAtAll')}</span>
+          <span className="feedback-scale-label">{t('feedback.extremely')}</span>
+        </div>
       </div>
 
       {score !== null && (

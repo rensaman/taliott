@@ -26,10 +26,14 @@
 
 .feedback-scale {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.35rem;
   margin-bottom: 1rem;
+}
+
+.feedback-scale-labels {
+  display: flex;
+  justify-content: space-between;
 }
 
 .feedback-scale-label {
@@ -41,11 +45,11 @@
 .feedback-scores {
   display: flex;
   gap: 0.25rem;
-  flex-wrap: wrap;
 }
 
 .feedback-score-btn {
-  width: 2rem;
+  flex: 1;
+  min-width: 0;
   height: 2rem;
   font-family: var(--font-body);
   font-size: 0.8rem;

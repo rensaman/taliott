@@ -29,11 +29,10 @@ describe('PrivacyPolicyView', () => {
     expect(screen.getByTestId('legal-back-btn')).toBeInTheDocument();
   });
 
-  // UI-2: language toggle to HU
-  it('has a link to the Hungarian version', () => {
+  // UI-2: language toggle
+  it('renders the language selector with EN and HU buttons', () => {
     render(<PrivacyPolicyView />);
-    const langLink = screen.getByTestId('legal-lang-link');
-    expect(langLink).toHaveAttribute('href', '/privacy/hu');
-    expect(langLink).toHaveTextContent('HU');
+    expect(screen.getByRole('button', { name: /^EN$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^HU$/i })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import LegalFooter from './LegalFooter.jsx';
+import LanguageSelector from '../setup/LanguageSelector.jsx';
 import '../setup/EventSetupForm.css';
 import './LegalView.css';
 
@@ -12,7 +13,7 @@ export default function TermsView() {
         <div className="legal-header-nav">
           <button type="button" className="legal-back-btn" onClick={() => window.history.back()} data-testid="legal-back-btn">← Back</button>
           <a href="/" className="wizard-wordmark">{APP_NAME}</a>
-          <a href="/terms/hu" className="legal-lang-link" data-testid="legal-lang-link">HU</a>
+          <LanguageSelector />
         </div>
       </header>
 

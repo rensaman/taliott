@@ -110,19 +110,6 @@ export default function JoinView({ joinToken }) {
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="join-name" className="field-label">{t('join.nameLabel')}</label>
-            <input
-              id="join-name"
-              className="wizard-input"
-              type="text"
-              data-testid="join-name-input"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder={t('join.namePlaceholder')}
-              autoFocus
-            />
-          </div>
-          <div className="field">
             <label htmlFor="join-email" className="field-label">{t('join.emailLabel')}</label>
             <input
               id="join-email"
@@ -133,8 +120,21 @@ export default function JoinView({ joinToken }) {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder={t('join.emailPlaceholder')}
+              autoFocus
             />
             <p className="join-email-hint">{t('join.emailHint')}</p>
+          </div>
+          <div className="field">
+            <label htmlFor="join-name" className="field-label">{t('join.nameLabel')}</label>
+            <input
+              id="join-name"
+              className="wizard-input"
+              type="text"
+              data-testid="join-name-input"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder={t('join.namePlaceholder')}
+            />
           </div>
           {fieldError && <p className="wizard-error" role="alert">{fieldError}</p>}
           <button className="btn btn-primary" type="submit" disabled={submitting} data-testid="join-submit-btn">

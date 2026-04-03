@@ -3,6 +3,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LanguageSelector from './LanguageSelector.jsx';
 import i18n from '../../i18n.js';
 
+function setPathname(path) {
+  Object.defineProperty(window, 'location', {
+    value: { pathname: path, href: '' },
+    writable: true,
+    configurable: true,
+  });
+}
+
 describe('LanguageSelector', () => {
   it('renders EN and HU buttons', () => {
     render(<LanguageSelector />);
@@ -50,5 +58,53 @@ describe('LanguageSelector — localStorage persistence', () => {
     render(<LanguageSelector />);
     fireEvent.click(screen.getByRole('button', { name: /^EN$/i }));
     expect(mockStorage.setItem).toHaveBeenCalledWith('taliott_lang', 'en');
+  });
+});
+
+describe('LanguageSelector — legal pages', () => {
+  afterEach(() => {
+    setPathname('/');
+  });
+
+  it('marks EN active on /privacy', () => {
+    setPathname('/privacy');
+    render(<LanguageSelector />);
+    expect(screen.getByRole('button', { name: /^EN$/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^HU$/i })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('marks HU active on /privacy/hu', () => {
+    setPathname('/privacy/hu');
+    render(<LanguageSelector />);
+    expect(screen.getByRole('button', { name: /^HU$/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^EN$/i })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('navigates to /privacy/hu when HU is clicked on /privacy', () => {
+    setPathname('/privacy');
+    render(<LanguageSelector />);
+    fireEvent.click(screen.getByRole('button', { name: /^HU$/i }));
+    expect(window.location.href).toBe('/privacy/hu');
+  });
+
+  it('navigates to /privacy when EN is clicked on /privacy/hu', () => {
+    setPathname('/privacy/hu');
+    render(<LanguageSelector />);
+    fireEvent.click(screen.getByRole('button', { name: /^EN$/i }));
+    expect(window.location.href).toBe('/privacy');
+  });
+
+  it('navigates to /terms/hu when HU is clicked on /terms', () => {
+    setPathname('/terms');
+    render(<LanguageSelector />);
+    fireEvent.click(screen.getByRole('button', { name: /^HU$/i }));
+    expect(window.location.href).toBe('/terms/hu');
+  });
+
+  it('navigates to /terms when EN is clicked on /terms/hu', () => {
+    setPathname('/terms/hu');
+    render(<LanguageSelector />);
+    fireEvent.click(screen.getByRole('button', { name: /^EN$/i }));
+    expect(window.location.href).toBe('/terms');
   });
 });

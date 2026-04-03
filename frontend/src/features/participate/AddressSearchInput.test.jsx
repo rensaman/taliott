@@ -82,4 +82,28 @@ describe('AddressSearchInput', () => {
     expect(onSelect).toHaveBeenCalledWith(RESULTS[0]);
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
+
+  it('does not re-fetch after selection when debounce fires', async () => {
+    render(<AddressSearchInput onSelect={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText(/search address/i), 'Lon');
+    vi.advanceTimersByTime(300);
+    await waitFor(() => screen.getByRole('listbox'));
+    await userEvent.click(screen.getByRole('button', { name: /London/i }));
+    fetch.mockClear();
+    vi.advanceTimersByTime(400);
+    await waitFor(() => expect(fetch).not.toHaveBeenCalled());
+  });
+
+  it('shows results again when user edits input after selection', async () => {
+    render(<AddressSearchInput onSelect={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText(/search address/i), 'Lon');
+    vi.advanceTimersByTime(300);
+    await waitFor(() => screen.getByRole('listbox'));
+    await userEvent.click(screen.getByRole('button', { name: /London/i }));
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    // Edit the selected text
+    await userEvent.type(screen.getByLabelText(/search address/i), 'x');
+    vi.advanceTimersByTime(300);
+    await waitFor(() => screen.getByRole('listbox'));
+  });
 });

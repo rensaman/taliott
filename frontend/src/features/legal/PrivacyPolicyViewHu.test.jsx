@@ -40,11 +40,10 @@ describe('PrivacyPolicyViewHu', () => {
     expect(screen.getByTestId('legal-back-btn')).toBeInTheDocument();
   });
 
-  // UI-2: language toggle to EN
-  it('has a link to the English version', () => {
+  // UI-2: language toggle
+  it('renders the language selector with EN and HU buttons', () => {
     render(<PrivacyPolicyViewHu />);
-    const langLink = screen.getByTestId('legal-lang-link');
-    expect(langLink).toHaveAttribute('href', '/privacy');
-    expect(langLink).toHaveTextContent('EN');
+    expect(screen.getByRole('button', { name: /^EN$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^HU$/i })).toBeInTheDocument();
   });
 });

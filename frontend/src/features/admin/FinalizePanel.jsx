@@ -99,14 +99,7 @@ export default function FinalizePanel({
           </div>
         )}
 
-        {/* UX-9: single-slot auto-select hint */}
-        {slots.length === 1 && (
-          <p className="single-slot-hint" data-testid="single-slot-hint">
-            {t('finalize.singleSlotHint')}
-          </p>
-        )}
-
-        <div>
+<div>
           <fieldset className="venue-mode-fieldset">
             <legend>{t('finalize.venueLegend')}</legend>
             <div className="venue-mode-options">

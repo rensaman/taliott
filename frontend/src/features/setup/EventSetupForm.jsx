@@ -245,20 +245,6 @@ export default function EventSetupForm({ onCreated }) {
           <>
             <h2>{t('setup.email.heading')}</h2>
             <div className="field">
-              <label htmlFor="organizer-name" className="field-label">{t('setup.email.nameLabel')}</label>
-              <input
-                id="organizer-name"
-                className="wizard-input"
-                type="text"
-                autoComplete="name"
-                data-testid="organizer-name-input"
-                value={formData.organizerName}
-                onChange={e => update('organizerName', e.target.value)}
-                autoFocus
-                placeholder={t('setup.email.namePlaceholder')}
-              />
-            </div>
-            <div className="field">
               <label htmlFor="organizer-email" className="field-label">{t('setup.email.label')}</label>
               <input
                 id="organizer-email"
@@ -268,7 +254,21 @@ export default function EventSetupForm({ onCreated }) {
                 data-testid="organizer-email-input"
                 value={formData.organizerEmail}
                 onChange={e => update('organizerEmail', e.target.value)}
+                autoFocus
                 placeholder={t('setup.email.placeholder')}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="organizer-name" className="field-label">{t('setup.email.nameLabel')}</label>
+              <input
+                id="organizer-name"
+                className="wizard-input"
+                type="text"
+                autoComplete="name"
+                data-testid="organizer-name-input"
+                value={formData.organizerName}
+                onChange={e => update('organizerName', e.target.value)}
+                placeholder={t('setup.email.namePlaceholder')}
               />
             </div>
           </>

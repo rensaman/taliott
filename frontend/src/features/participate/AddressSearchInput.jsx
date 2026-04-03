@@ -7,9 +7,11 @@ export default function AddressSearchInput({ onSelect }) {
   const { t, i18n } = useTranslation();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [locked, setLocked] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
+    if (locked) return;
     if (debouncedQuery.length < 3) {
       setResults([]);
       return;
@@ -20,12 +22,18 @@ export default function AddressSearchInput({ onSelect }) {
       .then(setResults)
       .catch(err => { if (err.name !== 'AbortError') setResults([]); });
     return () => controller.abort();
-  }, [debouncedQuery]);
+  }, [debouncedQuery, locked]);
 
   function handleSelect(result) {
     setQuery(result.label);
+    setLocked(true);
     setResults([]);
     onSelect(result);
+  }
+
+  function handleChange(e) {
+    setQuery(e.target.value);
+    if (locked) setLocked(false);
   }
 
   return (
@@ -36,7 +44,7 @@ export default function AddressSearchInput({ onSelect }) {
         className="rw-address-input"
         type="text"
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={handleChange}
         placeholder={t('participate.location.searchPlaceholder')}
         autoComplete="off"
       />

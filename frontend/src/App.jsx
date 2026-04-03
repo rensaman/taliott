@@ -195,11 +195,15 @@ export default function App() {
     );
   }
 
+  const legalPage = isPrivacyPage() || isTermsPage() || isPrivacyHuPage() || isTermsHuPage();
+
   return (
     <>
-      <div className="lang-corner">
-        <LanguageSelector />
-      </div>
+      {!legalPage && (
+        <div className="lang-corner">
+          <LanguageSelector />
+        </div>
+      )}
       {renderView()}
     </>
   );
