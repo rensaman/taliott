@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { haversineDistance, sortVenues, fetchVenuesFromOverpass, getCachedVenues, venueCache, MAX_VENUE_DISTANCE_M } from './venues.js';
+import { haversineDistance, sortVenues, fetchVenuesFromOSM, getCachedVenues, venueCache } from './venues.js';
+
+vi.mock('./prisma.js', () => ({ getPrisma: vi.fn() }));
+import { getPrisma } from './prisma.js';
 
 describe('haversineDistance', () => {
   it('returns 0 for identical points', () => {
@@ -65,132 +68,102 @@ describe('sortVenues', () => {
 describe('getCachedVenues', () => {
   const venues = [{ externalId: '1', name: 'Café', latitude: 51.501, longitude: -0.1, rating: null, distanceM: 100, website: null, address: null }];
 
-  function makeFetch(v = venues) {
-    return vi.fn().mockResolvedValue({ ok: true, json: async () => ({ elements: [] }) });
-  }
-
   beforeEach(() => venueCache.clear());
 
   it('fetches and caches on first call', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [{ id: 1, lat: 51.501, lon: -0.1, tags: { name: 'Café' } }] }),
-    });
-    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
-    expect(mockFetch).toHaveBeenCalledOnce();
+    const mockDataFn = vi.fn().mockResolvedValue(venues);
+    await getCachedVenues('cafe', 51.5, -0.1, mockDataFn);
+    expect(mockDataFn).toHaveBeenCalledOnce();
     expect(venueCache.size).toBe(1);
   });
 
   it('returns cached result on second call without fetching again', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [] }),
-    });
-    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
-    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
-    expect(mockFetch).toHaveBeenCalledOnce();
+    const mockDataFn = vi.fn().mockResolvedValue(venues);
+    await getCachedVenues('cafe', 51.5, -0.1, mockDataFn);
+    await getCachedVenues('cafe', 51.5, -0.1, mockDataFn);
+    expect(mockDataFn).toHaveBeenCalledOnce();
   });
 
   it('uses the same cache bucket for coordinates rounded to 3 decimal places', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [] }),
-    });
-    await getCachedVenues('cafe', 51.5001, -0.1001, mockFetch);
-    await getCachedVenues('cafe', 51.5004, -0.1004, mockFetch);
-    expect(mockFetch).toHaveBeenCalledOnce();
+    const mockDataFn = vi.fn().mockResolvedValue(venues);
+    await getCachedVenues('cafe', 51.5001, -0.1001, mockDataFn);
+    await getCachedVenues('cafe', 51.5004, -0.1004, mockDataFn);
+    expect(mockDataFn).toHaveBeenCalledOnce();
   });
 
   it('revalidates in background when cache is stale but within stale window', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [] }),
-    });
+    const mockDataFn = vi.fn().mockResolvedValue(venues);
     // Seed a stale entry (70 min old)
     const key = 'cafe:51.500:-0.100';
     venueCache.set(key, { venues, fetchedAt: Date.now() - 70 * 60 * 1000 });
-    const result = await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
+    const result = await getCachedVenues('cafe', 51.5, -0.1, mockDataFn);
     expect(result).toBe(venues); // returned stale immediately
     // Background fetch is kicked off — wait a tick
     await new Promise(r => setTimeout(r, 0));
-    expect(mockFetch).toHaveBeenCalledOnce();
+    expect(mockDataFn).toHaveBeenCalledOnce();
   });
 
   it('fetches synchronously when cache is expired beyond stale window', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [] }),
-    });
+    const mockDataFn = vi.fn().mockResolvedValue(venues);
     const key = 'cafe:51.500:-0.100';
     venueCache.set(key, { venues, fetchedAt: Date.now() - 3 * 60 * 60 * 1000 });
-    await getCachedVenues('cafe', 51.5, -0.1, mockFetch);
-    expect(mockFetch).toHaveBeenCalledOnce();
+    await getCachedVenues('cafe', 51.5, -0.1, mockDataFn);
+    expect(mockDataFn).toHaveBeenCalledOnce();
     // Cache should be refreshed
     expect(venueCache.get(key).fetchedAt).toBeGreaterThan(Date.now() - 1000);
   });
 });
 
-describe('fetchVenuesFromOverpass', () => {
-  it('calls Overpass with correct query containing venue type, coordinates, and configured radius', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ elements: [] }),
-    });
-    await fetchVenuesFromOverpass('restaurant', 51.5, -0.1, mockFetch);
-    expect(mockFetch).toHaveBeenCalledOnce();
-    const [url, opts] = mockFetch.mock.calls[0];
-    const body = decodeURIComponent(opts.body);
-    expect(url).toContain('overpass-api.de');
-    expect(body).toContain('amenity=restaurant');
-    expect(body).toContain('51.5');
-    expect(body).toContain('-0.1');
-    expect(body).toContain(`around:${MAX_VENUE_DISTANCE_M}`);
-  });
+describe('fetchVenuesFromOSM', () => {
+  it('maps DB rows to venue objects with correct shape', async () => {
+    const mockRows = [
+      { externalId: '123', name: 'The Pub', latitude: 51.501, longitude: -0.102, distanceM: 150, website: null, address: null },
+    ];
+    getPrisma.mockReturnValue({ $queryRaw: vi.fn().mockResolvedValue(mockRows) });
 
-  it('maps Overpass elements to venue objects with computed distance', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        elements: [
-          { id: 123, lat: 51.501, lon: -0.102, tags: { name: 'The Pub', amenity: 'bar' } },
-        ],
-      }),
-    });
-    const results = await fetchVenuesFromOverpass('bar', 51.5, -0.1, mockFetch);
+    const results = await fetchVenuesFromOSM('bar', 51.5, -0.1);
     expect(results).toHaveLength(1);
     expect(results[0].externalId).toBe('123');
     expect(results[0].name).toBe('The Pub');
     expect(results[0].latitude).toBe(51.501);
     expect(results[0].longitude).toBe(-0.102);
-    expect(typeof results[0].distanceM).toBe('number');
-    expect(results[0].distanceM).toBeGreaterThan(0);
+    expect(results[0].distanceM).toBe(150);
     expect(results[0].rating).toBeNull();
   });
 
-  it('uses "Unnamed" for elements without a name tag', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        elements: [{ id: 456, lat: 51.5, lon: -0.1, tags: { amenity: 'restaurant' } }],
-      }),
-    });
-    const results = await fetchVenuesFromOverpass('restaurant', 51.5, -0.1, mockFetch);
-    expect(results[0].name).toBe('Unnamed');
-  });
-
-  it('returns empty array when Overpass returns no elements', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
-    const results = await fetchVenuesFromOverpass('bar', 51.5, -0.1, mockFetch);
+  it('returns empty array when no OSM results', async () => {
+    getPrisma.mockReturnValue({ $queryRaw: vi.fn().mockResolvedValue([]) });
+    const results = await fetchVenuesFromOSM('bar', 51.5, -0.1);
     expect(results).toEqual([]);
   });
 
-  it('throws when Overpass responds with an error status', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: false, status: 429 });
-    await expect(
-      fetchVenuesFromOverpass('bar', 51.5, -0.1, mockFetch)
-    ).rejects.toThrow('429');
+  it('uses "Unnamed" for rows without a name', async () => {
+    const mockRows = [
+      { externalId: '456', name: 'Unnamed', latitude: 51.5, longitude: -0.1, distanceM: 50, website: null, address: null },
+    ];
+    getPrisma.mockReturnValue({ $queryRaw: vi.fn().mockResolvedValue(mockRows) });
+    const results = await fetchVenuesFromOSM('restaurant', 51.5, -0.1);
+    expect(results[0].name).toBe('Unnamed');
+  });
+
+  it('coerces numeric fields to numbers', async () => {
+    const mockRows = [
+      { externalId: '999', name: 'Test', latitude: '51.5010', longitude: '-0.1020', distanceM: '150', website: null, address: null },
+    ];
+    getPrisma.mockReturnValue({ $queryRaw: vi.fn().mockResolvedValue(mockRows) });
+    const results = await fetchVenuesFromOSM('cafe', 51.5, -0.1);
+    expect(typeof results[0].latitude).toBe('number');
+    expect(typeof results[0].longitude).toBe('number');
+    expect(typeof results[0].distanceM).toBe('number');
+  });
+
+  it('normalises null website and address', async () => {
+    const mockRows = [
+      { externalId: '888', name: 'No Web', latitude: 51.5, longitude: -0.1, distanceM: 50, website: undefined, address: undefined },
+    ];
+    getPrisma.mockReturnValue({ $queryRaw: vi.fn().mockResolvedValue(mockRows) });
+    const [result] = await fetchVenuesFromOSM('cafe', 51.5, -0.1);
+    expect(result.website).toBeNull();
+    expect(result.address).toBeNull();
   });
 });

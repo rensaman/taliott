@@ -1,4 +1,6 @@
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+import { Prisma } from '@prisma/client';
+import { getPrisma } from './prisma.js';
+
 export const MAX_VENUE_DISTANCE_M = Number(process.env.MAX_VENUE_DISTANCE_M) || 800;
 
 const CACHE_FRESH_MS = 60 * 60 * 1000;  // 1 hour
@@ -25,7 +27,44 @@ export function sortVenues(venues) {
   });
 }
 
-export async function getCachedVenues(venueType, lat, lng, fetchFn = fetch) {
+export async function fetchVenuesFromOSM(venueType, lat, lng) {
+  const rows = await getPrisma().$queryRaw(Prisma.sql`
+    SELECT
+      osm_id::text                                         AS "externalId",
+      COALESCE(name, 'Unnamed')                            AS name,
+      ST_Y(ST_Transform(way, 4326))                        AS latitude,
+      ST_X(ST_Transform(way, 4326))                        AS longitude,
+      ROUND(ST_Distance(
+        geography(ST_Transform(way, 4326)),
+        ST_MakePoint(${lng}::float8, ${lat}::float8)::geography
+      ))::int                                              AS "distanceM",
+      COALESCE(tags->'website', tags->'url')               AS website,
+      NULLIF(CONCAT_WS(' ',
+        tags->'addr:housenumber',
+        tags->'addr:street',
+        tags->'addr:city'
+      ), '')                                               AS address
+    FROM planet_osm_point
+    WHERE amenity = ${venueType}
+      AND ST_DWithin(
+        geography(ST_Transform(way, 4326)),
+        ST_MakePoint(${lng}::float8, ${lat}::float8)::geography,
+        ${MAX_VENUE_DISTANCE_M}::float8
+      )
+  `);
+  return rows.map(row => ({
+    externalId: row.externalId,
+    name: row.name,
+    latitude: Number(row.latitude),
+    longitude: Number(row.longitude),
+    rating: null,
+    distanceM: Number(row.distanceM),
+    website: row.website ?? null,
+    address: row.address ?? null,
+  }));
+}
+
+export async function getCachedVenues(venueType, lat, lng, dataFn = fetchVenuesFromOSM) {
   const key = `${venueType}:${lat.toFixed(3)}:${lng.toFixed(3)}`;
   const cached = venueCache.get(key);
   const now = Date.now();
@@ -36,51 +75,14 @@ export async function getCachedVenues(venueType, lat, lng, fetchFn = fetch) {
       return cached.venues;
     }
     if (age < CACHE_STALE_MS) {
-      fetchVenuesFromOverpass(venueType, lat, lng, fetchFn)
+      dataFn(venueType, lat, lng)
         .then(venues => venueCache.set(key, { venues, fetchedAt: Date.now() }))
         .catch(() => {});
       return cached.venues;
     }
   }
 
-  const venues = await fetchVenuesFromOverpass(venueType, lat, lng, fetchFn);
+  const venues = await dataFn(venueType, lat, lng);
   venueCache.set(key, { venues, fetchedAt: now });
   return venues;
-}
-
-export async function fetchVenuesFromOverpass(venueType, lat, lng, fetchFn = fetch) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
-
-  const query = `[out:json];node(around:${MAX_VENUE_DISTANCE_M},${lat},${lng})[amenity=${venueType}];out body;`;
-  try {
-    const res = await fetchFn(OVERPASS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(query)}`,
-      signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`Overpass API error: ${res.status}`);
-    const data = await res.json();
-    return (data.elements || []).map(el => {
-      const tags = el.tags ?? {};
-      const addrParts = [
-        tags['addr:housenumber'],
-        tags['addr:street'],
-        tags['addr:city'],
-      ].filter(Boolean);
-      return {
-        externalId: String(el.id),
-        name: tags.name || 'Unnamed',
-        latitude: el.lat,
-        longitude: el.lon,
-        rating: null,
-        distanceM: Math.round(haversineDistance(lat, lng, el.lat, el.lon)),
-        website: tags.website || tags.url || null,
-        address: addrParts.length > 0 ? addrParts.join(' ') : null,
-      };
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
 }

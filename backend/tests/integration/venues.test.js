@@ -6,6 +6,8 @@ import { describe, it, expect, afterAll, vi, beforeEach, afterEach } from 'vites
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/index.js';
+import { getPrisma } from '../../src/lib/prisma.js';
+import { venueCache, haversineDistance } from '../../src/lib/venues.js';
 
 const prisma = new PrismaClient();
 const createdEventIds = [];
@@ -22,13 +24,25 @@ const BASE_EVENT = {
   deadline: FUTURE_DEADLINE,
 };
 
-const MOCK_OVERPASS_RESPONSE = {
-  elements: [
-    // centroid ≈ (51.5, -0.1); both venues within 800 m
-    { id: 111, lat: 51.501, lon: -0.102, tags: { name: 'The Restaurant', amenity: 'restaurant' } }, // ~135 m
-    { id: 222, lat: 51.503, lon: -0.106, tags: { name: 'Cafe Bistro', amenity: 'restaurant' } },   // ~476 m
-  ],
-};
+// Base venue fixtures — lat/lng only; distanceM is computed per-call from the query centroid
+const MOCK_OSM_BASE = [
+  // centroid ≈ (51.5, -0.1); both venues within 800 m
+  { externalId: '111', name: 'The Restaurant', latitude: 51.501, longitude: -0.102, website: null, address: null },
+  { externalId: '222', name: 'Cafe Bistro', latitude: 51.503, longitude: -0.106, website: null, address: null },
+];
+
+// Spy factory: intercepts $queryRaw and computes distanceM from the centroid
+// embedded in the SQL args (values order: lng, lat, venueType, lng, lat, MAX_DIST)
+function makeOsmSpy(venues) {
+  return vi.spyOn(getPrisma(), '$queryRaw').mockImplementation(async (sqlObj) => {
+    const lng = sqlObj.values[0];
+    const lat = sqlObj.values[1];
+    return venues.map(v => ({
+      ...v,
+      distanceM: Math.round(haversineDistance(lat, lng, v.latitude, v.longitude)),
+    }));
+  });
+}
 
 afterAll(async () => {
   await prisma.event.deleteMany({ where: { id: { in: createdEventIds } } });
@@ -49,14 +63,14 @@ async function giveLocation(participantId, lat = 51.5, lng = -0.1) {
     .send({ latitude: lat, longitude: lng });
 }
 
+let queryRawSpy;
+
 describe('GET /api/events/:adminToken/venues', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_OVERPASS_RESPONSE,
-    }));
+    venueCache.clear();
+    queryRawSpy = makeOsmSpy(MOCK_OSM_BASE);
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => vi.restoreAllMocks());
 
   it('returns 404 for unknown admin token', async () => {
     const res = await request(app).get('/api/events/00000000-0000-0000-0000-000000000000/venues');
@@ -77,7 +91,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res.body.error).toMatch(/location/i);
   });
 
-  it('calls external API and returns sorted venues', async () => {
+  it('calls OSM and returns sorted venues', async () => {
     const { admin_token, participants } = await createEvent();
     await giveLocation(participants[0].id);
 
@@ -92,10 +106,9 @@ describe('GET /api/events/:adminToken/venues', () => {
       longitude: expect.any(Number),
     });
 
-    // Verify Overpass was called with correct params
-    const [url, opts] = fetch.mock.calls[0];
-    expect(url).toContain('overpass-api.de');
-    expect(decodeURIComponent(opts.body)).toContain('amenity=restaurant');
+    // Verify OSM was queried with the correct venue type
+    expect(queryRawSpy).toHaveBeenCalledOnce();
+    expect(queryRawSpy.mock.calls[0][0].values).toContain('restaurant');
   });
 
   it('returns venues sorted by distance ascending', async () => {
@@ -110,15 +123,15 @@ describe('GET /api/events/:adminToken/venues', () => {
     }
   });
 
-  it('returns cached venues on second call without calling external API', async () => {
+  it('returns cached venues on second call without querying OSM', async () => {
     const { admin_token, participants } = await createEvent();
     await giveLocation(participants[0].id);
 
     const res1 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res1.status).toBe(200);
 
-    // Replace mock with one that throws — a cache miss would fail the test
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Should not call external API')));
+    // Replace spy with one that throws — a cache miss would fail the test
+    queryRawSpy.mockRejectedValue(new Error('Should not query OSM'));
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res2.status).toBe(200);
@@ -132,8 +145,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     const res = await request(app).get(`/api/events/${admin_token}/venues?venue_type=bar`);
     expect(res.status).toBe(200);
 
-    const callBody = decodeURIComponent(fetch.mock.calls[0][1].body);
-    expect(callBody).toContain('amenity=bar');
+    expect(queryRawSpy.mock.calls[0][0].values).toContain('bar');
   });
 
   it('includes venue_type as null in the admin event response when not set', async () => {
@@ -154,22 +166,21 @@ describe('GET /api/events/:adminToken/venues', () => {
     // Second participant joins → cache must be invalidated
     await giveLocation(participants[1].id, 51.502, -0.103);
 
-    // Reject next fetch: if cache were still present it would return 200; 502 confirms re-fetch was attempted
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Overpass unavailable')));
+    // Reject next OSM query: if cache were still present it would return 200; 502 confirms re-fetch was attempted
+    queryRawSpy.mockRejectedValue(new Error('OSM unavailable'));
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res2.status).toBe(502);
   });
 
   it('re-fetches venues with the updated centroid after cache invalidation', async () => {
     // P1 and P2 ~960 m apart; both venues within 800 m of every centroid position
-    const MOCK_VENUES = {
-      elements: [
-        { id: 301, lat: 47.501, lon: 19.051, tags: { name: 'Near P1', amenity: 'restaurant' } }, // ~134 m from P1
-        { id: 302, lat: 47.505, lon: 19.057, tags: { name: 'Near P2', amenity: 'restaurant' } }, // ~733 m from P1, ~301 m from midpoint
-      ],
-    };
+    const MOCK_VENUES = [
+      { externalId: '301', name: 'Near P1', latitude: 47.501, longitude: 19.051, website: null, address: null },
+      { externalId: '302', name: 'Near P2', latitude: 47.505, longitude: 19.057, website: null, address: null },
+    ];
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_VENUES }));
+    vi.restoreAllMocks();
+    queryRawSpy = makeOsmSpy(MOCK_VENUES);
     const { admin_token, participants } = await createEvent({ participant_emails: ['p2-stale@example.com'] });
     await giveLocation(participants[0].id, 47.500, 19.050);
 
@@ -177,30 +188,28 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res1.status).toBe(200);
     const distances1 = res1.body.venues.map(v => v.distanceM);
 
-    // P2 joins → cache invalidated; mock still resolves for the re-fetch
+    // P2 joins → cache invalidated; spy still resolves for the re-fetch
     await giveLocation(participants[1].id, 47.506, 19.058); // centroid shifts to ~(47.503, 19.054)
 
     const res2 = await request(app).get(`/api/events/${admin_token}/venues?venue_type=restaurant`);
     expect(res2.status).toBe(200);
     expect(res2.body.venues.map(v => v.name)).toEqual(expect.arrayContaining(['Near P1', 'Near P2']));
-    // Distances differ because Overpass was re-queried with the new centroid
+    // Distances differ because the re-fetch queries PostGIS with the new centroid
     const distances2 = res2.body.venues.map(v => v.distanceM);
     expect(distances2).not.toEqual(distances1);
   });
 
   it('reflects the updated sort order when the centroid shifts after a new participant responds', async () => {
     // P1: (47.500, 19.050), P2: (47.506, 19.058) — ~960 m apart
-    // Near P1 at (47.499, 19.048): ~176 m from P1-centroid, ~600 m from midpoint (47.503, 19.054)
-    // Near P2 at (47.502, 19.053): ~301 m from P1-centroid, ~130 m from midpoint → order reverses
-    // Both venues stay within 800 m throughout
-    const MOCK_ORDER_VENUES = {
-      elements: [
-        { id: 401, lat: 47.499, lon: 19.048, tags: { name: 'Near P1', amenity: 'cafe' } },
-        { id: 402, lat: 47.502, lon: 19.053, tags: { name: 'Near P2', amenity: 'cafe' } },
-      ],
-    };
+    // Near P1 at (47.499, 19.048): ~186 m from P1-centroid, ~631 m from midpoint (47.503, 19.054)
+    // Near P2 at (47.502, 19.053): ~316 m from P1-centroid, ~134 m from midpoint → order reverses
+    const MOCK_ORDER_VENUES = [
+      { externalId: '401', name: 'Near P1', latitude: 47.499, longitude: 19.048, website: null, address: null },
+      { externalId: '402', name: 'Near P2', latitude: 47.502, longitude: 19.053, website: null, address: null },
+    ];
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => MOCK_ORDER_VENUES }));
+    vi.restoreAllMocks();
+    queryRawSpy = makeOsmSpy(MOCK_ORDER_VENUES);
     const { admin_token, participants } = await createEvent({ participant_emails: ['p2-order@example.com'] });
     await giveLocation(participants[0].id, 47.500, 19.050);
 
@@ -208,7 +217,7 @@ describe('GET /api/events/:adminToken/venues', () => {
     expect(res1.status).toBe(200);
     expect(res1.body.venues[0].name).toBe('Near P1');
 
-    // Participant 2 joins → cache invalidated; mock still resolves for the re-fetch
+    // Participant 2 joins → cache invalidated; spy still resolves for the re-fetch
     // New centroid ~(47.503, 19.054) → Near P2 becomes closer
     await giveLocation(participants[1].id, 47.506, 19.058);
 
