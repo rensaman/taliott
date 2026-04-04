@@ -21,7 +21,7 @@
 
 /* ── Hero ──────────────────────────────────────── */
 .landing-hero {
-  padding: 2.5rem 1.25rem 2rem;
+  padding: 2.5rem 1.25rem 0.5rem;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -44,7 +44,7 @@
   width: 3rem;
   height: 3px;
   background: var(--red);
-  margin: 1.5rem 0;
+  margin: 0.75rem 0;
 }
 
 .landing-sub {
@@ -56,7 +56,7 @@
 
 /* ── Route steps ───────────────────────────────── */
 .landing-route {
-  padding: 2rem 1.25rem;
+  padding: 0.5rem 1.25rem;
   display: flex;
   flex-direction: column;
 }
@@ -103,7 +103,7 @@
 
 .route-text {
   padding-top: 0.2rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
 }
 
 .route-text-label {
@@ -125,7 +125,7 @@
 
 /* ── CTA ───────────────────────────────────────── */
 .landing-cta-section {
-  padding: 1.5rem 1.25rem 0;
+  padding: 0.375rem 1.25rem 0;
 }
 
 .landing-cta {
@@ -153,7 +153,7 @@
 }
 
 .landing-recover {
-  margin-top: 1rem;
+  margin-top: 2rem;
   padding: 0 1.25rem;
   font-size: 0.8rem;
   color: var(--muted);
@@ -175,9 +175,9 @@
 }
 
 .landing-footer a {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.04em;
   color: var(--muted);
   text-decoration: none;
 }
@@ -197,15 +197,15 @@
   }
 
   .landing-hero {
-    padding: 3.5rem 2rem 2.5rem;
+    padding: 3.5rem 2rem 0.625rem;
   }
 
   .landing-route {
-    padding: 2.5rem 2rem;
+    padding: 0.625rem 2rem;
   }
 
   .landing-cta-section {
-    padding: 1.5rem 2rem 0;
+    padding: 0.375rem 2rem 0;
   }
 
   .landing-recover {
