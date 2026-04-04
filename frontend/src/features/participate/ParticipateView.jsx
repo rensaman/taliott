@@ -30,6 +30,10 @@ export default function ParticipateView({ participantId }) {
       .catch(err => setError(err.message));
   }, [participantId]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [updatingStep, data?.participant?.responded_at]);
+
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>{t('participate.loading')}</p>;
 

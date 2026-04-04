@@ -35,6 +35,10 @@ export default function JoinView({ joinToken }) {
       .catch(() => setError('error'));
   }, [joinToken]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setFieldError('');
