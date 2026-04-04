@@ -19,6 +19,15 @@ const adminMutateLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== 'production',
 });
 
+// SEC-2b: write limiter for event creation and email-sending routes
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+});
+
 // SEC-3: lenient per-route limiter for venue lookup (read-only, admin-facing, frequent during planning)
 const venueLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -49,7 +58,7 @@ function isValidIANATimezone(tz) {
   }
 }
 
-router.post('/', async (req, res) => {
+router.post('/', writeLimiter, async (req, res) => {
   const {
     name,
     organizer_email,
@@ -452,7 +461,7 @@ router.post('/:adminToken/finalize', adminMutateLimiter, requireSameOrigin, asyn
   return res.json({ ok: true, status: 'finalized' });
 });
 
-router.post('/:adminToken/participants/:participantId/resend-invite', async (req, res) => {
+router.post('/:adminToken/participants/:participantId/resend-invite', writeLimiter, async (req, res) => {
   const { adminToken, participantId } = req.params;
 
   let event;

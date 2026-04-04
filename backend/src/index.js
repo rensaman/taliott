@@ -61,7 +61,7 @@ const geocodeLimiter = rateLimit({
 });
 
 app.use('/api/health', healthRouter);
-app.use('/api/events', writeLimiter, eventsRouter);
+app.use('/api/events', eventsRouter);
 app.use('/api/participate', participateLimiter, participateRouter);
 app.use('/api/geocode', geocodeLimiter, geocodeRouter);
 app.use('/api/join', writeLimiter, joinRouter);
