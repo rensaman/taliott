@@ -7,12 +7,12 @@
 #   Docker: see alternative command below
 #
 # Usage (dev):
-#   bash backend/scripts/setup-osm.sh
+#   bash scripts/setup-osm.sh
 #
 # Usage (custom region or DB):
 #   OSM_EXTRACT_URL=https://download.geofabrik.de/europe/austria-latest.osm.pbf \
 #   DATABASE_URL=postgresql://user:pass@host:5432/dbname \
-#   bash backend/scripts/setup-osm.sh
+#   bash scripts/setup-osm.sh
 #
 # Docker alternative (no local osm2pgsql required):
 #   docker run --rm \
