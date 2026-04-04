@@ -23,7 +23,11 @@ export default function VenueList({ adminToken, defaultVenueType, selectedId, on
   const venueTypesKey = venueTypes.join(',');
 
   useEffect(() => {
-    if (venueTypes.length === 0) return;
+    if (venueTypes.length === 0) {
+      setVenues(null);
+      onVenuesLoadedRef.current?.([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     setDisplayLimit(DEFAULT_LIMIT);

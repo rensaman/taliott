@@ -19,6 +19,15 @@ const adminMutateLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== 'production',
 });
 
+// SEC-3: lenient per-route limiter for venue lookup (read-only, admin-facing, frequent during planning)
+const venueLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production',
+});
+
 // SEC-2: reject cross-origin mutations; allow server-side callers (no Origin header)
 function requireSameOrigin(req, res, next) {
   const origin = req.headers.origin;
@@ -276,7 +285,7 @@ router.get('/:adminToken/stream', async (req, res) => {
   subscribe(event.id, res);
 });
 
-router.get('/:adminToken/venues', async (req, res) => {
+router.get('/:adminToken/venues', venueLimiter, async (req, res) => {
   const { adminToken } = req.params;
   const venueTypeOverride = req.query.venue_type;
 
