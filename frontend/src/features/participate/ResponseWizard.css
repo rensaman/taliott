@@ -359,6 +359,10 @@
   padding: 1.5rem 1.25rem;
 }
 
+.pv-main:first-child {
+  padding-bottom: 0.3rem;
+}
+
 .pv-event-title {
   font-size: clamp(1.6rem, 6vw, 2.4rem);
   margin-bottom: 0.5rem;
@@ -463,6 +467,19 @@
 
 .pv-overview-slots {
   overflow-y: auto;
+}
+
+/* ── "What happens next" section spacing ────────────────────────────────── */
+.pv-main:has(+ [data-testid="pv-next-steps"]) {
+  padding-bottom: 0.3rem;
+}
+
+[data-testid="pv-next-steps"] {
+  padding-top: 0.25rem;
+}
+
+[data-testid="pv-next-steps"] .pv-main {
+  padding-top: 0.3rem;
 }
 
 /* ── Next steps list ─────────────────────────────────────────────────────── */

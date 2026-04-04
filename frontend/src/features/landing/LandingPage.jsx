@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LegalFooter from '../legal/LegalFooter.jsx';
 import './LandingPage.css';
 
 export default function LandingPage({ onStart }) {
   const { t } = useTranslation();
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const steps = [
     { label: t('landing.step1.label'), desc: t('landing.step1.desc') },

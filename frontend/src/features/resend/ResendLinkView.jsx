@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import LegalFooter from '../legal/LegalFooter.jsx';
 import '../setup/EventSetupForm.css';
@@ -6,6 +6,7 @@ import '../join/JoinView.css';
 
 export default function ResendLinkView() {
   const { t } = useTranslation();
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);

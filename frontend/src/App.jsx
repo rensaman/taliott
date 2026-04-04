@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import EventSetupForm from './features/setup/EventSetupForm.jsx';
 import ParticipateView from './features/participate/ParticipateView.jsx';
@@ -37,6 +37,7 @@ function execCommandCopy(text) {
 
 function ConfirmationView({ confirmation }) {
   const { t } = useTranslation();
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const [copied, setCopied] = useState(false);
   const adminUrl = `${window.location.origin}/admin/${confirmation.admin_token}`;
   const joinUrl = confirmation.join_url

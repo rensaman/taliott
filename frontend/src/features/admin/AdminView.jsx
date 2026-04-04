@@ -39,6 +39,7 @@ function scoreSlots(slots, participants) {
 
 export default function AdminView({ adminToken }) {
   const { t, i18n } = useTranslation();
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const [data, setData] = useState(null);
   const [venues, setVenues] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
